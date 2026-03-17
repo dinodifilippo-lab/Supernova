@@ -471,7 +471,7 @@ flex-shrink: 0;
 <div class="header">
   <div class="header-title">Super<span>-NOVA</span></div>
   <div class="header-sub">Test Trascrizione</div>
-  <div class="header-badge">Whisper · Groq · Safari iOS</div>
+  <div class="header-badge">Whisper · Groq · <span id="activeLang">—</span></div>
 </div>
 
 <!-- SETUP SCREEN -->
@@ -480,26 +480,49 @@ flex-shrink: 0;
   <div class="setup-icon">🎙</div>
   <div class="setup-text">
     <h2>Configura il test</h2>
-    <p>Inserisci la chiave API Groq per attivare la trascrizione continua via Whisper. La chiave non viene salvata.</p>
+    <p id="setupText">Inserisci la chiave API Groq per attivare la trascrizione continua via Whisper.</p>
   </div>
   <div class="api-form">
     <div>
-      <div class="field-label">Chiave API OpenAI</div>
+      <div class="field-label">Chiave API Groq</div>
       <input type="password" class="api-input" id="apiKeyInput" placeholder="gsk_..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="rememberKey" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;">
+        <label for="rememberKey" style="font-size:12px;color:var(--text-dim);cursor:pointer;">Ricorda su questo dispositivo</label>
+        <button onclick="forgetKey()" id="forgetBtn" style="display:none;margin-left:auto;background:none;border:none;font-size:11px;color:var(--danger);cursor:pointer;text-decoration:underline;">Dimentica</button>
+      </div>
+    </div>
+    <div>
+      <div class="field-label">Lingua</div>
+      <select class="chunk-select" id="languageSelect">
+        <option value="">Rileva automaticamente</option>
+        <option value="it">Italiano</option>
+        <option value="en">English</option>
+        <option value="fr">Francais</option>
+        <option value="de">Deutsch</option>
+        <option value="es">Espanol</option>
+        <option value="pt">Portugues</option>
+        <option value="nl">Nederlands</option>
+        <option value="pl">Polski</option>
+        <option value="ru">Russky</option>
+        <option value="zh">Cinese</option>
+        <option value="ja">Giapponese</option>
+        <option value="ar">Arabo</option>
+      </select>
     </div>
     <div>
       <div class="field-label">Durata chunk automatico</div>
       <select class="chunk-select" id="chunkDuration">
-        <option value="60">1 minuto — più reattivo, più chiamate API</option>
-        <option value="120" selected>2 minuti — bilanciato (raccomandato)</option>
-        <option value="180">3 minuti — meno chiamate, più latenza</option>
+        <option value="60">1 minuto - piu reattivo, piu chiamate API</option>
+        <option value="120" selected>2 minuti - bilanciato (raccomandato)</option>
+        <option value="180">3 minuti - meno chiamate, piu latenza</option>
       </select>
     </div>
     <button class="btn-primary" id="startSetupBtn" onclick="initRecording()">
       Avvia sessione
     </button>
   </div>
-  <p class="note">Groq Whisper è completamente gratuito. La registrazione parte immediatamente dopo la conferma. Tieni lo schermo acceso e il dispositivo collegato alla corrente durante la riunione.</p>
+  <p class="note">Groq Whisper e completamente gratuito. La registrazione parte immediatamente dopo la conferma. Tieni lo schermo acceso e il dispositivo collegato alla corrente durante la riunione.</p>
 </div>
 
 <!-- RECORDING SCREEN -->
@@ -593,6 +616,28 @@ flex-shrink: 0;
   let fullTranscript = '';
 
   // ─── INIT ──────────────────────────────────────────────────────────────────
+  let selectedLanguage = '';
+
+  function loadSavedKey() {
+    try {
+      const saved = localStorage.getItem('groq_api_key');
+      if (saved) {
+        document.getElementById('apiKeyInput').value = saved;
+        document.getElementById('rememberKey').checked = true;
+        document.getElementById('forgetBtn').style.display = 'inline';
+        document.getElementById('setupText').textContent = 'Chiave salvata trovata. Premi Avvia per iniziare, oppure modifica la configurazione.';
+      }
+    } catch(e) {}
+  }
+
+  function forgetKey() {
+    try { localStorage.removeItem('groq_api_key'); } catch(e) {}
+    document.getElementById('apiKeyInput').value = '';
+    document.getElementById('rememberKey').checked = false;
+    document.getElementById('forgetBtn').style.display = 'none';
+    document.getElementById('setupText').textContent = 'Inserisci la chiave API Groq per attivare la trascrizione continua via Whisper.';
+  }
+
   function initRecording() {
     const key = document.getElementById('apiKeyInput').value.trim();
     if (!key || !key.startsWith('gsk_')) {
@@ -600,10 +645,26 @@ flex-shrink: 0;
       return;
     }
     apiKey = key;
+    // Salva se richiesto
+    try {
+      if (document.getElementById('rememberKey').checked) {
+        localStorage.setItem('groq_api_key', key);
+        document.getElementById('forgetBtn').style.display = 'inline';
+      } else {
+        localStorage.removeItem('groq_api_key');
+      }
+    } catch(e) {}
     chunkDurationSec = parseInt(document.getElementById('chunkDuration').value);
+    selectedLanguage = document.getElementById('languageSelect').value;
     document.getElementById('setupScreen').style.display = 'none';
     document.getElementById('recordingScreen').style.display = 'flex';
+    // Mostra lingua attiva nello status
+    const langLabel = document.getElementById('languageSelect').options[document.getElementById('languageSelect').selectedIndex].text;
+    document.getElementById('activeLang').textContent = langLabel;
   }
+
+  // Carica chiave salvata al boot
+  document.addEventListener('DOMContentLoaded', loadSavedKey);
 
   // ─── TOGGLE ────────────────────────────────────────────────────────────────
   async function toggleRecording() {
@@ -716,7 +777,7 @@ flex-shrink: 0;
       const formData = new FormData();
       formData.append('file', blob, 'audio_' + chunkIndex + '.' + ext);
       formData.append('model', 'whisper-large-v3-turbo');
-      formData.append('language', 'it');
+      if (selectedLanguage) formData.append('language', selectedLanguage);
       formData.append('response_format', 'text');
       const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
         method: 'POST',
