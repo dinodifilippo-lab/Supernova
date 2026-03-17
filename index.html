@@ -571,21 +571,28 @@ flex-shrink: 0;
 </div>
 
 <script>
+  // ─── CONFIG ────────────────────────────────────────────────────────────────
+  const OVERLAP_SEC = 4;
+  const MIN_BLOB_BYTES = 2000;
+
+  // ─── STATE ─────────────────────────────────────────────────────────────────
   let apiKey = '';
   let chunkDurationSec = 120;
-  let mediaRecorder = null;
-  let audioChunks = [];
   let isRecording = false;
+  let stream = null;
+  let mimeType = null;
+  let activeRecorder = null;
+  let activeChunks = [];
   let totalSeconds = 0;
   let chunkSeconds = 0;
   let timerInterval = null;
   let chunkInterval = null;
   let totalWords = 0;
   let totalChunks = 0;
-  let totalAudioMinutes = 0;
   let transcriptData = [];
-  let stream = null;
+  let fullTranscript = '';
 
+  // ─── INIT ──────────────────────────────────────────────────────────────────
   function initRecording() {
     const key = document.getElementById('apiKeyInput').value.trim();
     if (!key || !key.startsWith('gsk_')) {
@@ -598,186 +605,171 @@ flex-shrink: 0;
     document.getElementById('recordingScreen').style.display = 'flex';
   }
 
+  // ─── TOGGLE ────────────────────────────────────────────────────────────────
   async function toggleRecording() {
-    if (!isRecording) {
-      await startRecording();
-    } else {
-      await stopRecording();
-    }
+    if (!isRecording) await startSession();
+    else await stopSession();
   }
 
-  async function startRecording() {
+  // ─── START SESSION ─────────────────────────────────────────────────────────
+  async function startSession() {
     try {
       stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          channelCount: 1,
-          sampleRate: 16000,
-          echoCancellation: true,
-          noiseSuppression: true
-        }
+        audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true }
       });
     } catch (err) {
       showError('Impossibile accedere al microfono: ' + err.message);
       return;
     }
-
+    mimeType = getSupportedMimeType();
     isRecording = true;
-    audioChunks = [];
     chunkSeconds = 0;
-
-    const mimeType = getSupportedMimeType();
-    mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
-
-    mediaRecorder.ondataavailable = (e) => {
-      if (e.data && e.data.size > 0) audioChunks.push(e.data);
-    };
-
-    mediaRecorder.start(1000);
-
-    // UI
+    spawnRecorder();
     setStatus('recording', 'Registrazione in corso — il microfono è attivo');
     document.getElementById('mainBtn').className = 'btn-rec stop';
     document.getElementById('mainBtn').innerHTML = '⏹ Ferma registrazione';
     hideError();
-
-    // Timer globale
     timerInterval = setInterval(() => {
       totalSeconds++;
       document.getElementById('timerDisplay').textContent = formatTime(totalSeconds);
     }, 1000);
-
-    // Chunk progress bar e invio automatico
     chunkInterval = setInterval(() => {
       chunkSeconds++;
       const pct = (chunkSeconds / chunkDurationSec) * 100;
       document.getElementById('chunkBarFill').style.width = pct + '%';
-      const remaining = chunkDurationSec - chunkSeconds;
-      document.getElementById('chunkCountdown').textContent = formatTime(remaining);
-
+      document.getElementById('chunkCountdown').textContent = formatTime(chunkDurationSec - chunkSeconds);
       if (chunkSeconds >= chunkDurationSec) {
         chunkSeconds = 0;
         document.getElementById('chunkBarFill').style.width = '0%';
-        sendCurrentChunk();
+        rolloverChunk();
       }
     }, 1000);
   }
 
-  async function stopRecording() {
+  // ─── STOP SESSION ──────────────────────────────────────────────────────────
+  async function stopSession() {
     isRecording = false;
     clearInterval(timerInterval);
     clearInterval(chunkInterval);
-
     document.getElementById('mainBtn').className = 'btn-rec start';
     document.getElementById('mainBtn').innerHTML = '⏺ Avvia registrazione';
     document.getElementById('chunkBarFill').style.width = '0%';
     document.getElementById('chunkCountdown').textContent = '—';
-    setStatus('processing', 'Invio chunk finale a Whisper...');
-
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-      mediaRecorder.stop();
-      await new Promise(r => mediaRecorder.onstop = r);
+    setStatus('processing', 'Invio chunk finale...');
+    if (activeRecorder && activeRecorder.state !== 'inactive') {
+      const finalChunks = await stopRecorderAndCollect(activeRecorder, activeChunks);
+      if (finalChunks.length > 0) await sendChunk(finalChunks);
     }
     if (stream) stream.getTracks().forEach(t => t.stop());
-
-    // Invia chunk finale se c'è audio
-    if (audioChunks.length > 0) {
-      await sendChunk(audioChunks);
-      audioChunks = [];
-    }
-
+    activeRecorder = null;
+    activeChunks = [];
     setStatus('done', 'Registrazione terminata');
   }
 
-  async function sendCurrentChunk() {
-    if (!isRecording || audioChunks.length === 0) return;
-
-    // Pausa brevemente il recorder per raccogliere i dati
-    if (mediaRecorder.state === 'recording') {
-      mediaRecorder.requestData();
-    }
-
-    // Copia i chunk correnti e resetta
-    const chunksCopy = [...audioChunks];
-    audioChunks = [];
-
-    await sendChunk(chunksCopy);
+  // ─── SPAWN NEW RECORDER ────────────────────────────────────────────────────
+  function spawnRecorder() {
+    const chunks = [];
+    const rec = new MediaRecorder(stream, mimeType ? { mimeType } : {});
+    rec.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+    rec.start(500);
+    activeRecorder = rec;
+    activeChunks = chunks;
   }
 
+  // ─── ROLLOVER WITH OVERLAP ─────────────────────────────────────────────────
+  function rolloverChunk() {
+    const outgoingRecorder = activeRecorder;
+    const outgoingChunks = activeChunks;
+    // Avvia subito il nuovo recorder — overlap inizia
+    spawnRecorder();
+    // Dopo OVERLAP_SEC ferma il vecchio e invia
+    setTimeout(async () => {
+      if (outgoingRecorder.state !== 'inactive') {
+        const collected = await stopRecorderAndCollect(outgoingRecorder, outgoingChunks);
+        await sendChunk(collected);
+      }
+    }, OVERLAP_SEC * 1000);
+  }
+
+  // ─── STOP RECORDER & COLLECT ───────────────────────────────────────────────
+  function stopRecorderAndCollect(rec, chunksArr) {
+    return new Promise((resolve) => {
+      rec.onstop = () => resolve([...chunksArr]);
+      if (rec.state !== 'inactive') rec.stop();
+      else resolve([...chunksArr]);
+    });
+  }
+
+  // ─── SEND CHUNK TO GROQ WHISPER ────────────────────────────────────────────
   async function sendChunk(chunks) {
-    if (chunks.length === 0) return;
-
-    const mimeType = chunks[0].type || 'audio/webm';
-    const blob = new Blob(chunks, { type: mimeType });
-
-    if (blob.size < 1000) return; // Troppo piccolo, skip
-
-    // Aggiungi placeholder nel transcript
+    if (!chunks || chunks.length === 0) return;
+    const type = (chunks[0] && chunks[0].type) ? chunks[0].type : (mimeType || 'audio/mp4');
+    const blob = new Blob(chunks, { type });
+    if (blob.size < MIN_BLOB_BYTES) return;
     const chunkIndex = totalChunks;
     totalChunks++;
-    totalAudioMinutes += chunkDurationSec / 60;
     updateStats();
-
     addProcessingPlaceholder(chunkIndex);
-    setStatus('processing', 'Trascrizione chunk ' + totalChunks + ' in corso...');
-
+    if (isRecording) setStatus('recording', 'Registrazione in corso — trascrizione chunk ' + totalChunks + ' in background');
     try {
-      const ext = mimeType.includes('mp4') ? 'm4a' : mimeType.includes('ogg') ? 'ogg' : 'webm';
+      const ext = type.includes('mp4') || type.includes('m4a') ? 'm4a' : type.includes('ogg') ? 'ogg' : 'webm';
       const formData = new FormData();
-      formData.append('file', blob, 'audio.' + ext);
+      formData.append('file', blob, 'audio_' + chunkIndex + '.' + ext);
       formData.append('model', 'whisper-large-v3-turbo');
       formData.append('language', 'it');
       formData.append('response_format', 'text');
-
       const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + apiKey },
         body: formData
       });
-
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error?.message || 'Errore API ' + response.status);
+        throw new Error(errData.error?.message || 'HTTP ' + response.status);
       }
-
-      const text = await response.text();
-      const clean = text.trim();
-
-      if (clean) {
-        const words = clean.split(/\s+/).length;
-        totalWords += words;
-        transcriptData[chunkIndex] = clean;
-        updateChunkInDOM(chunkIndex, clean);
+      const raw = (await response.text()).trim();
+      if (raw) {
+        const cleaned = deduplicateOverlap(transcriptData[chunkIndex - 1] || '', raw);
+        transcriptData[chunkIndex] = cleaned;
+        fullTranscript += (fullTranscript ? ' ' : '') + cleaned;
+        totalWords = fullTranscript.split(/\s+/).filter(Boolean).length;
+        updateChunkInDOM(chunkIndex, cleaned);
         updateStats();
       } else {
-        updateChunkInDOM(chunkIndex, null); // silenzio
+        updateChunkInDOM(chunkIndex, null);
       }
-
       if (isRecording) setStatus('recording', 'Registrazione in corso — il microfono è attivo');
       else setStatus('done', 'Registrazione terminata');
-
     } catch (err) {
-      transcriptData[chunkIndex] = '[Errore: ' + err.message + ']';
+      transcriptData[chunkIndex] = '';
       updateChunkInDOM(chunkIndex, '[Errore trascrizione: ' + err.message + ']');
-      showError('Errore Whisper: ' + err.message);
-      if (isRecording) setStatus('recording', 'Registrazione in corso (errore nell\'ultimo chunk)');
+      showError('Errore Whisper (chunk ' + (chunkIndex + 1) + '): ' + err.message);
+      if (isRecording) setStatus('recording', 'Registrazione in corso — errore nell\'ultimo chunk');
     }
   }
 
+  // ─── OVERLAP DEDUPLICATION ─────────────────────────────────────────────────
+  function deduplicateOverlap(prevText, currText) {
+    if (!prevText) return currText;
+    const prevWords = prevText.trim().split(/\s+/);
+    const currWords = currText.trim().split(/\s+/);
+    const windowSize = Math.min(20, prevWords.length, currWords.length);
+    for (let len = windowSize; len >= 3; len--) {
+      const prevTail = prevWords.slice(-len).join(' ').toLowerCase();
+      const currHead = currWords.slice(0, len).join(' ').toLowerCase();
+      if (prevTail === currHead) return currWords.slice(len).join(' ');
+    }
+    return currText;
+  }
+
+  // ─── DOM HELPERS ───────────────────────────────────────────────────────────
   function addProcessingPlaceholder(index) {
     const box = document.getElementById('transcriptBox');
-    const empty = document.getElementById('transcriptEmpty');
-    if (empty) empty.remove();
-
+    document.getElementById('transcriptEmpty')?.remove();
     const el = document.createElement('div');
     el.className = 'transcript-chunk';
     el.id = 'chunk-' + index;
-    el.innerHTML = `
-      <div class="chunk-meta">Chunk ${index + 1} · ${formatTime(totalSeconds)}</div>
-      <div class="chunk-processing">
-        <span>Trascrizione in corso</span>
-        <span class="dots"><span>.</span><span>.</span><span>.</span></span>
-      </div>
-    `;
+    el.innerHTML = '<div class="chunk-meta">Chunk ' + (index + 1) + ' · ' + formatTime(totalSeconds) + '</div><div class="chunk-processing"><span>Trascrizione in corso</span><span class="dots"><span>.</span><span>.</span><span>.</span></span></div>';
     box.appendChild(el);
     box.scrollTop = box.scrollHeight;
   }
@@ -785,10 +777,7 @@ flex-shrink: 0;
   function updateChunkInDOM(index, text) {
     const el = document.getElementById('chunk-' + index);
     if (!el) return;
-    if (!text) {
-      el.remove();
-      return;
-    }
+    if (!text) { el.remove(); return; }
     el.querySelector('.chunk-processing')?.remove();
     let textEl = el.querySelector('.chunk-text');
     if (!textEl) {
@@ -797,8 +786,7 @@ flex-shrink: 0;
       el.appendChild(textEl);
     }
     textEl.textContent = text;
-    const box = document.getElementById('transcriptBox');
-    box.scrollTop = box.scrollHeight;
+    document.getElementById('transcriptBox').scrollTop = 99999;
   }
 
   function updateStats() {
@@ -809,58 +797,28 @@ flex-shrink: 0;
 
   function clearTranscript() {
     if (!confirm('Vuoi svuotare la trascrizione? I dati non possono essere recuperati.')) return;
-    totalWords = 0;
-    totalChunks = 0;
-    totalAudioMinutes = 0;
-    transcriptData = [];
+    totalWords = 0; totalChunks = 0;
+    transcriptData = []; fullTranscript = '';
     updateStats();
-    const box = document.getElementById('transcriptBox');
-    box.innerHTML = `<div class="transcript-empty" id="transcriptEmpty">
-      <div class="transcript-empty-icon">📝</div>
-      <div>Il testo trascritto apparirà qui<br>durante la registrazione</div>
-    </div>`;
+    document.getElementById('transcriptBox').innerHTML = '<div class="transcript-empty" id="transcriptEmpty"><div class="transcript-empty-icon">📝</div><div>Il testo trascritto apparirà qui<br>durante la registrazione</div></div>';
   }
 
+  // ─── UI HELPERS ────────────────────────────────────────────────────────────
   function setStatus(type, msg) {
-    const dot = document.getElementById('statusDot');
-    const text = document.getElementById('statusText');
-    dot.className = 'status-indicator ' + type;
-    text.innerHTML = msg.replace(/^([^—]+)/, '<strong>$1</strong>');
+    document.getElementById('statusDot').className = 'status-indicator ' + type;
+    document.getElementById('statusText').innerHTML = msg.replace(/^([^—]+)/, '<strong>$1</strong>');
   }
-
-  function showError(msg) {
-    const b = document.getElementById('errorBanner');
-    b.textContent = msg;
-    b.style.display = 'block';
-  }
-
-  function hideError() {
-    document.getElementById('errorBanner').style.display = 'none';
-  }
-
-  function formatTime(sec) {
-    const m = Math.floor(sec / 60).toString().padStart(2, '0');
-    const s = (sec % 60).toString().padStart(2, '0');
-    return m + ':' + s;
-  }
-
+  function showError(msg) { const b = document.getElementById('errorBanner'); b.textContent = msg; b.style.display = 'block'; }
+  function hideError() { document.getElementById('errorBanner').style.display = 'none'; }
+  function formatTime(sec) { return String(Math.floor(sec/60)).padStart(2,'0') + ':' + String(sec%60).padStart(2,'0'); }
   function getSupportedMimeType() {
-    const types = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg'];
-    for (const t of types) {
+    for (const t of ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg'])
       if (MediaRecorder.isTypeSupported(t)) return t;
-    }
     return null;
   }
-
-  // Previeni sleep su iOS tenendo lo schermo attivo tramite un video silenzioso
-  function preventSleep() {
-    try {
-      if ('wakeLock' in navigator) {
-        navigator.wakeLock.request('screen').catch(() => {});
-      }
-    } catch(e) {}
-  }
-  preventSleep();
+  (function preventSleep() {
+    try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(()=>{}); } catch(e) {}
+  })();
 </script>
 
 </body>
