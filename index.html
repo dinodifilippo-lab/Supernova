@@ -4,354 +4,206 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Super-NOVA · Agente</title>
+<title>Super-NOVA Agent</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,600;1,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
-:root {
-  --bg:#0a0c0f; --s1:#111318; --s2:#181c22; --s3:#1e232b;
-  --border:#252b35; --border2:#2e3540;
-  --a1:#3d7ab5; --a2:#5a9fd4; --a3:#7bbde8;
-  --setup:#4a9e72; --setup-dim:rgba(74,158,114,0.12);
-  --fase0:#9b6fd4; --fase0-dim:rgba(155,111,212,0.12);
-  --warn:#e8a84a; --danger:#d95f5f; --ok:#4aaf7a;
-  --text:#dde2e8; --dim:#7a8694; --faint:#3d4655;
-  --ff:'DM Sans',sans-serif; --fm:'DM Mono',monospace; --fd:'Fraunces',serif;
-}
+:root{--bg:#0a0c0f;--s1:#111318;--s2:#181c22;--s3:#1e232b;--border:#252b35;--border2:#2e3540;--a1:#3d7ab5;--a2:#5a9fd4;--setup:#4a9e72;--setup-dim:rgba(74,158,114,0.12);--warn:#e8a84a;--danger:#d95f5f;--ok:#4aaf7a;--text:#dde2e8;--dim:#7a8694;--faint:#3d4655;--ff:'DM Sans',sans-serif;--fm:'DM Mono',monospace;--fd:'Fraunces',serif}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
 body{background:var(--bg);color:var(--text);font-family:var(--ff);font-weight:300;display:flex;flex-direction:column}
-::-webkit-scrollbar{width:3px}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-
-/* HEADER */
-.hdr{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(–border);flex-shrink:0;background:var(–s1)}
-.hdr-logo{font-family:var(–fd);font-size:19px;letter-spacing:.01em}
-.hdr-logo span{color:var(–a2)}
-.mode-badge{font-size:10px;letter-spacing:.09em;text-transform:uppercase;padding:3px 10px;border-radius:20px;border:1px solid;font-family:var(–fm);display:none}
-.mode-badge.setup{color:var(–setup);border-color:var(–setup);background:var(–setup-dim);display:inline}
-.mode-badge.fase0{color:var(–fase0);border-color:var(–fase0);background:var(–fase0-dim);display:inline}
-.hdr-right{margin-left:auto;display:flex;align-items:center;gap:12px}
-.rec-dot{width:8px;height:8px;border-radius:50%;background:var(–faint);transition:background .3s}
-.rec-dot.recording{background:var(–danger);animation:blink 1.4s ease-in-out infinite}
-.rec-dot.processing{background:var(–warn)}
-@keyframes blink{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(217,95,95,.5)}50%{opacity:.7;box-shadow:0 0 0 5px transparent}}
-.hdr-timer{font-family:var(–fm);font-size:14px;color:var(–a2);min-width:48px;text-align:right}
-.btn-nav{background:none;border:1px solid var(–border);border-radius:6px;color:var(–dim);font-size:11px;padding:5px 10px;cursor:pointer;font-family:var(–ff);transition:all .2s}
-.btn-nav:hover{border-color:var(–a1);color:var(–a2)}
-.btn-nav.active{border-color:var(–a1);color:var(–a2);background:rgba(61,122,181,.08)}
-
-/* SCREENS */
-.screen{flex:1;overflow:hidden;display:none;flex-direction:column}
-.screen.active{display:flex}
-
-/* ─────────────────────────────────────────
-SCREEN 1: CONFIG
-───────────────────────────────────────── */
-.cfg-wrap{flex:1;overflow-y:auto;padding:28px 20px;display:flex;flex-direction:column;gap:20px;align-items:center}
-.cfg-card{width:100%;max-width:500px;background:var(–s1);border:1px solid var(–border);border-radius:12px;padding:22px;display:flex;flex-direction:column;gap:14px}
-.cfg-card-title{font-family:var(–fd);font-size:17px}
-.cfg-card-sub{font-size:12px;color:var(–dim);line-height:1.65}
-.lbl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(–faint);margin-bottom:5px}
-.inp{width:100%;background:var(–s2);border:1px solid var(–border);border-radius:7px;padding:11px 13px;color:var(–text);font-family:var(–fm);font-size:12px;outline:none;transition:border-color .2s}
-.inp:focus{border-color:var(–a1)}
-.inp::placeholder{color:var(–faint)}
-.sel{width:100%;background:var(–s2);border:1px solid var(–border);border-radius:7px;padding:11px 13px;color:var(–text);font-family:var(–ff);font-size:13px;outline:none;appearance:none;cursor:pointer}
-.sel:focus{border-color:var(–a1)}
-.chk-row{display:flex;align-items:center;gap:8px}
-.chk-row input{width:15px;height:15px;accent-color:var(–a1);cursor:pointer}
-.chk-row label{font-size:12px;color:var(–dim);cursor:pointer}
-.btn-forget{margin-left:auto;background:none;border:none;font-size:11px;color:var(–danger);cursor:pointer;text-decoration:underline;display:none}
-.btn-primary{width:100%;background:var(–a1);border:none;border-radius:8px;padding:14px;color:white;font-family:var(–ff);font-size:14px;font-weight:500;cursor:pointer;transition:background .2s}
-.btn-primary:hover{background:var(–a2)}
-.btn-primary:active{transform:scale(.98)}
-.btn-primary:disabled{opacity:.4;cursor:not-allowed}
-.ctx-area{width:100%;background:var(–s2);border:1px solid var(–border);border-radius:7px;padding:11px 13px;color:var(–dim);font-family:var(–ff);font-size:12px;outline:none;resize:vertical;min-height:100px;line-height:1.6}
-.ctx-area:focus{border-color:var(–a1);color:var(–text)}
-.upload-row{display:flex;gap:8px}
-.btn-sec{flex:1;background:var(–s2);border:1px solid var(–border);border-radius:7px;padding:10px;color:var(–dim);font-size:12px;cursor:pointer;font-family:var(–ff);transition:all .2s;text-align:center}
-.btn-sec:hover{border-color:var(–a1);color:var(–a2)}
-.note{font-size:11px;color:var(–faint);line-height:1.6;text-align:center;max-width:460px}
-
-/* ─────────────────────────────────────────
-SCREEN 2: SESSIONE
-───────────────────────────────────────── */
-.sess-layout{flex:1;overflow:hidden;display:grid;grid-template-columns:1fr 360px;grid-template-rows:1fr auto}
-.sess-main{overflow-y:auto;padding:20px;border-right:1px solid var(–border);display:flex;flex-direction:column;gap:12px}
-.sess-side{overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
-.sess-controls{grid-column:1/-1;border-top:1px solid var(–border);padding:14px 20px;display:flex;align-items:center;gap:12px;background:var(–s1);flex-shrink:0}
-
-/* Chunk progress */
-.chunk-bar{height:2px;background:var(–s3);border-radius:1px;overflow:hidden;flex:1}
-.chunk-fill{height:100%;background:var(–a1);border-radius:1px;width:0%;transition:width 1s linear}
-.chunk-eta{font-family:var(–fm);font-size:11px;color:var(–faint);min-width:40px;text-align:right}
-
-/* Rec button */
-.btn-rec{padding:10px 22px;border-radius:8px;border:none;font-family:var(–ff);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s}
-.btn-rec.start{background:var(–danger);color:white}
-.btn-rec.start:hover{background:#e87070}
-.btn-rec.stop{background:var(–s3);color:var(–text);border:1px solid var(–border2)}
-.btn-rec.stop:hover{border-color:var(–a1);color:var(–a2)}
-.btn-rec:active{transform:scale(.97)}
-
-/* Mode switcher */
-.mode-sw{display:flex;gap:6px;margin-left:auto}
-.btn-mode{padding:7px 14px;border-radius:7px;border:1px solid var(–border);background:none;color:var(–dim);font-size:11px;cursor:pointer;font-family:var(–ff);transition:all .2s}
-.btn-mode.active.setup{border-color:var(–setup);color:var(–setup);background:var(–setup-dim)}
-.btn-mode.active.fase0{border-color:var(–fase0);color:var(–fase0);background:var(–fase0-dim)}
-.btn-mode:not(.active):hover{border-color:var(–border2);color:var(–text)}
-
-/* Transcript panel */
-.panel-label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(–faint);margin-bottom:8px}
-.transcript-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(–faint);font-size:12px;text-align:center;flex:1;min-height:200px}
-.t-chunk{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(–border)}
-.t-chunk:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
-.t-meta{font-family:var(–fm);font-size:10px;color:var(–faint);margin-bottom:5px}
-.t-text{font-size:13px;line-height:1.75;color:var(–text)}
-.t-processing{font-size:12px;color:var(–warn);display:flex;align-items:center;gap:6px}
-.dots span{animation:dotblink 1.2s infinite;opacity:0}
-.dots span:nth-child(2){animation-delay:.2s}
-.dots span:nth-child(3){animation-delay:.4s}
-@keyframes dotblink{0%,80%,100%{opacity:0}40%{opacity:1}}
-
-/* Agent panel (right side) */
-.agent-panel{display:flex;flex-direction:column;gap:10px;height:100%}
-.agent-header{display:flex;align-items:center;justify-content:space-between}
-.agent-title{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(–faint)}
-.btn-ask{padding:5px 12px;border-radius:6px;border:1px solid var(–a1);background:rgba(61,122,181,.08);color:var(–a2);font-size:11px;cursor:pointer;font-family:var(–ff);transition:all .2s}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.hdr{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--s1)}
+.logo{font-family:var(--fd);font-size:19px}.logo span{color:var(--a2)}
+.badge{font-size:10px;letter-spacing:.09em;text-transform:uppercase;padding:3px 10px;border-radius:20px;border:1px solid;font-family:var(--fm);color:var(--setup);border-color:var(--setup);background:var(--setup-dim)}
+.hdr-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--faint)}
+.dot.rec{background:var(--danger);animation:blink 1.4s ease-in-out infinite}
+.dot.proc{background:var(--warn)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.timer{font-family:var(--fm);font-size:14px;color:var(--a2);display:none}
+.btn-h{background:none;border:1px solid var(--border);border-radius:6px;color:var(--dim);font-size:11px;padding:5px 10px;cursor:pointer;font-family:var(--ff);transition:all .2s;display:none}
+.btn-h:hover{border-color:var(--a1);color:var(--a2)}
+.screen{flex:1;overflow:hidden;display:none;flex-direction:column}.screen.on{display:flex}
+/* CONFIG */
+.cfg-s{flex:1;overflow-y:auto;padding:28px 20px;display:flex;flex-direction:column;gap:20px;align-items:center}
+.card{width:100%;max-width:500px;background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:22px;display:flex;flex-direction:column;gap:14px}
+.ctitle{font-family:var(--fd);font-size:17px}.csub{font-size:12px;color:var(--dim);line-height:1.65}
+.lbl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:5px}
+.inp{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:11px 13px;color:var(--text);font-family:var(--fm);font-size:12px;outline:none;transition:border-color .2s}
+.inp:focus{border-color:var(--a1)}.inp::placeholder{color:var(--faint)}
+.sel{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:11px 13px;color:var(--text);font-family:var(--ff);font-size:13px;outline:none;appearance:none;cursor:pointer}
+.sel:focus{border-color:var(--a1)}
+.chk{display:flex;align-items:center;gap:8px}.chk input{width:15px;height:15px;accent-color:var(--a1);cursor:pointer;flex-shrink:0}.chk label{font-size:12px;color:var(--dim);cursor:pointer}
+.btn-forget{margin-left:auto;background:none;border:none;font-size:11px;color:var(--danger);cursor:pointer;text-decoration:underline;display:none}
+.ctx-area{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:11px 13px;color:var(--dim);font-family:var(--ff);font-size:12px;outline:none;resize:vertical;min-height:70px;line-height:1.6}
+.ctx-area:focus{border-color:var(--a1);color:var(--text)}
+.file-lbl{display:inline-block;padding:9px 16px;background:var(--s2);border:1px solid var(--border);border-radius:7px;color:var(--dim);font-size:12px;cursor:pointer;font-family:var(--ff);transition:all .2s}
+.file-lbl:hover{border-color:var(--a1);color:var(--a2)}
+.btn-primary{width:100%;background:var(--a1);border:none;border-radius:8px;padding:14px;color:white;font-family:var(--ff);font-size:15px;font-weight:500;cursor:pointer;transition:background .2s}
+.btn-primary:hover{background:var(--a2)}
+.cfg-note{font-size:11px;color:var(--faint);text-align:center;max-width:460px;line-height:1.6}
+/* SESSION */
+.sess-grid{flex:1;overflow:hidden;display:grid;grid-template-columns:1fr 340px;grid-template-rows:1fr auto}
+.tx-panel{overflow-y:auto;padding:18px 20px;border-right:1px solid var(--border);display:flex;flex-direction:column}
+.agent-panel{overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px}
+.ctrl-bar{grid-column:1/-1;border-top:1px solid var(--border);padding:12px 18px;display:flex;align-items:center;gap:10px;background:var(--s1);flex-shrink:0}
+.plbl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:8px;flex-shrink:0}
+.tx-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--faint);font-size:12px;text-align:center;flex:1;min-height:180px}
+.tc{margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)}.tc:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.tc-meta{font-family:var(--fm);font-size:10px;color:var(--faint);margin-bottom:4px}
+.tc-text{font-size:13px;line-height:1.75;color:var(--text)}
+.tc-proc{font-size:12px;color:var(--warn);display:flex;align-items:center;gap:6px}
+.dots span{animation:db 1.2s infinite;opacity:0}.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+@keyframes db{0%,80%,100%{opacity:0}40%{opacity:1}}
+.agent-hdr{display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.agent-lbl{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
+.btn-ask{padding:5px 11px;border-radius:6px;border:1px solid var(--a1);background:rgba(61,122,181,.08);color:var(--a2);font-size:11px;cursor:pointer;font-family:var(--ff)}
 .btn-ask:hover{background:rgba(61,122,181,.2)}
-.agent-msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;min-height:0}
-.agent-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(–faint);font-size:11px;text-align:center;height:100%;min-height:120px}
-.msg{padding:10px 13px;border-radius:8px;font-size:12px;line-height:1.65;animation:fadeIn .3s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-.msg.agent-setup{background:var(–setup-dim);border:1px solid rgba(74,158,114,.25);color:var(–text)}
-.msg.agent-fase0{background:var(–fase0-dim);border:1px solid rgba(155,111,212,.25);color:var(–text)}
-.msg.system{background:var(–s2);border:1px solid var(–border);color:var(–dim);font-style:italic}
-.msg-time{font-family:var(–fm);font-size:9px;color:var(–faint);margin-top:4px}
-.msg-label{font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(–faint);margin-bottom:3px}
-.agent-input-row{display:flex;gap:6px;flex-shrink:0}
-.agent-inp{flex:1;background:var(–s2);border:1px solid var(–border);border-radius:7px;padding:9px 11px;color:var(–text);font-family:var(–ff);font-size:12px;outline:none}
-.agent-inp:focus{border-color:var(–a1)}
-.agent-inp::placeholder{color:var(–faint)}
-.btn-send{padding:9px 14px;border-radius:7px;border:none;background:var(–a1);color:white;font-size:12px;cursor:pointer;transition:background .2s;flex-shrink:0}
-.btn-send:hover{background:var(–a2)}
-.btn-send:disabled{opacity:.4;cursor:not-allowed}
-
-/* NOTIFICATION BANNER */
-.notif{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:100;max-width:600px;width:90%;padding:14px 18px;border-radius:10px;background:var(–s1);border:1px solid var(–setup);box-shadow:0 8px 32px rgba(0,0,0,.5);display:none;animation:slideDown .3s ease}
-@keyframes slideDown{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-.notif.show{display:block}
-.notif-label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(–setup);margin-bottom:6px;font-family:var(–fm)}
-.notif-text{font-size:14px;line-height:1.6;color:var(–text)}
-.notif-close{position:absolute;top:10px;right:12px;background:none;border:none;color:var(–faint);font-size:16px;cursor:pointer;line-height:1}
-.notif-close:hover{color:var(–text)}
-
-/* ─────────────────────────────────────────
-SCREEN 3: ARCHIVIO
-───────────────────────────────────────── */
-.arch-wrap{flex:1;overflow-y:auto;padding:24px 20px;display:flex;flex-direction:column;gap:16px}
-.arch-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(–faint);font-size:13px;text-align:center;flex:1}
-.arch-sess{background:var(–s1);border:1px solid var(–border);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px}
-.arch-sess-hdr{display:flex;align-items:center;gap:10px}
-.arch-sess-title{font-size:14px;color:var(–text);flex:1}
-.arch-sess-meta{font-family:var(–fm);font-size:10px;color:var(–faint)}
-.arch-btn-row{display:flex;gap:8px}
-.btn-arch{padding:6px 14px;border-radius:6px;border:1px solid var(–border);background:none;color:var(–dim);font-size:11px;cursor:pointer;font-family:var(–ff);transition:all .2s}
-.btn-arch:hover{border-color:var(–a1);color:var(–a2)}
-.btn-arch.danger:hover{border-color:var(–danger);color:var(–danger)}
-.arch-preview{font-size:11px;color:var(–faint);line-height:1.6;max-height:60px;overflow:hidden;position:relative}
-.arch-preview::after{content:’’;position:absolute;bottom:0;left:0;right:0;height:20px;background:linear-gradient(transparent,var(–s1))}
-
-/* EXPAND MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
-.modal-overlay.show{display:flex}
-.modal{background:var(–s1);border:1px solid var(–border2);border-radius:12px;max-width:700px;width:100%;max-height:85vh;display:flex;flex-direction:column}
-.modal-hdr{padding:18px 20px;border-bottom:1px solid var(–border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.modal-title{font-family:var(–fd);font-size:16px}
-.btn-close{background:none;border:none;color:var(–dim);font-size:20px;cursor:pointer;line-height:1}
-.modal-body{flex:1;overflow-y:auto;padding:20px}
-.modal-body p{font-size:13px;line-height:1.8;color:var(–text);white-space:pre-wrap}
-.modal-foot{padding:14px 20px;border-top:1px solid var(–border);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0}
-
-/* STRUCTURED QUESTION */
-.msg.question{background:rgba(232,168,74,0.1);border:1px solid rgba(232,168,74,0.35);color:var(–text)}
-.msg.question .q-label{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(–warn);margin-bottom:4px;font-family:var(–fm)}
-.msg.question .q-copy{margin-top:8px;padding:4px 10px;border-radius:5px;border:1px solid rgba(232,168,74,0.3);background:none;color:var(–warn);font-size:10px;cursor:pointer;font-family:var(–ff)}
-.msg.question .q-copy:hover{background:rgba(232,168,74,0.1)}
+.msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:7px;min-height:0;margin:8px 0}
+.msgs-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--faint);font-size:11px;text-align:center;height:100%;min-height:100px}
+.msg{padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.65;animation:fi .3s ease}
+@keyframes fi{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.msg.agent{background:var(--setup-dim);border:1px solid rgba(74,158,114,.25)}
+.msg.sys{background:var(--s2);border:1px solid var(--border);color:var(--dim);font-style:italic}
+.msg.quest{background:rgba(232,168,74,.08);border:1px solid rgba(232,168,74,.3)}
+.mlbl{font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);margin-bottom:3px}
+.mlbl.q{color:var(--warn)}
+.mtime{font-family:var(--fm);font-size:9px;color:var(--faint);margin-top:4px}
+.btn-copy{margin-top:6px;padding:4px 10px;border-radius:5px;border:1px solid rgba(232,168,74,.3);background:none;color:var(--warn);font-size:10px;cursor:pointer;font-family:var(--ff)}
+.inp-row{display:flex;gap:6px;flex-shrink:0}
+.agent-inp{flex:1;background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:9px 11px;color:var(--text);font-family:var(--ff);font-size:12px;outline:none}
+.agent-inp:focus{border-color:var(--a1)}.agent-inp::placeholder{color:var(--faint)}
+.btn-send{padding:9px 14px;border-radius:7px;border:none;background:var(--a1);color:white;font-size:13px;cursor:pointer}
+.btn-send:hover{background:var(--a2)}.btn-send:disabled{opacity:.4;cursor:not-allowed}
+.cbar{height:2px;background:var(--s3);border-radius:1px;overflow:hidden;flex:1}
+.cfill{height:100%;background:var(--a1);border-radius:1px;width:0%;transition:width 1s linear}
+.ceta{font-family:var(--fm);font-size:11px;color:var(--faint);min-width:38px;text-align:right}
+.btn-c{padding:9px 16px;border-radius:7px;border:none;font-family:var(--ff);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-c.start{background:var(--danger);color:white}.btn-c.start:hover{background:#e87070}
+.btn-c.pause{background:var(--s3);color:var(--text);border:1px solid var(--border2)}.btn-c.pause:hover{border-color:var(--warn);color:var(--warn)}
+.btn-c.stop{background:var(--s3);color:var(--text);border:1px solid var(--border2)}.btn-c.stop:hover{border-color:var(--danger);color:var(--danger)}
+.btn-c:active{transform:scale(.97)}
+.btn-sm{padding:7px 12px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--dim);font-size:11px;cursor:pointer;font-family:var(--ff);transition:all .2s;white-space:nowrap}
+.btn-sm:hover{border-color:var(--a1);color:var(--a2)}
+/* ARCHIVE */
+.arch-s{flex:1;overflow-y:auto;padding:22px 20px;display:flex;flex-direction:column;gap:14px}
+.sec-lbl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
+.acard{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:9px}
+.acard.chat{border-color:var(--a1)}
+.acard-hdr{display:flex;align-items:center;gap:10px}
+.acard-title{font-size:13px;flex:1}.acard-meta{font-family:var(--fm);font-size:10px;color:var(--faint)}
+.acard-prev{font-size:11px;color:var(--faint);line-height:1.6;max-height:48px;overflow:hidden;position:relative}
+.acard-prev::after{content:'';position:absolute;bottom:0;left:0;right:0;height:16px;background:linear-gradient(transparent,var(--s1))}
+.acard-btns{display:flex;gap:7px;flex-wrap:wrap}
+.arch-note{font-size:12px;color:var(--faint);padding:6px 0}
+/* NOTIF */
+.notif{position:fixed;top:56px;left:50%;transform:translateX(-50%);z-index:100;max-width:580px;width:92%;padding:14px 36px 14px 18px;border-radius:10px;background:var(--s1);border:1px solid var(--setup);box-shadow:0 8px 32px rgba(0,0,0,.5);display:none}
+.notif.on{display:block;animation:sd .3s ease}
+@keyframes sd{from{opacity:0;transform:translateX(-50%) translateY(-8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.notif-lbl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--setup);margin-bottom:5px;font-family:var(--fm)}
+.notif-text{font-size:13px;line-height:1.6}
+.notif-x{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--faint);font-size:18px;cursor:pointer;padding:2px 6px}
+.notif-x:hover{color:var(--text)}
+/* MODAL */
+.mov{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.mov.on{display:flex}
+.modal{background:var(--s1);border:1px solid var(--border2);border-radius:12px;max-width:680px;width:100%;max-height:85vh;display:flex;flex-direction:column}
+.modal-h{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-title{font-family:var(--fd);font-size:15px}
+.modal-x{background:none;border:none;color:var(--dim);font-size:20px;cursor:pointer;padding:0 4px}
+.modal-body{flex:1;overflow-y:auto;padding:18px 20px}
+.modal-body p{font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap}
+.modal-f{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end}
 </style>
-
 </head>
 <body>
 
-<!-- ════════════════════════════════════════════════════════════════════════
-     BLOCCO A — CONFIGURAZIONE AGENTE
-     Modifica solo questo blocco per cambiare il comportamento dell'agente.
-     Non toccare il codice JavaScript sotto.
-     ════════════════════════════════════════════════════════════════════════ -->
-
 <script>
-const AGENT_CONFIG = {
+/* ===== BLOCCO A - CONFIGURAZIONE =====
+   Modifica solo questo blocco.
+   ===================================== */
+var AGENT_CONFIG = {
+  projectDescription: "Progetto Super-NOVA (New Operating model Via AI). Obiettivo: ridurre costi consulenza esterna, migliorare qualita operativa, sviluppare risorse junior in middle office assicurativo/finanziario.\n\nFASE 0: Interviste owner processi. Identificare aree intervento (non solo problemi - anche attivita che assorbono risorse sproporzionate), classificare archetipi, raccogliere dati economici, costruire business case e ROI.\nFASE 1: Costruzione moduli AI per archetipo su architettura modulare. Efficienza senza cambiare processi. Include automazione attivita ad alto volume che richiedono consulenti per mole di lavoro.\nFASE 2: Redesign AI-native processi, monitoring continuo, formazione junior con assistenza spiegata e tutoring adattivo.\n\nPrincipio chiave: unico agente AI accompagna tutte le fasi. Knowledge store compatibile tra fasi. ROI confronta costi sviluppo con saving su consulenza, ore interne, organico nel tempo.",
 
-  // Descrizione stabile del progetto — cambia solo se cambia l'impostazione fondamentale
-  projectDescription: `
-Progetto Super-NOVA (New Operating model Via AI).
-Obiettivo: ridurre costi di consulenza esterna, migliorare qualità operativa, sviluppare risorse junior in una funzione di middle office assicurativo/finanziario.
+  setupSystemPrompt: "Sei l'agente AI del Progetto Super-NOVA in modalita SETUP. Partecipi attivamente alle conversazioni strategiche del team. Sei un collega esperto che conosce Super-NOVA in profondita e contribuisce a ogni decisione.\n\nINTERVIENI QUANDO: hai un suggerimento migliorativo, vedi un'alternativa non considerata, una decisione importante sta per essere presa senza essere esplicitata, qualcosa contraddice o arricchisce il tuo contesto, la conversazione si blocca, emerge qualcosa con implicazioni per Fase 1 o 2, vedi un rischio non nominato, hai un'opinione su una scelta in corso, non hai informazioni sufficienti.\n\nSTILE: Diretto, collaborativo, mai didattico. Una cosa alla volta, mai elenchi. Max 3-4 frasi. Esprimi opinioni, sei un partner.\n\nSE NON SAI QUALCOSA: Formula con questo formato esatto:\nDOMANDA: [la domanda]\nCONTESTO: [perche e rilevante]\n\nOBBLIGATORIO: Prima di ogni intervento verifica sul transcript completo. La sintesi e solo un indice - il territorio e il transcript.",
 
-Struttura in tre fasi:
-- FASE 0: Interviste agli owner dei processi. Obiettivi: identificare aree di intervento (non solo problemi — anche attività che funzionano ma assorbono risorse sproporzionate), classificare archetipi, raccogliere dati economici (budget consulenza, ore interne), costruire il business case e stimare il ROI per ogni archetipo.
-- FASE 1: Costruzione moduli AI specifici per archetipo su architettura modulare comune. Obiettivo: efficienza operativa senza cambiare i processi. Include automazione attività ad alto volume (es. configurazioni sistemi che oggi richiedono supporto consulenti per mole di lavoro).
-- FASE 2: Redesign AI-native dei processi, monitoring continuo tramite logger, formazione junior strutturata con assistenza spiegata e tutoring adattivo.
+  fase0SystemPrompt: "Sei l'agente AI del Progetto Super-NOVA in modalita FASE 0. Conduci interviste agli owner di processo per classificare attivita in archetipi, valutare fattibilita tecnica, costruire il business case con dati economici reali. Conduci come conversazione non come questionario. Una domanda alla volta. Non presupporre che l'attivita sia un problema.",
 
-Principio architetturale chiave: un unico agente AI con visione end-to-end accompagna tutte le fasi. La knowledge store è compatibile tra fasi. Gli archetipi classificati in Fase 0 corrispondono ai moduli da costruire in Fase 1. Il ROI confronta costi di sviluppo con saving atteso su consulenza esterna, ore interne, e organico nel tempo.
-  `,
-
-  // System prompt modalità SETUP
-  // Usato nelle conversazioni con il team di progetto (non con gli owner)
-  setupSystemPrompt: `
-Sei l'agente AI del Progetto Super-NOVA in modalità SETUP.
-
-Stai partecipando attivamente alle conversazioni strategiche del team di progetto. Non sei un osservatore passivo — sei un collega esperto che conosce Super-NOVA in profondità e vuole contribuire a ogni decisione importante. Intervieni spesso e con sostanza.
-
-QUANDO INTERVENIRE — intervieni ogni volta che c'è qualcosa di utile da dire:
-- Hai un suggerimento migliorativo rispetto a quello che si sta discutendo → proponilo direttamente
-- Vedi un'alternativa che il gruppo non sta considerando → portala all'attenzione
-- Una decisione importante sta per essere presa senza essere stata esplicitata chiaramente → nominala
-- Qualcosa detto contraddice o arricchisce il contesto che hai → segnalalo
-- La conversazione si blocca o gira in tondo → proponi come sbloccarla
-- Emerge qualcosa con implicazioni per Fase 1 o Fase 2 → collegalo esplicitamente
-- Vedi un rischio che il gruppo non ha nominato → sollevalo con la tua proposta per gestirlo
-- Hai un'opinione su una scelta che si sta facendo → esprimila, anche se diversa da quella del gruppo
-- Non hai informazioni sufficienti su qualcosa di rilevante → fai una domanda strutturata
-
-TONO E STILE:
-- Diretto, presente, collaborativo. Mai didattico.
-- Una cosa alla volta — mai elenchi.
-- Breve: max 3-4 frasi per intervento. Se hai molto da dire, scegli la cosa più importante.
-- Esprimi anche opinioni e preferenze, non solo fatti. Sei un partner, non un motore di ricerca.
-- Tutto è negoziabile — anche l'obiettivo finale del progetto.
-
-QUANDO NON SAI QUALCOSA:
-Formula una domanda strutturata con questo formato esatto:
-DOMANDA: [la domanda specifica]
-CONTESTO: [perché è rilevante ora e cosa cambierebbe sapendola]
-
-Chi è in sala decide se rispondere subito o verificare in chat con la AI. Non classificare tu il tipo di domanda.
-
-VERIFICA SUL TRANSCRIPT — OBBLIGATORIO:
-Prima di ogni intervento, verifica sul transcript completo della sessione. La sintesi è solo un indice — il territorio è il transcript. Non affermare mai qualcosa che non puoi verificare nel transcript o nel contesto che hai.
-  `,
-
-  // System prompt modalità FASE 0
-  // Usato nelle interviste agli owner dei processi
-  // [ESPANDIBILE] Aggiungi qui ulteriori modalità (FASE 1, FASE 2) quando necessario
-  fase0SystemPrompt: `
-Sei l'agente AI del Progetto Super-NOVA in modalità FASE 0.
-
-Stai conducendo un'intervista a un owner di processo per mappare un'area di intervento. Il tuo obiettivo è raccogliere tutto ciò che serve per: classificare l'attività in un archetipo, valutare la fattibilità tecnica del modulo AI, e costruire il business case con dati economici reali.
-
-Il tuo comportamento:
-- Conduci l'intervista come una conversazione, non come un questionario. Fai una domanda alla volta.
-- Parti sempre dall'attività concreta — come viene eseguita oggi, chi la fa, con quale frequenza.
-- Esplora in profondità: dove si perde tempo, dove la qualità dipende dall'esperienza di una persona specifica, dove ci sono regole implicite non scritte.
-- Raccogli i dati economici in modo naturale: budget consulenza esterna, ore interne dedicate, stima del costo annuo dell'attività.
-- Alla fine di ogni area esplorata, proponi una prima classificazione dell'archetipo e chiedi conferma all'owner.
-- Costruisci il business case in modo collaborativo: stima il saving potenziale e discutilo con l'owner, non lo imponi.
-- Non presupporre che l'attività sia un problema — potrebbe funzionare bene ma avere margine di efficientamento.
-  `,
-
-  // Soglia di intervento automatico: numero di chunk senza intervento prima che l'agente consideri di intervenire
-  // Aumenta questo numero se vuoi che l'agente intervenga meno frequentemente
   interventionThresholdChunks: 1,
-
-  // Durata minima in secondi tra un intervento automatico e il successivo
   interventionCooldownSec: 90
-
 };
+/* ===== FINE BLOCCO A ===== */
 </script>
 
-<!-- ════════════════════════════════════════════════════════════════════════
-     FINE BLOCCO A
-     ════════════════════════════════════════════════════════════════════════ -->
+<!-- NOTIFICA -->
 
-<!-- NOTIFICATION BANNER -->
-
-<div class="notif" id="notifBanner">
-  <div class="notif-label" id="notifLabel">Agente</div>
-  <div class="notif-text" id="notifText"></div>
-  <button class="notif-close" onclick="closeNotif()">×</button>
+<div class="notif" id="notif">
+  <div class="notif-lbl">Agente</div>
+  <div class="notif-text" id="ntxt"></div>
+  <button class="notif-x" onclick="document.getElementById('notif').classList.remove('on')">x</button>
 </div>
 
 <!-- MODAL -->
 
-<div class="modal-overlay" id="modalOverlay">
+<div class="mov" id="mov">
   <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-title" id="modalTitle">Sessione</div>
-      <button class="btn-close" onclick="closeModal()">×</button>
+    <div class="modal-h">
+      <div class="modal-title" id="mtitle"></div>
+      <button class="modal-x" onclick="document.getElementById('mov').classList.remove('on')">x</button>
     </div>
-    <div class="modal-body"><p id="modalBody"></p></div>
-    <div class="modal-foot">
-      <button class="btn-arch" onclick="closeModal()">Chiudi</button>
-      <button class="btn-arch" id="modalExportBtn">Esporta</button>
-    </div>
+    <div class="modal-body"><p id="mbody"></p></div>
+    <div class="modal-f"><button class="btn-sm" onclick="document.getElementById('mov').classList.remove('on')">Chiudi</button></div>
   </div>
 </div>
 
 <!-- HEADER -->
 
 <div class="hdr">
-  <div class="hdr-logo">Super<span>-NOVA</span></div>
-  <div class="mode-badge setup" id="modeBadge">Setup</div>
-  <div class="hdr-right">
-    <div class="rec-dot" id="recDot"></div>
-    <div class="hdr-timer" id="hdrTimer">00:00</div>
-    <button class="btn-nav" id="navArch" onclick="showScreen('arch')" style="display:none">Archivio</button>
-    <button class="btn-nav" id="navCfg" onclick="goToConfig()">← Config</button>
+  <div class="logo">Super<span>-NOVA</span></div>
+  <div class="badge" id="badge">Setup</div>
+  <div class="hdr-r">
+    <div class="dot" id="dot"></div>
+    <div class="timer" id="timer">00:00</div>
+    <button class="btn-h" id="btnArch" onclick="goTo('arch')">Archivio</button>
+    <button class="btn-h" id="btnBack">torna</button>
   </div>
 </div>
 
-<!-- ── SCREEN: CONFIG ── -->
+<!-- CONFIG -->
 
-<div class="screen active" id="screenCfg">
-  <div class="cfg-wrap">
+<div class="screen on" id="sCfg">
+  <div class="cfg-s">
+    <div class="card">
+      <div class="ctitle">Chiavi API</div>
+      <div class="csub">Le chiavi vengono salvate nel browser se spunti Ricorda.</div>
+      <div>
+        <div class="lbl">Groq (trascrizione audio)</div>
+        <input class="inp" type="password" id="groqKey" placeholder="gsk_..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+      </div>
+      <div>
+        <div class="lbl">Anthropic (agente AI)</div>
+        <input class="inp" type="password" id="anthKey" placeholder="sk-ant-..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+      </div>
+      <div class="chk">
+        <input type="checkbox" id="remKeys">
+        <label for="remKeys">Ricorda su questo dispositivo</label>
+        <button class="btn-forget" id="btnForget" onclick="forgetKeys()">Dimentica</button>
+      </div>
+    </div>
 
 ```
-<div class="cfg-card">
-  <div class="cfg-card-title">Chiavi API</div>
-  <div class="cfg-card-sub">Le chiavi vengono salvate nel browser di questo dispositivo se spunti "Ricorda".</div>
-  <div>
-    <div class="lbl">Chiave Groq (trascrizione audio)</div>
-    <input class="inp" type="password" id="groqKey" placeholder="gsk_..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-  </div>
-  <div>
-    <div class="lbl">Chiave Anthropic (agente AI)</div>
-    <input class="inp" type="password" id="anthropicKey" placeholder="sk-ant-..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-  </div>
-  <div class="chk-row">
-    <input type="checkbox" id="rememberKeys">
-    <label for="rememberKeys">Ricorda su questo dispositivo</label>
-    <button class="btn-forget" id="btnForget" onclick="forgetKeys()">Dimentica</button>
-  </div>
-</div>
-
-<div class="cfg-card">
-  <div class="cfg-card-title">Modalità agente</div>
-  <div style="display:none">
-    <div class="lbl">Modalità attiva</div>
-    <select class="sel" id="agentMode">
-      <option value="setup">Setup — conversazioni strategiche di progetto</option>
-      <option value="fase0">Fase 0 — interviste owner dei processi</option>
-    </select>
-  </div>
+<div class="card">
+  <div class="ctitle">Impostazioni sessione</div>
   <div>
     <div class="lbl">Lingua trascrizione</div>
     <select class="sel" id="langSel">
       <option value="">Rileva automaticamente</option>
       <option value="it">Italiano</option>
       <option value="en">English</option>
-      <option value="fr">Français</option>
+      <option value="fr">Francais</option>
       <option value="de">Deutsch</option>
-      <option value="es">Español</option>
-      <option value="pt">Português</option>
+      <option value="es">Espanol</option>
+      <option value="pt">Portugues</option>
     </select>
   </div>
   <div>
@@ -364,800 +216,397 @@ Il tuo comportamento:
   </div>
 </div>
 
-<div class="cfg-card">
-  <div class="cfg-card-title">Importa chat</div>
-  <div class="cfg-card-sub">Carica il JSON di contesto generato dalla chat AI. Viene fornito all'agente all'inizio di ogni sessione come Livello 1 di contesto. Se non caricato, l'agente funziona comunque ma con meno contesto storico.</div>
+<div class="card">
+  <div class="ctitle">Importa chat</div>
+  <div class="csub">Carica il JSON generato dalla chat AI. Sovrascrive il precedente: ogni nuovo JSON contiene gia tutto il contesto aggiornato.</div>
   <div>
-    <div class="lbl">File JSON dalla chat</div>
-    <textarea class="ctx-area" id="projectContext" placeholder="Il contenuto del JSON importato apparirà qui..."></textarea>
+    <div class="lbl">Contesto caricato</div>
+    <textarea class="ctx-area" id="ctxArea" readonly placeholder="Nessun contesto caricato."></textarea>
   </div>
-  <div class="upload-row">
-    <label class="btn-sec" style="cursor:pointer">
-      Carica JSON chat
-      <input type="file" accept=".json" style="display:none" onchange="loadChatJson(event)">
-    </label>
-  </div>
+  <label class="file-lbl">
+    Carica JSON chat
+    <input type="file" accept=".json" style="display:none" id="jsonFile" onchange="loadJson(event)">
+  </label>
 </div>
 
-<button class="btn-primary" onclick="saveConfigAndStart()">Avvia sessione</button>
-<p class="note">La sessione inizia in modalità ascolto. Puoi avviare la registrazione quando sei pronto.</p>
+<button class="btn-primary" onclick="avvia()">Avvia sessione</button>
+<p class="cfg-note">Il transcript viene inviato a Groq (trascrizione) e Anthropic (agente AI). Nessun altro server coinvolto.</p>
 ```
 
   </div>
 </div>
 
-<!-- ── SCREEN: SESSIONE ── -->
+<!-- SESSIONE -->
 
-<div class="screen" id="screenSess">
-  <div class="sess-layout">
-
-```
-<!-- MAIN: transcript -->
-<div class="sess-main" id="transcriptPanel">
-  <div class="panel-label">Trascrizione</div>
-  <div class="transcript-empty" id="transcriptEmpty">
-    <div style="font-size:28px;opacity:.3">🎙</div>
-    <div>Avvia la registrazione per iniziare</div>
-  </div>
-</div>
-
-<!-- SIDE: agente -->
-<div class="sess-side">
-  <div class="agent-panel">
-    <div class="agent-header">
-      <div class="agent-title">Agente</div>
-      <button class="btn-ask" onclick="askAgent()">Chiedi ora</button>
-    </div>
-    <div class="agent-msgs" id="agentMsgs">
-      <div class="agent-empty" id="agentEmpty">
-        <div style="font-size:24px;opacity:.3">◈</div>
-        <div>L'agente interviene<br>durante la conversazione</div>
+<div class="screen" id="sSess">
+  <div class="sess-grid">
+    <div class="tx-panel" id="txPanel">
+      <div class="plbl">Trascrizione</div>
+      <div class="tx-empty" id="txEmpty">
+        <div style="font-size:26px;opacity:.3">mic</div>
+        <div>Avvia la registrazione per iniziare</div>
       </div>
     </div>
-    <div class="agent-input-row">
-      <input class="agent-inp" id="agentInp" placeholder="Fai una domanda all'agente..." onkeydown="if(event.key==='Enter')askAgent()">
-      <button class="btn-send" id="btnSend" onclick="askAgent()">→</button>
+    <div class="agent-panel">
+      <div class="agent-hdr">
+        <div class="agent-lbl">Agente</div>
+        <button class="btn-ask" onclick="ask('')">Chiedi ora</button>
+      </div>
+      <div class="msgs" id="msgs">
+        <div class="msgs-empty" id="msgsEmpty">
+          <div style="font-size:22px;opacity:.3">AI</div>
+          <div>L'agente interviene durante<br>la conversazione</div>
+        </div>
+      </div>
+      <div class="inp-row">
+        <input class="agent-inp" id="agentInp" placeholder="Fai una domanda..." onkeydown="if(event.key==='Enter'){ask(this.value);this.value=''}">
+        <button class="btn-send" id="btnSend" onclick="var v=document.getElementById('agentInp').value;ask(v);document.getElementById('agentInp').value=''">send</button>
+      </div>
+    </div>
+    <div class="ctrl-bar">
+      <button class="btn-c start" id="btnStart" onclick="startRec()">Avvia</button>
+      <button class="btn-c pause" id="btnPause" style="display:none">Pausa</button>
+      <button class="btn-c stop"  id="btnStop"  style="display:none" onclick="stopRec()">Stop</button>
+      <div class="cbar"><div class="cfill" id="cfill"></div></div>
+      <div class="ceta" id="ceta">--</div>
+      <button class="btn-sm" onclick="anon()">Anonimizza</button>
     </div>
   </div>
 </div>
 
+<!-- ARCHIVIO -->
 
-<!-- CONTROLS -->
-<div class="sess-controls">
-  <button class="btn-rec start" id="btnRec" onclick="startRecording()">⏺ Avvia</button>
-  <button class="btn-rec stop" id="btnPause" onclick="pauseRecording()" style="display:none">⏸ Pausa</button>
-  <button class="btn-rec stop" id="btnStop" onclick="stopRecording()" style="display:none">⏹ Stop</button>
-  <div class="chunk-bar"><div class="chunk-fill" id="chunkFill"></div></div>
-  <div class="chunk-eta" id="chunkEta">—</div>
-  <button class="btn-nav" onclick="anonymizeTranscript()" title="Rimuovi nomi propri dal transcript">Anonimizza</button>
+<div class="screen" id="sArch">
+  <div class="arch-s" id="archContent"></div>
 </div>
-```
-
-  </div>
-</div>
-
-<!-- ── SCREEN: ARCHIVIO ── -->
-
-<div class="screen" id="screenArch">
-  <div class="arch-wrap" id="archWrap">
-    <div class="arch-empty" id="archEmpty">
-      <div style="font-size:32px;opacity:.3">🗂</div>
-      <div>Nessuna sessione salvata</div>
-    </div>
-  </div>
-</div>
-
-<!-- ════════════════════════════════════════════════════════════════════════
-     BLOCCO B — CODICE APPLICAZIONE
-     Non modificare questo blocco.
-     ════════════════════════════════════════════════════════════════════════ -->
 
 <script>
-// ─── STATE ────────────────────────────────────────────────────────────────────
-let cfg = { groqKey:'', anthropicKey:'', mode:'setup', lang:'', chunkDur:120, projectContext:'' };
-let rec = { isRecording:false, stream:null, mimeType:null, activeRecorder:null, activeChunks:[], totalSec:0, chunkSec:0, timerInt:null, chunkInt:null };
-let tx = { chunks:[], full:'', summary:'' };
-let agentHistory = [];
-let sessions = [];
-let lastInterventionTime = 0;
-let chunksSinceIntervention = 0;
-let currentMode = 'setup';
+/* ===== BLOCCO B - CODICE (non modificare) ===== */
 
-const OVERLAP_SEC = 4;
-const MIN_BLOB = 2000;
+// State
+var G = {
+  groqKey:'', anthKey:'', lang:'', chunkDur:120,
+  chatCtx:'', configured:false, mode:'setup',
+  recActive:false, recPaused:false,
+  stream:null, mime:null, recorder:null, recChunks:[],
+  totalSec:0, chunkSec:0, timerInt:null, chunkInt:null,
+  txChunks:[], txFull:'', txSummary:'',
+  history:[], sessions:[], sessId:Date.now(),
+  lastInt:0, chunksSinceInt:0
+};
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  loadSavedKeys();
-  loadSessions();
-});
+var OVERLAP=4, MIN_BLOB=2000;
 
-function loadSavedKeys() {
+// Init
+window.onload = function() {
+  loadSaved();
+  try { G.sessions = JSON.parse(localStorage.getItem('sn_sessions') || '[]'); } catch(e) { G.sessions=[]; }
+};
+
+function loadSaved() {
   try {
-    const gk = localStorage.getItem('sn_groq_key');
-    const ak = localStorage.getItem('sn_anthropic_key');
-    const ctx = localStorage.getItem('sn_project_context');
-    if (gk) { document.getElementById('groqKey').value = gk; document.getElementById('rememberKeys').checked = true; document.getElementById('btnForget').style.display='inline'; }
-    if (ak) document.getElementById('anthropicKey').value = ak;
-    if (ctx) document.getElementById('projectContext').value = ctx;
-    if (gk && ak) addSysMsg('Chiavi trovate. Configura la modalità e avvia la sessione.');
-  } catch(e) {}
-}
-
-function forgetKeys() {
-  try { localStorage.removeItem('sn_groq_key'); localStorage.removeItem('sn_anthropic_key'); } catch(e){}
-  document.getElementById('groqKey').value = '';
-  document.getElementById('anthropicKey').value = '';
-  document.getElementById('rememberKeys').checked = false;
-  document.getElementById('btnForget').style.display = 'none';
-}
-
-function saveConfigAndStart() {
-  const gk = document.getElementById('groqKey').value.trim();
-  const ak = document.getElementById('anthropicKey').value.trim();
-  if (!gk.startsWith('gsk_')) { alert('Chiave Groq non valida (inizia con gsk_)'); return; }
-  if (!ak.startsWith('sk-ant-')) { alert('Chiave Anthropic non valida (inizia con sk-ant-)'); return; }
-  cfg.groqKey = gk;
-  cfg.anthropicKey = ak;
-  cfg.mode = document.getElementById('agentMode').value;
-  cfg.lang = document.getElementById('langSel').value;
-  cfg.chunkDur = parseInt(document.getElementById('chunkDur').value);
-  cfg.projectContext = document.getElementById('projectContext').value.trim();
-  currentMode = cfg.mode;
-  if (document.getElementById('rememberKeys').checked) {
-    try { localStorage.setItem('sn_groq_key', gk); localStorage.setItem('sn_anthropic_key', ak); document.getElementById('btnForget').style.display='inline'; } catch(e){}
-  }
-  try { if (cfg.projectContext) localStorage.setItem('sn_project_context', cfg.projectContext); } catch(e){}
-  updateModeUI();
-  // Go to session screen FIRST, then add messages
-  showScreen('sess');
-  // Check chat context AFTER screen is shown so messages appear
-  let hasCtx = cfg.projectContext;
-  if (!hasCtx) { try { const s = localStorage.getItem('sn_chat_context'); if (s) hasCtx = s; } catch(e){} }
-  if (!hasCtx) addSysMsg('Nessun contesto chat caricato. Caricalo dalla Config prima di iniziare.');
-  addSysMsg('Sessione pronta. Premi ⏺ Avvia per iniziare la registrazione.');
-}
-// ─── NAVIGATION ───────────────────────────────────────────────────────────────
-function showScreen(id) {
-  ['cfg','sess','arch'].forEach(s => {
-    document.getElementById('screen'+s.charAt(0).toUpperCase()+s.slice(1)).classList.toggle('active', s===id);
-  });
-  // Show archivio nav only in sess/arch screens
-  const archNav = document.getElementById('navArch');
-  const cfgNav = document.getElementById('navCfg');
-  if (id === 'cfg') {
-    if (archNav) archNav.style.display = 'none';
-    if (cfgNav) cfgNav.style.display = 'none';
-  } else {
-    if (archNav) archNav.style.display = 'inline-block';
-    if (cfgNav) { cfgNav.style.display = 'inline-block'; cfgNav.textContent = id === 'arch' ? 'Sessione' : '← Config'; cfgNav.onclick = id === 'arch' ? function(){ showScreen('sess'); } : goToConfig; }
-  }
-  if (id === 'arch') renderArchive();
-}
-
-function goToConfig() {
-  if (rec.isRecording) {
-    if (!confirm('La registrazione e in corso. Andare in Config mettera in pausa. Continuare?')) return;
-    pauseRecording();
-  }
-  showScreen('cfg');
-}
-
-function switchMode(mode) {
-  currentMode = mode;
-  cfg.mode = mode;
-  updateModeUI();
-  addSysMsg('Modalità cambiata: ' + (mode==='setup' ? 'Setup' : 'Fase 0'));
-}
-
-function updateModeUI() {
-  const badge = document.getElementById('modeBadge');
-  badge.className = 'mode-badge ' + currentMode;
-  badge.textContent = currentMode === 'setup' ? 'Setup' : 'Fase 0';
-  document.getElementById('btnSetup').className = 'btn-mode' + (currentMode==='setup' ? ' active setup' : '');
-  document.getElementById('btnFase0').className = 'btn-mode' + (currentMode==='fase0' ? ' active fase0' : '');
-}
-
-// ─── RECORDING ────────────────────────────────────────────────────────────────
-async function startRecording() {
-  try {
-    rec.stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount:1, echoCancellation:true, noiseSuppression:true } });
-  } catch(e) { addSysMsg('Errore microfono: ' + e.message); return; }
-  rec.mimeType = getSupportedMime();
-  rec.isRecording = true;
-  rec.chunkSec = 0;
-  spawnRecorder();
-  document.getElementById('btnRec').style.display = 'none';
-  document.getElementById('btnPause').style.display = 'inline-block';
-  document.getElementById('btnStop').style.display = 'inline-block';
-  document.getElementById('recDot').className = 'rec-dot recording';
-  rec.timerInt = setInterval(() => {
-    rec.totalSec++;
-    document.getElementById('hdrTimer').textContent = fmt(rec.totalSec);
-  }, 1000);
-  rec.chunkInt = setInterval(() => {
-    rec.chunkSec++;
-    const pct = (rec.chunkSec / cfg.chunkDur) * 100;
-    document.getElementById('chunkFill').style.width = pct + '%';
-    document.getElementById('chunkEta').textContent = fmt(cfg.chunkDur - rec.chunkSec);
-    if (rec.chunkSec >= cfg.chunkDur) { rec.chunkSec = 0; document.getElementById('chunkFill').style.width='0%'; rollover(); }
-  }, 1000);
-}
-
-async function stopRecording() {
-  rec.isRecording = false;
-  clearInterval(rec.timerInt); clearInterval(rec.chunkInt);
-  document.getElementById('btnRec').style.display = 'inline-block';
-  document.getElementById('btnPause').style.display = 'none';
-  document.getElementById('btnStop').style.display = 'none';
-  document.getElementById('recDot').className = 'rec-dot';
-  document.getElementById('chunkFill').style.width = '0%';
-  document.getElementById('chunkEta').textContent = '—';
-  if (rec.activeRecorder && rec.activeRecorder.state !== 'inactive') {
-    const final = await collectAndStop(rec.activeRecorder, rec.activeChunks);
-    if (final.length > 0) await processChunk(final);
-  }
-  if (rec.stream) rec.stream.getTracks().forEach(t=>t.stop());
-  addSysMsg('Registrazione terminata.');
-}
-
-async function pauseRecording() {
-  if (!rec.isRecording) return;
-  rec.isRecording = false;
-  clearInterval(rec.timerInt); clearInterval(rec.chunkInt);
-  if (rec.activeRecorder && rec.activeRecorder.state !== 'inactive') {
-    const chunks = await collectAndStop(rec.activeRecorder, rec.activeChunks);
-    if (chunks.length > 0) await processChunk(chunks);
-  }
-  document.getElementById('recDot').className = 'rec-dot';
-  document.getElementById('chunkFill').style.width = '0%';
-  document.getElementById('chunkEta').textContent = '—';
-  document.getElementById('btnPause').innerHTML = '⏵ Riprendi';
-  document.getElementById('btnPause').onclick = null;
-  document.getElementById('btnPause').onclick = resumeRecording;
-  addSysMsg('Registrazione in pausa.');
-}
-
-async function resumeRecording() {
-  rec.chunkSec = 0;
-  spawnRecorder();
-  rec.isRecording = true;
-  document.getElementById('recDot').className = 'rec-dot recording';
-  document.getElementById('btnPause').innerHTML = '⏸ Pausa';
-  document.getElementById('btnPause').onclick = null;
-  document.getElementById('btnPause').onclick = pauseRecording;
-  rec.timerInt = setInterval(() => { rec.totalSec++; document.getElementById('hdrTimer').textContent = fmt(rec.totalSec); }, 1000);
-  rec.chunkInt = setInterval(() => {
-    rec.chunkSec++;
-    const pct = (rec.chunkSec / cfg.chunkDur) * 100;
-    document.getElementById('chunkFill').style.width = pct + '%';
-    document.getElementById('chunkEta').textContent = fmt(cfg.chunkDur - rec.chunkSec);
-    if (rec.chunkSec >= cfg.chunkDur) { rec.chunkSec = 0; document.getElementById('chunkFill').style.width='0%'; rollover(); }
-  }, 1000);
-  addSysMsg('Registrazione ripresa.');
-}
-
-function spawnRecorder() {
-  const chunks = [];
-  const mr = new MediaRecorder(rec.stream, rec.mimeType ? { mimeType: rec.mimeType } : {});
-  mr.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
-  mr.start(500);
-  rec.activeRecorder = mr;
-  rec.activeChunks = chunks;
-}
-
-function rollover() {
-  const outRec = rec.activeRecorder;
-  const outChunks = rec.activeChunks;
-  spawnRecorder();
-  setTimeout(async () => {
-    if (outRec.state !== 'inactive') {
-      const collected = await collectAndStop(outRec, outChunks);
-      await processChunk(collected);
-    }
-  }, OVERLAP_SEC * 1000);
-}
-
-function collectAndStop(mr, chunks) {
-  return new Promise(resolve => {
-    mr.onstop = () => resolve([...chunks]);
-    if (mr.state !== 'inactive') mr.stop(); else resolve([...chunks]);
-  });
-}
-
-// ─── TRANSCRIPTION ────────────────────────────────────────────────────────────
-async function processChunk(chunks) {
-  if (!chunks || chunks.length === 0) return;
-  const type = (chunks[0]?.type) || rec.mimeType || 'audio/mp4';
-  const blob = new Blob(chunks, { type });
-  if (blob.size < MIN_BLOB) return;
-  const idx = tx.chunks.length;
-  tx.chunks.push('');
-  addTxPlaceholder(idx);
-  document.getElementById('recDot').className = 'rec-dot processing';
-  try {
-    const ext = type.includes('mp4')||type.includes('m4a') ? 'm4a' : type.includes('ogg') ? 'ogg' : 'webm';
-    const fd = new FormData();
-    fd.append('file', blob, 'audio_'+idx+'.'+ext);
-    fd.append('model', 'whisper-large-v3-turbo');
-    if (cfg.lang) fd.append('language', cfg.lang);
-    fd.append('response_format', 'text');
-    const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
-      method:'POST', headers:{'Authorization':'Bearer '+cfg.groqKey}, body:fd
-    });
-    if (!res.ok) { const e = await res.json().catch(()=>{}); throw new Error(e?.error?.message||'HTTP '+res.status); }
-    const raw = (await res.text()).trim();
-    if (raw) {
-      const clean = dedup(tx.chunks[idx-1]||'', raw);
-      tx.chunks[idx] = clean;
-      tx.full += (tx.full ? ' ' : '') + clean;
-      updateTxDOM(idx, clean);
-      chunksSinceIntervention++;
-      autoSaveSession();
-      await maybeAgentIntervene(clean);
-    } else {
-      updateTxDOM(idx, null);
-    }
-  } catch(e) {
-    tx.chunks[idx] = '';
-    updateTxDOM(idx, '[Errore: '+e.message+']');
-    addSysMsg('Errore trascrizione chunk '+(idx+1)+': '+e.message);
-  }
-  if (rec.isRecording) document.getElementById('recDot').className = 'rec-dot recording';
-  else document.getElementById('recDot').className = 'rec-dot';
-}
-
-// ─── AGENT ────────────────────────────────────────────────────────────────────
-function buildSystemPrompt() {
-  const base = currentMode === 'setup' ? AGENT_CONFIG.setupSystemPrompt : AGENT_CONFIG.fase0SystemPrompt;
-  const parts = [AGENT_CONFIG.projectDescription, base];
-  let chatCtx = cfg.projectContext;
-  if (!chatCtx) {
-    try { const stored = JSON.parse(localStorage.getItem('sn_chat_context') || 'null'); if (stored) chatCtx = stored.content; } catch(e){}
-  }
-  if (chatCtx) parts.push('--- CONTESTO DALLA CHAT AI ---\n' + chatCtx);
-  if (tx.summary) parts.push('--- SINTESI SESSIONE CORRENTE ---\n' + tx.summary);
-  if (sessions.length > 0) {
-    const recent = sessions.slice(-2).map(function(s){ return 'Sessione ' + s.date + ':\n' + (s.summary || s.transcript.substring(0,500)); }).join('\n\n');
-    parts.push('--- SESSIONI RECENTI ---\n' + recent);
-  }
-  return parts.join('\n\n');
-}
-
-async function callClaude(userMessage, includeHistory = true) {
-  document.getElementById('btnSend').disabled = true;
-  const messages = includeHistory ? [...agentHistory, { role:'user', content: userMessage }]
-                                  : [{ role:'user', content: userMessage }];
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': cfg.anthropicKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: buildSystemPrompt(),
-        messages
-      })
-    });
-    if (!res.ok) { const e = await res.json().catch(()=>{}); throw new Error(e?.error?.message||'HTTP '+res.status); }
-    const data = await res.json();
-    const reply = data.content?.[0]?.text || '';
-    if (includeHistory) {
-      agentHistory.push({ role:'user', content: userMessage });
-      agentHistory.push({ role:'assistant', content: reply });
-      if (agentHistory.length > 40) agentHistory = agentHistory.slice(-40);
-    }
-    return reply;
-  } catch(e) {
-    addSysMsg('Errore agente: ' + e.message);
-    return null;
-  } finally {
-    document.getElementById('btnSend').disabled = false;
-  }
-}
-
-async function maybeAgentIntervene(newChunkText) {
-  const now = Date.now();
-  const cooldown = AGENT_CONFIG.interventionCooldownSec * 1000;
-  if (now - lastInterventionTime < cooldown) return;
-  if (chunksSinceIntervention < AGENT_CONFIG.interventionThresholdChunks) return;
-
-  // RAG: usa il transcript completo come territorio, la sintesi come indice
-  const prompt = `Nuovo segmento di conversazione appena trascritto:
-"${newChunkText}"
-
-Transcript completo della sessione:
-${tx.full}
-
-${tx.summary ? 'Sintesi cumulativa (indice — verifica sempre sul transcript):\n' + tx.summary : ''}
-
-Analizza il transcript completo. Poi decidi se intervenire. Intervieni se hai: un suggerimento migliorativo, un'alternativa non considerata, un rischio non nominato, un collegamento con Fase 1 o Fase 2, un'opinione su una scelta in corso, o una domanda strutturata su qualcosa che non sai. Sii proattivo — è meglio intervenire spesso che tacere.
-
-Se intervieni: max 3-4 frasi, diretto, una cosa sola.
-Se non c'è davvero nulla di utile da aggiungere in questo momento: rispondi solo SILENZIO.`;
-
-  const reply = await callClaude(prompt, false);
-  if (!reply || reply.trim().toUpperCase() === 'SILENZIO') return;
-
-  lastInterventionTime = now;
-  chunksSinceIntervention = 0;
-  addAgentMsg(reply, currentMode);
-  showNotif(reply, currentMode);
-  playBeep();
-
-  // Aggiorna la sintesi cumulativa ogni 3 interventi
-  if (agentHistory.length % 6 === 0) await updateSummary();
-}
-
-async function askAgent() {
-  const inp = document.getElementById('agentInp');
-  const q = inp.value.trim();
-  if (!q) {
-    // Interrogazione senza domanda: chiedi all'agente una valutazione dello stato
-    const prompt = `Basandoti sull'intero transcript della sessione (che devi verificare punto per punto prima di rispondere):
-
-${tx.full || '(nessun transcript ancora)'}
-
-Qual è il tuo punto di vista sullo stato della discussione in questo momento? Cosa manca, cosa è stato chiarito bene, cosa potrebbe essere approfondito?`;
-    addSysMsg('Interrogazione agente in corso...');
-    const reply = await callClaude(prompt);
-    if (reply) { addAgentMsg(reply, currentMode); showNotif(reply, currentMode); playBeep(); }
-    return;
-  }
-  inp.value = '';
-  // Domanda esplicita con RAG obbligatorio sul transcript completo
-  const prompt = `Domanda del team: "${q}"
-
-Prima di rispondere, verifica ogni punto rilevante sul transcript completo della sessione:
-${tx.full || '(nessun transcript ancora)'}
-
-Rispondi in modo preciso e diretto, citando il transcript se rilevante.`;
-  const reply = await callClaude(prompt);
-  if (reply) addAgentMsg(reply, currentMode);
-}
-
-async function updateSummary() {
-  if (!tx.full) return;
-  const prompt = `Produci una sintesi strutturata della conversazione fino ad ora. La sintesi deve essere un indice preciso verso il transcript — non una sostituzione. Includi: decisioni prese, punti ancora aperti, elementi di contesto emersi. Sii conciso.
-
-Transcript:
-${tx.full}`;
-  const s = await callClaude(prompt, false);
-  if (s) { tx.summary = s; autoSaveSession(); }
-}
-
-// ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
-function showNotif(text, mode) {
-  const b = document.getElementById('notifBanner');
-  document.getElementById('notifLabel').textContent = mode === 'setup' ? 'Agente · Setup' : 'Agente · Fase 0';
-  document.getElementById('notifText').textContent = text;
-  b.style.borderColor = mode === 'setup' ? 'var(--setup)' : 'var(--fase0)';
-  b.classList.add('show');
-  setTimeout(closeNotif, 12000);
-}
-function closeNotif() { document.getElementById('notifBanner').classList.remove('show'); }
-
-function playBeep() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.frequency.value = 520;
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.4);
-  } catch(e) {}
-}
-
-// ─── DOM HELPERS ─────────────────────────────────────────────────────────────
-function addTxPlaceholder(idx) {
-  document.getElementById('transcriptEmpty')?.remove();
-  const box = document.getElementById('transcriptPanel');
-  const el = document.createElement('div');
-  el.className = 't-chunk'; el.id = 'tc-'+idx;
-  el.innerHTML = '<div class="t-meta">'+fmt(rec.totalSec)+'</div><div class="t-processing"><span>Trascrizione in corso</span><span class="dots"><span>.</span><span>.</span><span>.</span></span></div>';
-  box.appendChild(el); box.scrollTop = box.scrollHeight;
-}
-function updateTxDOM(idx, text) {
-  const el = document.getElementById('tc-'+idx);
-  if (!el) return;
-  if (!text) { el.remove(); return; }
-  el.querySelector('.t-processing')?.remove();
-  let t = el.querySelector('.t-text');
-  if (!t) { t = document.createElement('div'); t.className='t-text'; el.appendChild(t); }
-  t.textContent = text;
-  const box = document.getElementById('transcriptPanel');
-  box.scrollTop = box.scrollHeight;
-}
-function addAgentMsg(text, mode) {
-  document.getElementById('agentEmpty')?.remove();
-  const box = document.getElementById('agentMsgs');
-  const el = document.createElement('div');
-  const isQuestion = text.includes('DOMANDA:') && text.includes('CONTESTO:');
-  if (isQuestion) {
-    el.className = 'msg question';
-    el.innerHTML = '<div class="q-label">⚠ Domanda strutturata</div>' + escHtml(text).replace('DOMANDA:', '<strong>DOMANDA:</strong>').replace('CONTESTO:', '<strong>CONTESTO:</strong>') +
-      '<div class="msg-time">' + new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}) + '</div>' +
-      '<button class="q-copy" onclick="copyToClipboard(this)">Copia domanda</button>';
-  } else {
-    el.className = 'msg agent-' + mode;
-    el.innerHTML = '<div class="msg-label">' + (mode==='setup' ? 'Setup' : 'Fase 0') + '</div>' + escHtml(text) + '<div class="msg-time">' + new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}) + '</div>';
-  }
-  box.appendChild(el); box.scrollTop = box.scrollHeight;
-}
-
-async function anonymizeTranscript() {
-  if (!tx.full) { addSysMsg('Nessun transcript da anonimizzare.'); return; }
-  if (!confirm("Anonimizzare il transcript? Nomi propri verranno sostituiti con placeholder. Il transcript originale non sara recuperabile.")) return;
-  addSysMsg('Anonimizzazione in corso...');
-  const prompt = "Analizza questo transcript e sostituisci nomi propri di persone con [Persona A] [Persona B] ecc. in modo consistente, nomi di societa con [Societa], ruoli identificativi con [Ruolo]. Non toccare termini tecnici acronimi di processo nomi di fasi. Restituisci SOLO il transcript anonimizzato.\n\nTRANSCRIPT:\n" + tx.full;
-
-  const reply = await callClaude(prompt, false);
-  if (!reply) { addSysMsg('Errore durante anonimizzazione.'); return; }
-  // Update transcript
-  tx.full = reply;
-  tx.chunks = [reply];
-  // Redraw transcript panel
-  const panel = document.getElementById('transcriptPanel');
-  const label = panel.querySelector('.panel-label');
-  panel.innerHTML = '';
-  if (label) panel.appendChild(label);
-  const el = document.createElement('div');
-  el.className = 't-chunk'; el.id = 'tc-0';
-  const t = document.createElement('div'); t.className = 't-text'; t.textContent = reply;
-  el.appendChild(t); panel.appendChild(el);
-  autoSaveSession();
-  addSysMsg('Transcript anonimizzato. Nomi propri sostituiti con placeholder.');
-}
-
-function copyToClipboard(btn) {
-  const text = btn.parentElement.textContent.replace('Copia domanda','').trim();
-  navigator.clipboard.writeText(text).then(() => { btn.textContent = 'Copiato ✓'; setTimeout(()=>btn.textContent='Copia domanda', 2000); }).catch(()=>{});
-}
-function addSysMsg(text) {
-  const box = document.getElementById('agentMsgs');
-  const empty = document.getElementById('agentEmpty');
-  if (empty) empty.remove();
-  const el = document.createElement('div');
-  el.className = 'msg system';
-  el.textContent = text;
-  box.appendChild(el); box.scrollTop = box.scrollHeight;
-}
-function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
-
-// ─── SESSIONS ─────────────────────────────────────────────────────────────────
-// Sessione corrente: ID fisso per tutta la durata della sessione
-let currentSessionId = Date.now();
-
-function autoSaveSession() {
-  if (!tx.full) return;
-  // Aggiorna o crea la voce della sessione corrente
-  const idx = sessions.findIndex(s => s.id === currentSessionId);
-  const sess = {
-    id: currentSessionId,
-    date: new Date().toLocaleString('it-IT'),
-    mode: currentMode,
-    duration: rec.totalSec,
-    transcript: tx.full,
-    summary: tx.summary,
-    agentHistory: agentHistory.slice()
-  };
-  if (idx >= 0) sessions[idx] = sess;
-  else sessions.push(sess);
-  try { localStorage.setItem('sn_sessions', JSON.stringify(sessions)); } catch(e){}
-}
-
-function loadSessions() {
-  try {
-    const raw = localStorage.getItem('sn_sessions');
-    if (raw) sessions = JSON.parse(raw);
-  } catch(e) { sessions = []; }
-}
-
-function renderArchive() {
-  const wrap = document.getElementById('archWrap');
-  const empty = document.getElementById('archEmpty');
-  wrap.innerHTML = '';
-
-  // Chat imports section
-  let chatImport = null;
-  try { chatImport = JSON.parse(localStorage.getItem('sn_chat_context') || 'null'); } catch(e){}
-  const importSection = document.createElement('div');
-  importSection.innerHTML = '<div class="panel-label" style="margin-bottom:10px">Contesto importato dalla chat</div>';
-  if (chatImport) {
-    const el = document.createElement('div');
-    el.className = 'arch-sess';
-    el.style.borderColor = 'var(--a1)';
-    el.innerHTML = '<div class="arch-sess-hdr"><div class="arch-sess-title" style="color:var(--a2)">Livello 1 · Chat AI</div><div class="arch-sess-meta">' + (chatImport.date||'') + '</div></div>' +
-      '<div class="arch-preview">' + escHtml((chatImport.content||'').substring(0,200)) + '</div>' +
-      '<div class="arch-btn-row"><button class="btn-arch" onclick="viewChatImport()">Visualizza</button><button class="btn-arch danger" onclick="deleteChatImport()">Rimuovi</button></div>';
-    importSection.appendChild(el);
-  } else {
-    importSection.innerHTML += '<div style="font-size:12px;color:var(--faint);padding:12px 0">Nessun contesto dalla chat caricato. Caricalo dalla schermata Config.</div>';
-  }
-  wrap.appendChild(importSection);
-
-  // Sessions section
-  const sessLabel = document.createElement('div');
-  sessLabel.className = 'panel-label';
-  sessLabel.style.marginTop = '20px';
-  sessLabel.style.marginBottom = '10px';
-  sessLabel.textContent = 'Sessioni registrate';
-  wrap.appendChild(sessLabel);
-
-  if (sessions.length === 0) {
-    const noSess = document.createElement('div');
-    noSess.style.cssText = 'font-size:12px;color:var(--faint);padding:12px 0';
-    noSess.textContent = 'Nessuna sessione registrata ancora.';
-    wrap.appendChild(noSess);
-    return;
-  }
-  [...sessions].reverse().forEach(s => {
-    const el = document.createElement('div');
-    el.className = 'arch-sess';
-    el.innerHTML = `
-      <div class="arch-sess-hdr">
-        <div class="arch-sess-title">${s.date} · <span style="color:var(--${s.mode})">${s.mode==='setup'?'Setup':'Fase 0'}</span></div>
-        <div class="arch-sess-meta">${fmt(s.duration||0)} · ${s.transcript.split(' ').length} parole</div>
-      </div>
-      <div class="arch-preview">${escHtml(s.transcript.substring(0,200))}</div>
-      <div class="arch-btn-row">
-        <button class="btn-arch" onclick="viewSession(${s.id},'transcript')">Transcript</button>
-        <button class="btn-arch" onclick="viewSession(${s.id},'summary')">Sintesi</button>
-        <button class="btn-arch" onclick="exportSession(${s.id})">Esporta JSON</button>
-        <button class="btn-arch danger" onclick="deleteSession(${s.id})">Elimina</button>
-      </div>`;
-    wrap.appendChild(el);
-  });
-}
-
-function viewSession(id, type) {
-  const s = sessions.find(x=>x.id===id);
-  if (!s) return;
-  document.getElementById('modalTitle').textContent = s.date + ' · ' + (type==='transcript'?'Transcript':'Sintesi');
-  document.getElementById('modalBody').textContent = type==='transcript' ? s.transcript : (s.summary||'Nessuna sintesi disponibile.');
-  document.getElementById('modalExportBtn').onclick = () => exportSession(id);
-  document.getElementById('modalOverlay').classList.add('show');
-}
-
-function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
-
-function exportSession(id) {
-  const s = sessions.find(x=>x.id===id);
-  if (!s) return;
-  const blob = new Blob([JSON.stringify(s, null, 2)], {type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'supernova_sessione_'+s.id+'.json';
-  a.click();
-}
-
-function deleteSession(id) {
-  if (!confirm('Eliminare questa sessione? Non è recuperabile.')) return;
-  sessions = sessions.filter(x=>x.id!==id);
-  try { localStorage.setItem('sn_sessions', JSON.stringify(sessions)); } catch(e){}
-  renderArchive();
-}
-
-function loadChatJson(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    try {
-      const data = JSON.parse(ev.target.result);
-      // Accetta sia formato {content, date} che formato libero
-      const content = data.content || data.summary || JSON.stringify(data, null, 2);
-      const date = data.date || new Date().toLocaleString('it-IT');
-      const stored = { content, date };
-      localStorage.setItem('sn_chat_context', JSON.stringify(stored));
-      cfg.projectContext = content;
-      document.getElementById('projectContext').value = content;
-      addSysMsg('Contesto chat caricato: ' + file.name);
-    } catch(err) { addSysMsg('Errore nel caricamento: ' + err.message); }
-  };
-  reader.readAsText(file);
-}
-
-function viewChatImport() {
-  try {
-    const data = JSON.parse(localStorage.getItem('sn_chat_context') || 'null');
-    if (!data) return;
-    document.getElementById('modalTitle').textContent = 'Contesto chat · ' + (data.date||'');
-    document.getElementById('modalBody').textContent = data.content || '';
-    document.getElementById('modalExportBtn').style.display = 'none';
-    document.getElementById('modalOverlay').classList.add('show');
+    var gk=localStorage.getItem('sn_g'), ak=localStorage.getItem('sn_a'), ctx=localStorage.getItem('sn_c');
+    if(gk){document.getElementById('groqKey').value=gk;document.getElementById('remKeys').checked=true;document.getElementById('btnForget').style.display='inline';}
+    if(ak){document.getElementById('anthKey').value=ak;}
+    if(ctx){G.chatCtx=ctx;document.getElementById('ctxArea').value=ctx.substring(0,300)+(ctx.length>300?'..':'');}
   } catch(e){}
 }
 
-function deleteChatImport() {
-  if (!confirm("Rimuovere il contesto importato dalla chat? L'agente avra meno contesto storico.")) return;
-  localStorage.removeItem('sn_chat_context');
-  cfg.projectContext = '';
-  document.getElementById('projectContext').value = '';
-  renderArchive();
+function forgetKeys() {
+  try{localStorage.removeItem('sn_g');localStorage.removeItem('sn_a');}catch(e){}
+  document.getElementById('groqKey').value='';
+  document.getElementById('anthKey').value='';
+  document.getElementById('remKeys').checked=false;
+  document.getElementById('btnForget').style.display='none';
 }
 
-function clearContext() {
-  document.getElementById('projectContext').value = '';
-  try { localStorage.removeItem('sn_project_context'); } catch(e){}
+function loadJson(e) {
+  var file=e.target.files[0]; if(!file)return;
+  var r=new FileReader();
+  r.onload=function(ev){
+    try{
+      var d=JSON.parse(ev.target.result);
+      G.chatCtx=d.content||d.summary||JSON.stringify(d);
+      try{localStorage.setItem('sn_c',G.chatCtx);}catch(e2){}
+      document.getElementById('ctxArea').value=G.chatCtx.substring(0,300)+(G.chatCtx.length>300?'..':'');
+      alert('Contesto caricato: '+file.name);
+    }catch(err){alert('Errore JSON: '+err.message);}
+  };
+  r.readAsText(file);
 }
 
-// ─── UTILS ────────────────────────────────────────────────────────────────────
-function dedup(prev, curr) {
-  if (!prev) return curr;
-  const pw = prev.trim().split(/\s+/);
-  const cw = curr.trim().split(/\s+/);
-  const win = Math.min(20, pw.length, cw.length);
-  for (let l = win; l >= 3; l--) {
-    if (pw.slice(-l).join(' ').toLowerCase() === cw.slice(0,l).join(' ').toLowerCase())
-      return cw.slice(l).join(' ');
+// Navigation
+function goTo(scr) {
+  if(scr==='cfg' && G.recActive && !G.recPaused){
+    if(!confirm('Registrazione in corso. Mettere in pausa e andare in Config?'))return;
+    pauseRec();
   }
-  return curr;
+  ['Cfg','Sess','Arch'].forEach(function(s){
+    document.getElementById('s'+s).className='screen'+(scr===s.toLowerCase()||scr===s?'':scr==='cfg'&&s==='Cfg'||scr==='sess'&&s==='Sess'||scr==='arch'&&s==='Arch'?' on':'');
+  });
+  document.getElementById('sCfg').className='screen'+(scr==='cfg'?' on':'');
+  document.getElementById('sSess').className='screen'+(scr==='sess'?' on':'');
+  document.getElementById('sArch').className='screen'+(scr==='arch'?' on':'');
+  var ba=document.getElementById('btnArch'), bb=document.getElementById('btnBack'), ti=document.getElementById('timer');
+  if(scr==='cfg'){ba.style.display='none';bb.style.display='none';ti.style.display='none';}
+  else if(scr==='sess'){ba.style.display='inline-block';bb.style.display='inline-block';bb.textContent='Config';bb.onclick=function(){goTo('cfg');};ti.style.display='inline';}
+  else if(scr==='arch'){ba.style.display='none';bb.style.display='inline-block';bb.textContent='Sessione';bb.onclick=function(){goTo('sess');};ti.style.display='none';renderArch();}
 }
-function fmt(sec) { return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0'); }
-function getSupportedMime() {
-  for (const t of ['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg'])
-    if (MediaRecorder.isTypeSupported(t)) return t;
-  return null;
+
+// Avvia
+function avvia() {
+  var gk=document.getElementById('groqKey').value.trim();
+  var ak=document.getElementById('anthKey').value.trim();
+  if(!gk||!gk.startsWith('gsk_')){alert('Chiave Groq non valida (inizia con gsk_)');return;}
+  if(!ak||!ak.startsWith('sk-ant-')){alert('Chiave Anthropic non valida (inizia con sk-ant-)');return;}
+  G.groqKey=gk; G.anthKey=ak;
+  G.lang=document.getElementById('langSel').value;
+  G.chunkDur=parseInt(document.getElementById('chunkDur').value);
+  G.configured=true;
+  if(document.getElementById('remKeys').checked){
+    try{localStorage.setItem('sn_g',gk);localStorage.setItem('sn_a',ak);document.getElementById('btnForget').style.display='inline';}catch(e){}
+  }
+  goTo('sess');
+  sysMsg(G.chatCtx?'Sessione avviata con contesto dalla chat.':'Sessione avviata senza contesto dalla chat.');
+  sysMsg('Premi Avvia per iniziare la registrazione.');
 }
-(function preventSleep() {
-  try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(()=>{}); } catch(e){}
-})();
-</script>
 
-<script>
-// ── ZOOM SUPPORT (pinch on iPad, ctrl+wheel on desktop) ──
-(function() {
-  let scale = 1;
-  const MIN = 0.5, MAX = 3;
-  const root = document.documentElement;
+// Recording
+function startRec() {
+  if(G.recPaused){resumeRec();return;}
+  navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true}})
+    .then(function(stream){
+      G.stream=stream; G.mime=getMime(); G.recActive=true; G.recPaused=false; G.chunkSec=0;
+      spawnRec();
+      setUI('rec');
+      G.timerInt=setInterval(function(){G.totalSec++;document.getElementById('timer').textContent=fmt(G.totalSec);},1000);
+      G.chunkInt=setInterval(function(){
+        G.chunkSec++;
+        var pct=(G.chunkSec/G.chunkDur)*100;
+        document.getElementById('cfill').style.width=pct+'%';
+        document.getElementById('ceta').textContent=fmt(G.chunkDur-G.chunkSec);
+        if(G.chunkSec>=G.chunkDur){G.chunkSec=0;document.getElementById('cfill').style.width='0%';rollover();}
+      },1000);
+    })
+    .catch(function(e){sysMsg('Errore microfono: '+e.message);});
+}
 
-  // Desktop: ctrl + wheel
-  document.addEventListener('wheel', function(e) {
-    if (!e.ctrlKey) return;
-    e.preventDefault();
-    scale = Math.min(MAX, Math.max(MIN, scale - e.deltaY * 0.002));
-    root.style.zoom = scale;
-  }, { passive: false });
+function pauseRec() {
+  if(!G.recActive||G.recPaused)return;
+  G.recPaused=true;
+  clearInterval(G.timerInt);clearInterval(G.chunkInt);
+  document.getElementById('cfill').style.width='0%';
+  document.getElementById('ceta').textContent='--';
+  var r=G.recorder,ch=G.recChunks.slice();
+  if(r&&r.state!=='inactive'){r.onstop=function(){if(ch.length>0)procChunk(ch);};r.stop();}
+  setUI('pause');
+  sysMsg('Registrazione in pausa.');
+}
 
-  // iPad: pinch gesture
-  let lastDist = null;
-  document.addEventListener('touchstart', function(e) {
-    if (e.touches.length === 2) {
-      lastDist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-    }
-  }, { passive: true });
-  document.addEventListener('touchmove', function(e) {
-    if (e.touches.length !== 2 || lastDist === null) return;
-    e.preventDefault();
-    const dist = Math.hypot(
-      e.touches[0].clientX - e.touches[1].clientX,
-      e.touches[0].clientY - e.touches[1].clientY
-    );
-    scale = Math.min(MAX, Math.max(MIN, scale * (dist / lastDist)));
-    root.style.zoom = scale;
-    lastDist = dist;
-  }, { passive: false });
-  document.addEventListener('touchend', function() { lastDist = null; }, { passive: true });
+function resumeRec() {
+  G.recPaused=false; G.chunkSec=0; spawnRec(); setUI('rec');
+  G.timerInt=setInterval(function(){G.totalSec++;document.getElementById('timer').textContent=fmt(G.totalSec);},1000);
+  G.chunkInt=setInterval(function(){
+    G.chunkSec++;
+    document.getElementById('cfill').style.width=((G.chunkSec/G.chunkDur)*100)+'%';
+    document.getElementById('ceta').textContent=fmt(G.chunkDur-G.chunkSec);
+    if(G.chunkSec>=G.chunkDur){G.chunkSec=0;document.getElementById('cfill').style.width='0%';rollover();}
+  },1000);
+  sysMsg('Registrazione ripresa.');
+}
 
-  // Double-tap to reset
-  let lastTap = 0;
-  document.addEventListener('touchend', function(e) {
-    const now = Date.now();
-    if (now - lastTap < 300) { scale = 1; root.style.zoom = 1; }
-    lastTap = now;
-  }, { passive: true });
-})();
+function stopRec() {
+  G.recActive=false;G.recPaused=false;
+  clearInterval(G.timerInt);clearInterval(G.chunkInt);
+  document.getElementById('cfill').style.width='0%';document.getElementById('ceta').textContent='--';
+  var r=G.recorder,ch=G.recChunks.slice();
+  if(r&&r.state!=='inactive'){r.onstop=function(){if(ch.length>0)procChunk(ch);autoSave();};r.stop();}
+  if(G.stream)G.stream.getTracks().forEach(function(t){t.stop();});
+  setUI('idle');sysMsg('Registrazione terminata.');
+}
+
+function setUI(state) {
+  var s=document.getElementById('btnStart'),p=document.getElementById('btnPause'),st=document.getElementById('btnStop'),d=document.getElementById('dot');
+  if(state==='idle'){s.style.display='inline-block';s.textContent='Avvia';p.style.display='none';st.style.display='none';d.className='dot';}
+  else if(state==='rec'){s.style.display='none';p.style.display='inline-block';p.textContent='Pausa';p.onclick=pauseRec;st.style.display='inline-block';d.className='dot rec';}
+  else if(state==='pause'){s.style.display='none';p.style.display='inline-block';p.textContent='Riprendi';p.onclick=resumeRec;st.style.display='inline-block';d.className='dot';}
+}
+
+function spawnRec() {
+  var ch=[];
+  var r=new MediaRecorder(G.stream,G.mime?{mimeType:G.mime}:{});
+  r.ondataavailable=function(e){if(e.data&&e.data.size>0)ch.push(e.data);};
+  r.start(500);G.recorder=r;G.recChunks=ch;
+}
+
+function rollover() {
+  var or=G.recorder,oc=G.recChunks.slice();spawnRec();
+  setTimeout(function(){if(or.state!=='inactive'){or.onstop=function(){procChunk(oc);};or.stop();}},OVERLAP*1000);
+}
+
+// Transcription
+function procChunk(chunks) {
+  if(!chunks||chunks.length===0)return;
+  var type=(chunks[0]&&chunks[0].type)?chunks[0].type:(G.mime||'audio/mp4');
+  var blob=new Blob(chunks,{type:type});if(blob.size<MIN_BLOB)return;
+  var idx=G.txChunks.length;G.txChunks.push('');
+  addTxPh(idx);document.getElementById('dot').className='dot proc';
+  var ext=type.indexOf('mp4')>=0||type.indexOf('m4a')>=0?'m4a':type.indexOf('ogg')>=0?'ogg':'webm';
+  var fd=new FormData();fd.append('file',blob,'a'+idx+'.'+ext);fd.append('model','whisper-large-v3-turbo');if(G.lang)fd.append('language',G.lang);fd.append('response_format','text');
+  fetch('https://api.groq.com/openai/v1/audio/transcriptions',{method:'POST',headers:{'Authorization':'Bearer '+G.groqKey},body:fd})
+    .then(function(res){if(!res.ok)return res.json().then(function(e){throw new Error((e.error&&e.error.message)||('HTTP '+res.status));});return res.text();})
+    .then(function(raw){
+      var clean=(raw||'').trim();
+      if(clean){clean=dedup(G.txChunks[idx-1]||'',clean);G.txChunks[idx]=clean;G.txFull+=(G.txFull?' ':'')+clean;updTx(idx,clean);G.chunksSinceInt++;autoSave();maybeInt(clean);}
+      else{updTx(idx,null);}
+      document.getElementById('dot').className=G.recActive&&!G.recPaused?'dot rec':'dot';
+    })
+    .catch(function(e){G.txChunks[idx]='';updTx(idx,'[Errore: '+e.message+']');sysMsg('Errore chunk '+(idx+1)+': '+e.message);document.getElementById('dot').className=G.recActive&&!G.recPaused?'dot rec':'dot';});
+}
+
+// Agent
+function buildSys() {
+  var base=G.mode==='setup'?AGENT_CONFIG.setupSystemPrompt:AGENT_CONFIG.fase0SystemPrompt;
+  var parts=[AGENT_CONFIG.projectDescription,base];
+  if(G.chatCtx)parts.push('--- CONTESTO DALLA CHAT ---\n'+G.chatCtx);
+  if(G.txSummary)parts.push('--- SINTESI SESSIONE ---\n'+G.txSummary);
+  if(G.sessions.length>0){var rec=G.sessions.slice(-2).map(function(s){return 'Sessione '+s.date+':\n'+(s.summary||s.transcript.substring(0,400));}).join('\n\n');parts.push('--- SESSIONI PRECEDENTI ---\n'+rec);}
+  return parts.join('\n\n');
+}
+
+function claude(msg,hist) {
+  document.getElementById('btnSend').disabled=true;
+  var msgs=hist?G.history.concat([{role:'user',content:msg}]):[{role:'user',content:msg}];
+  return fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':G.anthKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:buildSys(),messages:msgs})})
+    .then(function(res){if(!res.ok)return res.json().then(function(e){throw new Error((e.error&&e.error.message)||('HTTP '+res.status));});return res.json();})
+    .then(function(data){
+      var reply=(data.content&&data.content[0])?data.content[0].text:'';
+      if(hist&&reply){G.history.push({role:'user',content:msg});G.history.push({role:'assistant',content:reply});if(G.history.length>40)G.history=G.history.slice(-40);}
+      document.getElementById('btnSend').disabled=false;return reply;
+    })
+    .catch(function(e){sysMsg('Errore agente: '+e.message);document.getElementById('btnSend').disabled=false;return null;});
+}
+
+function maybeInt(chunk) {
+  var now=Date.now();
+  if(now-G.lastInt<AGENT_CONFIG.interventionCooldownSec*1000)return;
+  if(G.chunksSinceInt<AGENT_CONFIG.interventionThresholdChunks)return;
+  var p='Nuovo segmento:\n"'+chunk+'"\n\nTranscript completo (verifica ogni punto qui prima di rispondere):\n'+(G.txFull||'(vuoto)')+'\n\n'+(G.txSummary?'Sintesi (solo indice):\n'+G.txSummary+'\n\n':'')+'Hai un suggerimento, alternativa, rischio, opinione o domanda strutturata da portare al gruppo? Max 3-4 frasi su UNA cosa. Se non hai nulla di utile: SILENZIO';
+  claude(p,false).then(function(r){if(!r||r.trim().toUpperCase()==='SILENZIO')return;G.lastInt=Date.now();G.chunksSinceInt=0;addMsg(r);showN(r);beep();if(G.history.length>0&&G.history.length%6===0)updateSum();});
+}
+
+function ask(q) {
+  var question=q||(document.getElementById('agentInp').value.trim());
+  if(!question){var p='Valuta lo stato della discussione. Verifica sul transcript completo:\n'+(G.txFull||'(nessun transcript)')+'\n\nCosa manca, cosa va approfondito, cosa e stato chiarito bene?';claude(p,true).then(function(r){if(r)addMsg(r);});return;}
+  var p='Domanda: "'+question+'"\n\nVerifica prima sul transcript completo:\n'+(G.txFull||'(vuoto)')+'\n\nRispondi in modo preciso.';
+  claude(p,true).then(function(r){if(r)addMsg(r);});
+}
+
+function updateSum() {
+  if(!G.txFull)return;
+  claude('Sintesi come indice verso il transcript - non una sostituzione. Decisioni, punti aperti, contesto. Sii conciso.\n\nTranscript:\n'+G.txFull,false).then(function(s){if(s){G.txSummary=s;autoSave();}});
+}
+
+function anon() {
+  if(!G.txFull){sysMsg('Nessun transcript da anonimizzare.');return;}
+  if(!confirm('Anonimizzare? I nomi propri verranno sostituiti con placeholder. Non reversibile.'))return;
+  sysMsg('Anonimizzazione in corso...');
+  var p='Analizza questo transcript. Sostituisci: nomi propri persone con [Persona A], [Persona B] ecc. in modo consistente (stessa persona = stesso placeholder), nomi societa specifiche con [Societa], ruoli che identificano univocamente una persona con [Ruolo]. NON toccare: termini tecnici, acronimi processo, nomi fasi o progetti. Restituisci SOLO il transcript anonimizzato.\n\nTRANSCRIPT:\n'+G.txFull;
+  claude(p,false).then(function(r){
+    if(!r){sysMsg('Errore anonimizzazione.');return;}
+    G.txFull=r;G.txChunks=[r];
+    var panel=document.getElementById('txPanel'),lbl=panel.querySelector('.plbl');
+    panel.innerHTML='';if(lbl)panel.appendChild(lbl);
+    var el=document.createElement('div');el.className='tc';el.id='tc0';
+    var t=document.createElement('div');t.className='tc-text';t.textContent=r;
+    el.appendChild(t);panel.appendChild(el);autoSave();sysMsg('Transcript anonimizzato.');
+  });
+}
+
+// Sessions
+function autoSave() {
+  if(!G.txFull)return;
+  var sess={id:G.sessId,date:new Date().toLocaleString('it-IT'),mode:G.mode,duration:G.totalSec,transcript:G.txFull,summary:G.txSummary};
+  var idx=G.sessions.findIndex(function(s){return s.id===G.sessId;});
+  if(idx>=0)G.sessions[idx]=sess;else G.sessions.push(sess);
+  try{localStorage.setItem('sn_sessions',JSON.stringify(G.sessions));}catch(e){}
+}
+
+function renderArch() {
+  var w=document.getElementById('archContent');w.innerHTML='';
+  // Chat context
+  var cs=document.createElement('div');cs.innerHTML='<div class="sec-lbl">Contesto dalla chat</div>';
+  if(G.chatCtx){var cc=document.createElement('div');cc.className='acard chat';cc.innerHTML='<div class="acard-hdr"><div class="acard-title" style="color:var(--a2)">JSON chat caricato</div></div><div class="acard-prev">'+esc(G.chatCtx.substring(0,180))+'</div><div class="acard-btns"><button class="btn-sm" onclick="viewM(\'Contesto chat\',G.chatCtx)">Visualizza</button></div>';cs.appendChild(cc);}
+  else{cs.innerHTML+='<p class="arch-note">Nessun contesto caricato.</p>';}
+  w.appendChild(cs);
+  // Sessions
+  var ss=document.createElement('div');ss.style.marginTop='18px';ss.innerHTML='<div class="sec-lbl">Sessioni registrate</div>';
+  if(G.sessions.length===0){ss.innerHTML+='<p class="arch-note">Nessuna sessione ancora.</p>';}
+  else{G.sessions.slice().reverse().forEach(function(s){var el=document.createElement('div');el.className='acard';el.innerHTML='<div class="acard-hdr"><div class="acard-title">'+s.date+'</div><div class="acard-meta">'+fmt(s.duration||0)+' - '+s.transcript.split(' ').length+' parole</div></div><div class="acard-prev">'+esc(s.transcript.substring(0,160))+'</div><div class="acard-btns"><button class="btn-sm" onclick="viewM(\'Transcript '+s.date+'\',\''+s.id+'\'+\'T\')">Transcript</button><button class="btn-sm" onclick="viewM(\'Sintesi '+s.date+'\',\''+s.id+'\'+\'S\')">Sintesi</button><button class="btn-sm" onclick="delS('+s.id+')">Elimina</button></div>';ss.appendChild(el);});}
+  w.appendChild(ss);
+}
+
+function viewM(title,key) {
+  document.getElementById('mtitle').textContent=title;
+  var text='';
+  if(key==='G.chatCtx'){text=G.chatCtx;}
+  else if(key.endsWith('T')){var id=parseInt(key);var s=G.sessions.find(function(x){return x.id===id;});text=s?s.transcript:'Non trovato.';}
+  else if(key.endsWith('S')){var id2=parseInt(key);var s2=G.sessions.find(function(x){return x.id===id2;});text=s2?(s2.summary||'Nessuna sintesi.'):'Non trovato.';}
+  else{text=key;}
+  document.getElementById('mbody').textContent=text;
+  document.getElementById('mov').classList.add('on');
+}
+
+function delS(id) {
+  if(!confirm('Eliminare questa sessione?'))return;
+  G.sessions=G.sessions.filter(function(s){return s.id!==id;});
+  try{localStorage.setItem('sn_sessions',JSON.stringify(G.sessions));}catch(e){}
+  renderArch();
+}
+
+// Notifications
+function showN(text){document.getElementById('ntxt').textContent=text;var n=document.getElementById('notif');n.classList.add('on');setTimeout(function(){n.classList.remove('on');},13000);}
+function beep(){try{var c=new(window.AudioContext||window.webkitAudioContext)();var o=c.createOscillator();var g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=520;g.gain.setValueAtTime(0.15,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.4);o.start();o.stop(c.currentTime+0.4);}catch(e){}}
+
+// DOM
+function addTxPh(idx){
+  var e=document.getElementById('txEmpty');if(e)e.remove();
+  var el=document.createElement('div');el.className='tc';el.id='tc'+idx;
+  el.innerHTML='<div class="tc-meta">'+fmt(G.totalSec)+'</div><div class="tc-proc"><span>Trascrizione in corso</span><span class="dots"><span>.</span><span>.</span><span>.</span></span></div>';
+  document.getElementById('txPanel').appendChild(el);
+  document.getElementById('txPanel').scrollTop=99999;
+}
+function updTx(idx,text){
+  var el=document.getElementById('tc'+idx);if(!el)return;
+  if(!text){el.remove();return;}
+  var p=el.querySelector('.tc-proc');if(p)p.remove();
+  var t=el.querySelector('.tc-text');
+  if(!t){t=document.createElement('div');t.className='tc-text';el.appendChild(t);}
+  t.textContent=text;document.getElementById('txPanel').scrollTop=99999;
+}
+function addMsg(text) {
+  var e=document.getElementById('msgsEmpty');if(e)e.remove();
+  var box=document.getElementById('msgs');
+  var el=document.createElement('div');
+  var isQ=text.indexOf('DOMANDA:')>=0&&text.indexOf('CONTESTO:')>=0;
+  if(isQ){el.className='msg quest';el.innerHTML='<div class="mlbl q">Domanda strutturata</div>'+esc(text).replace('DOMANDA:','<strong>DOMANDA:</strong>').replace('CONTESTO:','<strong>CONTESTO:</strong>')+'<div class="mtime">'+now()+'</div><button class="btn-copy" onclick="var t=this.parentElement.textContent.replace(\'Copia\',\'\').trim();navigator.clipboard&&navigator.clipboard.writeText(t).then(function(){});">Copia</button>';}
+  else{el.className='msg agent';el.innerHTML='<div class="mlbl">Agente</div>'+esc(text)+'<div class="mtime">'+now()+'</div>';}
+  box.appendChild(el);box.scrollTop=box.scrollHeight;
+}
+function sysMsg(text){var e=document.getElementById('msgsEmpty');if(e)e.remove();var box=document.getElementById('msgs');var el=document.createElement('div');el.className='msg sys';el.textContent=text;box.appendChild(el);box.scrollTop=box.scrollHeight;}
+
+// Utils
+function dedup(prev,curr){if(!prev)return curr;var pw=prev.trim().split(/\s+/),cw=curr.trim().split(/\s+/),win=Math.min(20,pw.length,cw.length);for(var l=win;l>=3;l--){if(pw.slice(-l).join(' ').toLowerCase()===cw.slice(0,l).join(' ').toLowerCase())return cw.slice(l).join(' ');}return curr;}
+function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+function now(){return new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+function getMime(){var ts=['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg'];for(var i=0;i<ts.length;i++){if(MediaRecorder.isTypeSupported(ts[i]))return ts[i];}return null;}
+
+// Also fix viewM to handle the dynamic key approach
+function viewModal(title,text){document.getElementById('mtitle').textContent=title;document.getElementById('mbody').textContent=text;document.getElementById('mov').classList.add('on');}
+
+// Zoom
+(function(){var scale=1;document.addEventListener('wheel',function(e){if(!e.ctrlKey)return;e.preventDefault();scale=Math.min(3,Math.max(0.5,scale-e.deltaY*0.002));document.documentElement.style.zoom=scale;},{passive:false});var ld=null;document.addEventListener('touchstart',function(e){if(e.touches.length===2)ld=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);},{passive:true});document.addEventListener('touchmove',function(e){if(e.touches.length!==2||!ld)return;e.preventDefault();var d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);scale=Math.min(3,Math.max(0.5,scale*(d/ld)));document.documentElement.style.zoom=scale;ld=d;},{passive:false});document.addEventListener('touchend',function(e){ld=null;if(e.changedTouches.length===1){var t=Date.now();if(t-(document._lt||0)<300){scale=1;document.documentElement.style.zoom=1;}document._lt=t;}},{passive:true});try{if('wakeLock'in navigator)navigator.wakeLock.request('screen').catch(function(){});}catch(e){}})();
 </script>
 
 </body>
