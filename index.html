@@ -3,883 +3,1123 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Super-NOVA — Test Trascrizione (Groq)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Super-NOVA · Agente</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,600;1,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
 :root {
-–bg: #0d0f12;
-–surface: #151820;
-–surface2: #1c2028;
-–border: #252830;
-–accent: #4a7fa5;
-–accent-bright: #6ba3cc;
-–accent-glow: rgba(74,127,165,0.15);
-–text: #e8eaed;
-–text-dim: #8892a0;
-–text-faint: #444c58;
-–success: #4caf82;
-–warning: #e8a24a;
-–danger: #e05c5c;
-–recording-pulse: rgba(224, 92, 92, 0.4);
+  --bg:#0a0c0f; --s1:#111318; --s2:#181c22; --s3:#1e232b;
+  --border:#252b35; --border2:#2e3540;
+  --a1:#3d7ab5; --a2:#5a9fd4; --a3:#7bbde8;
+  --setup:#4a9e72; --setup-dim:rgba(74,158,114,0.12);
+  --fase0:#9b6fd4; --fase0-dim:rgba(155,111,212,0.12);
+  --warn:#e8a84a; --danger:#d95f5f; --ok:#4aaf7a;
+  --text:#dde2e8; --dim:#7a8694; --faint:#3d4655;
+  --ff:'DM Sans',sans-serif; --fm:'DM Mono',monospace; --fd:'Fraunces',serif;
 }
-
-- { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-background: var(–bg);
-color: var(–text);
-font-family: ‘DM Sans’, sans-serif;
-font-weight: 300;
-min-height: 100vh;
-display: flex;
-flex-direction: column;
-overflow-x: hidden;
-}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--ff);font-weight:300;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 
 /* HEADER */
-.header {
-padding: 24px 32px 20px;
-border-bottom: 1px solid var(–border);
-display: flex;
-align-items: baseline;
-gap: 16px;
-flex-shrink: 0;
-}
-.header-title {
-font-family: ‘DM Serif Display’, serif;
-font-size: 22px;
-color: var(–text);
-letter-spacing: 0.01em;
-}
-.header-title span {
-color: var(–accent-bright);
-}
-.header-sub {
-font-size: 12px;
-color: var(–text-faint);
-letter-spacing: 0.08em;
-text-transform: uppercase;
-}
-.header-badge {
-margin-left: auto;
-font-family: ‘DM Mono’, monospace;
-font-size: 11px;
-color: var(–text-faint);
-letter-spacing: 0.05em;
-text-transform: uppercase;
-}
+.hdr{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(–border);flex-shrink:0;background:var(–s1)}
+.hdr-logo{font-family:var(–fd);font-size:19px;letter-spacing:.01em}
+.hdr-logo span{color:var(–a2)}
+.mode-badge{font-size:10px;letter-spacing:.09em;text-transform:uppercase;padding:3px 10px;border-radius:20px;border:1px solid;font-family:var(–fm);display:none}
+.mode-badge.setup{color:var(–setup);border-color:var(–setup);background:var(–setup-dim);display:inline}
+.mode-badge.fase0{color:var(–fase0);border-color:var(–fase0);background:var(–fase0-dim);display:inline}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.rec-dot{width:8px;height:8px;border-radius:50%;background:var(–faint);transition:background .3s}
+.rec-dot.recording{background:var(–danger);animation:blink 1.4s ease-in-out infinite}
+.rec-dot.processing{background:var(–warn)}
+@keyframes blink{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(217,95,95,.5)}50%{opacity:.7;box-shadow:0 0 0 5px transparent}}
+.hdr-timer{font-family:var(–fm);font-size:14px;color:var(–a2);min-width:48px;text-align:right}
+.btn-nav{background:none;border:1px solid var(–border);border-radius:6px;color:var(–dim);font-size:11px;padding:5px 10px;cursor:pointer;font-family:var(–ff);transition:all .2s}
+.btn-nav:hover{border-color:var(–a1);color:var(–a2)}
+.btn-nav.active{border-color:var(–a1);color:var(–a2);background:rgba(61,122,181,.08)}
 
-/* SETUP SCREEN */
-.setup-screen {
-flex: 1;
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-padding: 40px 32px;
-gap: 32px;
-}
+/* SCREENS */
+.screen{flex:1;overflow:hidden;display:none;flex-direction:column}
+.screen.active{display:flex}
 
-.setup-icon {
-width: 64px;
-height: 64px;
-border-radius: 50%;
-background: var(–surface2);
-border: 1px solid var(–border);
-display: flex;
-align-items: center;
-justify-content: center;
-font-size: 28px;
-}
+/* ─────────────────────────────────────────
+SCREEN 1: CONFIG
+───────────────────────────────────────── */
+.cfg-wrap{flex:1;overflow-y:auto;padding:28px 20px;display:flex;flex-direction:column;gap:20px;align-items:center}
+.cfg-card{width:100%;max-width:500px;background:var(–s1);border:1px solid var(–border);border-radius:12px;padding:22px;display:flex;flex-direction:column;gap:14px}
+.cfg-card-title{font-family:var(–fd);font-size:17px}
+.cfg-card-sub{font-size:12px;color:var(–dim);line-height:1.65}
+.lbl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(–faint);margin-bottom:5px}
+.inp{width:100%;background:var(–s2);border:1px solid var(–border);border-radius:7px;padding:11px 13px;color:var(–text);font-family:var(–fm);font-size:12px;outline:none;transition:border-color .2s}
+.inp:focus{border-color:var(–a1)}
+.inp::placeholder{color:var(–faint)}
+.sel{width:100%;background:var(–s2);border:1px solid var(–border);border-radius:7px;padding:11px 13px;color:var(–text);font-family:var(–ff);font-size:13px;outline:none;appearance:none;cursor:pointer}
+.sel:focus{border-color:var(–a1)}
+.chk-row{display:flex;align-items:center;gap:8px}
+.chk-row input{width:15px;height:15px;accent-color:var(–a1);cursor:pointer}
+.chk-row label{font-size:12px;color:var(–dim);cursor:pointer}
+.btn-forget{margin-left:auto;background:none;border:none;font-size:11px;color:var(–danger);cursor:pointer;text-decoration:underline;display:none}
+.btn-primary{width:100%;background:var(–a1);border:none;border-radius:8px;padding:14px;color:white;font-family:var(–ff);font-size:14px;font-weight:500;cursor:pointer;transition:background .2s}
+.btn-primary:hover{background:var(–a2)}
+.btn-primary:active{transform:scale(.98)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.ctx-area{width:100%;background:var(–s2);border:1px solid var(–border);border-radius:7px;padding:11px 13px;color:var(–dim);font-family:var(–ff);font-size:12px;outline:none;resize:vertical;min-height:100px;line-height:1.6}
+.ctx-area:focus{border-color:var(–a1);color:var(–text)}
+.upload-row{display:flex;gap:8px}
+.btn-sec{flex:1;background:var(–s2);border:1px solid var(–border);border-radius:7px;padding:10px;color:var(–dim);font-size:12px;cursor:pointer;font-family:var(–ff);transition:all .2s;text-align:center}
+.btn-sec:hover{border-color:var(–a1);color:var(–a2)}
+.note{font-size:11px;color:var(–faint);line-height:1.6;text-align:center;max-width:460px}
 
-.setup-text {
-text-align: center;
-max-width: 400px;
-}
-.setup-text h2 {
-font-family: ‘DM Serif Display’, serif;
-font-size: 26px;
-margin-bottom: 10px;
-color: var(–text);
-}
-.setup-text p {
-font-size: 14px;
-color: var(–text-dim);
-line-height: 1.65;
-}
+/* ─────────────────────────────────────────
+SCREEN 2: SESSIONE
+───────────────────────────────────────── */
+.sess-layout{flex:1;overflow:hidden;display:grid;grid-template-columns:1fr 360px;grid-template-rows:1fr auto}
+.sess-main{overflow-y:auto;padding:20px;border-right:1px solid var(–border);display:flex;flex-direction:column;gap:12px}
+.sess-side{overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.sess-controls{grid-column:1/-1;border-top:1px solid var(–border);padding:14px 20px;display:flex;align-items:center;gap:12px;background:var(–s1);flex-shrink:0}
 
-.api-form {
-width: 100%;
-max-width: 420px;
-display: flex;
-flex-direction: column;
-gap: 12px;
-}
+/* Chunk progress */
+.chunk-bar{height:2px;background:var(–s3);border-radius:1px;overflow:hidden;flex:1}
+.chunk-fill{height:100%;background:var(–a1);border-radius:1px;width:0%;transition:width 1s linear}
+.chunk-eta{font-family:var(–fm);font-size:11px;color:var(–faint);min-width:40px;text-align:right}
 
-.field-label {
-font-size: 11px;
-color: var(–text-faint);
-letter-spacing: 0.08em;
-text-transform: uppercase;
-margin-bottom: 4px;
-}
+/* Rec button */
+.btn-rec{padding:10px 22px;border-radius:8px;border:none;font-family:var(–ff);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s}
+.btn-rec.start{background:var(–danger);color:white}
+.btn-rec.start:hover{background:#e87070}
+.btn-rec.stop{background:var(–s3);color:var(–text);border:1px solid var(–border2)}
+.btn-rec.stop:hover{border-color:var(–a1);color:var(–a2)}
+.btn-rec:active{transform:scale(.97)}
 
-.api-input {
-width: 100%;
-background: var(–surface);
-border: 1px solid var(–border);
-border-radius: 8px;
-padding: 14px 16px;
-color: var(–text);
-font-family: ‘DM Mono’, monospace;
-font-size: 13px;
-outline: none;
-transition: border-color 0.2s;
-letter-spacing: 0.02em;
-}
-.api-input:focus {
-border-color: var(–accent);
-}
-.api-input::placeholder {
-color: var(–text-faint);
-}
+/* Mode switcher */
+.mode-sw{display:flex;gap:6px;margin-left:auto}
+.btn-mode{padding:7px 14px;border-radius:7px;border:1px solid var(–border);background:none;color:var(–dim);font-size:11px;cursor:pointer;font-family:var(–ff);transition:all .2s}
+.btn-mode.active.setup{border-color:var(–setup);color:var(–setup);background:var(–setup-dim)}
+.btn-mode.active.fase0{border-color:var(–fase0);color:var(–fase0);background:var(–fase0-dim)}
+.btn-mode:not(.active):hover{border-color:var(–border2);color:var(–text)}
 
-.chunk-select {
-width: 100%;
-background: var(–surface);
-border: 1px solid var(–border);
-border-radius: 8px;
-padding: 14px 16px;
-color: var(–text);
-font-family: ‘DM Sans’, sans-serif;
-font-size: 14px;
-outline: none;
-appearance: none;
-cursor: pointer;
-transition: border-color 0.2s;
-}
-.chunk-select:focus { border-color: var(–accent); }
+/* Transcript panel */
+.panel-label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(–faint);margin-bottom:8px}
+.transcript-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(–faint);font-size:12px;text-align:center;flex:1;min-height:200px}
+.t-chunk{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(–border)}
+.t-chunk:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.t-meta{font-family:var(–fm);font-size:10px;color:var(–faint);margin-bottom:5px}
+.t-text{font-size:13px;line-height:1.75;color:var(–text)}
+.t-processing{font-size:12px;color:var(–warn);display:flex;align-items:center;gap:6px}
+.dots span{animation:dotblink 1.2s infinite;opacity:0}
+.dots span:nth-child(2){animation-delay:.2s}
+.dots span:nth-child(3){animation-delay:.4s}
+@keyframes dotblink{0%,80%,100%{opacity:0}40%{opacity:1}}
 
-.btn-primary {
-width: 100%;
-background: var(–accent);
-border: none;
-border-radius: 8px;
-padding: 16px;
-color: white;
-font-family: ‘DM Sans’, sans-serif;
-font-size: 15px;
-font-weight: 500;
-cursor: pointer;
-transition: background 0.2s, transform 0.1s;
-letter-spacing: 0.01em;
-}
-.btn-primary:hover { background: var(–accent-bright); }
-.btn-primary:active { transform: scale(0.98); }
-.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+/* Agent panel (right side) */
+.agent-panel{display:flex;flex-direction:column;gap:10px;height:100%}
+.agent-header{display:flex;align-items:center;justify-content:space-between}
+.agent-title{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(–faint)}
+.btn-ask{padding:5px 12px;border-radius:6px;border:1px solid var(–a1);background:rgba(61,122,181,.08);color:var(–a2);font-size:11px;cursor:pointer;font-family:var(–ff);transition:all .2s}
+.btn-ask:hover{background:rgba(61,122,181,.2)}
+.agent-msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;min-height:0}
+.agent-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(–faint);font-size:11px;text-align:center;height:100%;min-height:120px}
+.msg{padding:10px 13px;border-radius:8px;font-size:12px;line-height:1.65;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.msg.agent-setup{background:var(–setup-dim);border:1px solid rgba(74,158,114,.25);color:var(–text)}
+.msg.agent-fase0{background:var(–fase0-dim);border:1px solid rgba(155,111,212,.25);color:var(–text)}
+.msg.system{background:var(–s2);border:1px solid var(–border);color:var(–dim);font-style:italic}
+.msg-time{font-family:var(–fm);font-size:9px;color:var(–faint);margin-top:4px}
+.msg-label{font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(–faint);margin-bottom:3px}
+.agent-input-row{display:flex;gap:6px;flex-shrink:0}
+.agent-inp{flex:1;background:var(–s2);border:1px solid var(–border);border-radius:7px;padding:9px 11px;color:var(–text);font-family:var(–ff);font-size:12px;outline:none}
+.agent-inp:focus{border-color:var(–a1)}
+.agent-inp::placeholder{color:var(–faint)}
+.btn-send{padding:9px 14px;border-radius:7px;border:none;background:var(–a1);color:white;font-size:12px;cursor:pointer;transition:background .2s;flex-shrink:0}
+.btn-send:hover{background:var(–a2)}
+.btn-send:disabled{opacity:.4;cursor:not-allowed}
 
-.note {
-font-size: 12px;
-color: var(–text-faint);
-text-align: center;
-line-height: 1.6;
-max-width: 380px;
-}
+/* NOTIFICATION BANNER */
+.notif{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:100;max-width:600px;width:90%;padding:14px 18px;border-radius:10px;background:var(–s1);border:1px solid var(–setup);box-shadow:0 8px 32px rgba(0,0,0,.5);display:none;animation:slideDown .3s ease}
+@keyframes slideDown{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.notif.show{display:block}
+.notif-label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(–setup);margin-bottom:6px;font-family:var(–fm)}
+.notif-text{font-size:14px;line-height:1.6;color:var(–text)}
+.notif-close{position:absolute;top:10px;right:12px;background:none;border:none;color:var(–faint);font-size:16px;cursor:pointer;line-height:1}
+.notif-close:hover{color:var(–text)}
 
-/* RECORDING SCREEN */
-.recording-screen {
-flex: 1;
-display: flex;
-flex-direction: column;
-padding: 24px 32px 32px;
-gap: 20px;
-display: none;
-}
+/* ─────────────────────────────────────────
+SCREEN 3: ARCHIVIO
+───────────────────────────────────────── */
+.arch-wrap{flex:1;overflow-y:auto;padding:24px 20px;display:flex;flex-direction:column;gap:16px}
+.arch-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(–faint);font-size:13px;text-align:center;flex:1}
+.arch-sess{background:var(–s1);border:1px solid var(–border);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.arch-sess-hdr{display:flex;align-items:center;gap:10px}
+.arch-sess-title{font-size:14px;color:var(–text);flex:1}
+.arch-sess-meta{font-family:var(–fm);font-size:10px;color:var(–faint)}
+.arch-btn-row{display:flex;gap:8px}
+.btn-arch{padding:6px 14px;border-radius:6px;border:1px solid var(–border);background:none;color:var(–dim);font-size:11px;cursor:pointer;font-family:var(–ff);transition:all .2s}
+.btn-arch:hover{border-color:var(–a1);color:var(–a2)}
+.btn-arch.danger:hover{border-color:var(–danger);color:var(–danger)}
+.arch-preview{font-size:11px;color:var(–faint);line-height:1.6;max-height:60px;overflow:hidden;position:relative}
+.arch-preview::after{content:’’;position:absolute;bottom:0;left:0;right:0;height:20px;background:linear-gradient(transparent,var(–s1))}
 
-/* STATUS BAR */
-.status-bar {
-display: flex;
-align-items: center;
-gap: 16px;
-padding: 14px 18px;
-background: var(–surface);
-border: 1px solid var(–border);
-border-radius: 10px;
-flex-shrink: 0;
-}
+/* EXPAND MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal{background:var(–s1);border:1px solid var(–border2);border-radius:12px;max-width:700px;width:100%;max-height:85vh;display:flex;flex-direction:column}
+.modal-hdr{padding:18px 20px;border-bottom:1px solid var(–border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-title{font-family:var(–fd);font-size:16px}
+.btn-close{background:none;border:none;color:var(–dim);font-size:20px;cursor:pointer;line-height:1}
+.modal-body{flex:1;overflow-y:auto;padding:20px}
+.modal-body p{font-size:13px;line-height:1.8;color:var(–text);white-space:pre-wrap}
+.modal-foot{padding:14px 20px;border-top:1px solid var(–border);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0}
 
-.status-indicator {
-width: 10px;
-height: 10px;
-border-radius: 50%;
-background: var(–text-faint);
-flex-shrink: 0;
-transition: background 0.3s;
-}
-.status-indicator.idle { background: var(–text-faint); }
-.status-indicator.recording {
-background: var(–danger);
-animation: pulse-rec 1.5s ease-in-out infinite;
-}
-.status-indicator.processing { background: var(–warning); }
-.status-indicator.done { background: var(–success); }
-
-@keyframes pulse-rec {
-0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(–recording-pulse); }
-50% { opacity: 0.8; box-shadow: 0 0 0 6px transparent; }
-}
-
-.status-text {
-font-size: 13px;
-color: var(–text-dim);
-flex: 1;
-}
-.status-text strong {
-color: var(–text);
-font-weight: 500;
-}
-
-.timer {
-font-family: ‘DM Mono’, monospace;
-font-size: 20px;
-color: var(–accent-bright);
-letter-spacing: 0.05em;
-min-width: 70px;
-text-align: right;
-}
-
-/* CHUNK PROGRESS */
-.chunk-bar-wrap {
-display: flex;
-flex-direction: column;
-gap: 6px;
-flex-shrink: 0;
-}
-.chunk-bar-label {
-display: flex;
-justify-content: space-between;
-font-size: 11px;
-color: var(–text-faint);
-letter-spacing: 0.06em;
-text-transform: uppercase;
-}
-.chunk-bar-track {
-height: 3px;
-background: var(–surface2);
-border-radius: 2px;
-overflow: hidden;
-}
-.chunk-bar-fill {
-height: 100%;
-background: var(–accent);
-border-radius: 2px;
-transition: width 1s linear;
-width: 0%;
-}
-
-/* CONTROLS */
-.controls {
-display: flex;
-gap: 12px;
-flex-shrink: 0;
-}
-
-.btn-rec {
-flex: 1;
-padding: 18px;
-border-radius: 10px;
-border: none;
-font-family: ‘DM Sans’, sans-serif;
-font-size: 16px;
-font-weight: 500;
-cursor: pointer;
-transition: all 0.2s;
-letter-spacing: 0.01em;
-}
-.btn-rec.start {
-background: var(–danger);
-color: white;
-}
-.btn-rec.start:hover { background: #f07070; }
-.btn-rec.stop {
-background: var(–surface2);
-color: var(–text);
-border: 1px solid var(–border);
-}
-.btn-rec.stop:hover { border-color: var(–accent); color: var(–accent-bright); }
-.btn-rec:active { transform: scale(0.97); }
-.btn-rec:disabled { opacity: 0.4; cursor: not-allowed; }
-
-.btn-clear {
-padding: 18px 20px;
-border-radius: 10px;
-border: 1px solid var(–border);
-background: transparent;
-color: var(–text-faint);
-font-family: ‘DM Sans’, sans-serif;
-font-size: 13px;
-cursor: pointer;
-transition: all 0.2s;
-}
-.btn-clear:hover { border-color: var(–danger); color: var(–danger); }
-
-/* TRANSCRIPT AREA */
-.transcript-wrap {
-flex: 1;
-display: flex;
-flex-direction: column;
-gap: 8px;
-min-height: 0;
-}
-.transcript-header {
-display: flex;
-justify-content: space-between;
-align-items: center;
-flex-shrink: 0;
-}
-.transcript-label {
-font-size: 11px;
-color: var(–text-faint);
-letter-spacing: 0.08em;
-text-transform: uppercase;
-}
-.word-count {
-font-family: ‘DM Mono’, monospace;
-font-size: 11px;
-color: var(–text-faint);
-}
-
-.transcript-box {
-flex: 1;
-background: var(–surface);
-border: 1px solid var(–border);
-border-radius: 10px;
-padding: 20px;
-overflow-y: auto;
-min-height: 200px;
-}
-
-.transcript-empty {
-height: 100%;
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-gap: 12px;
-color: var(–text-faint);
-font-size: 13px;
-text-align: center;
-}
-.transcript-empty-icon {
-font-size: 32px;
-opacity: 0.4;
-}
-
-.transcript-chunk {
-margin-bottom: 20px;
-padding-bottom: 20px;
-border-bottom: 1px solid var(–border);
-}
-.transcript-chunk:last-child {
-border-bottom: none;
-margin-bottom: 0;
-padding-bottom: 0;
-}
-.chunk-meta {
-font-family: ‘DM Mono’, monospace;
-font-size: 10px;
-color: var(–text-faint);
-letter-spacing: 0.06em;
-text-transform: uppercase;
-margin-bottom: 8px;
-}
-.chunk-text {
-font-size: 15px;
-line-height: 1.75;
-color: var(–text);
-font-weight: 300;
-}
-.chunk-processing {
-display: flex;
-align-items: center;
-gap: 10px;
-font-size: 13px;
-color: var(–warning);
-}
-.dots span {
-animation: dot-blink 1.2s infinite;
-opacity: 0;
-}
-.dots span:nth-child(2) { animation-delay: 0.2s; }
-.dots span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes dot-blink {
-0%, 80%, 100% { opacity: 0; }
-40% { opacity: 1; }
-}
-
-/* STATS */
-.stats-row {
-display: flex;
-gap: 12px;
-flex-shrink: 0;
-}
-.stat-box {
-flex: 1;
-background: var(–surface);
-border: 1px solid var(–border);
-border-radius: 8px;
-padding: 12px 16px;
-text-align: center;
-}
-.stat-value {
-font-family: ‘DM Mono’, monospace;
-font-size: 20px;
-color: var(–accent-bright);
-font-weight: 500;
-}
-.stat-label {
-font-size: 10px;
-color: var(–text-faint);
-letter-spacing: 0.07em;
-text-transform: uppercase;
-margin-top: 2px;
-}
-
-/* ERROR */
-.error-banner {
-padding: 12px 16px;
-background: rgba(224,92,92,0.1);
-border: 1px solid rgba(224,92,92,0.3);
-border-radius: 8px;
-font-size: 13px;
-color: #f08080;
-display: none;
-flex-shrink: 0;
-}
-
-/* SCROLLBAR */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(–border); border-radius: 2px; }
+/* STRUCTURED QUESTION */
+.msg.question{background:rgba(232,168,74,0.1);border:1px solid rgba(232,168,74,0.35);color:var(–text)}
+.msg.question .q-label{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(–warn);margin-bottom:4px;font-family:var(–fm)}
+.msg.question .q-copy{margin-top:8px;padding:4px 10px;border-radius:5px;border:1px solid rgba(232,168,74,0.3);background:none;color:var(–warn);font-size:10px;cursor:pointer;font-family:var(–ff)}
+.msg.question .q-copy:hover{background:rgba(232,168,74,0.1)}
 </style>
 
 </head>
 <body>
 
-<div class="header">
-  <div class="header-title">Super<span>-NOVA</span></div>
-  <div class="header-sub">Test Trascrizione</div>
-  <div class="header-badge">Whisper · Groq · <span id="activeLang">—</span></div>
-</div>
-
-<!-- SETUP SCREEN -->
-
-<div class="setup-screen" id="setupScreen">
-  <div class="setup-icon">🎙</div>
-  <div class="setup-text">
-    <h2>Configura il test</h2>
-    <p id="setupText">Inserisci la chiave API Groq per attivare la trascrizione continua via Whisper.</p>
-  </div>
-  <div class="api-form">
-    <div>
-      <div class="field-label">Chiave API Groq</div>
-      <input type="password" class="api-input" id="apiKeyInput" placeholder="gsk_..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-      <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
-        <input type="checkbox" id="rememberKey" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;">
-        <label for="rememberKey" style="font-size:12px;color:var(--text-dim);cursor:pointer;">Ricorda su questo dispositivo</label>
-        <button onclick="forgetKey()" id="forgetBtn" style="display:none;margin-left:auto;background:none;border:none;font-size:11px;color:var(--danger);cursor:pointer;text-decoration:underline;">Dimentica</button>
-      </div>
-    </div>
-    <div>
-      <div class="field-label">Lingua</div>
-      <select class="chunk-select" id="languageSelect">
-        <option value="">Rileva automaticamente</option>
-        <option value="it">Italiano</option>
-        <option value="en">English</option>
-        <option value="fr">Francais</option>
-        <option value="de">Deutsch</option>
-        <option value="es">Espanol</option>
-        <option value="pt">Portugues</option>
-        <option value="nl">Nederlands</option>
-        <option value="pl">Polski</option>
-        <option value="ru">Russky</option>
-        <option value="zh">Cinese</option>
-        <option value="ja">Giapponese</option>
-        <option value="ar">Arabo</option>
-      </select>
-    </div>
-    <div>
-      <div class="field-label">Durata chunk automatico</div>
-      <select class="chunk-select" id="chunkDuration">
-        <option value="60">1 minuto - piu reattivo, piu chiamate API</option>
-        <option value="120" selected>2 minuti - bilanciato (raccomandato)</option>
-        <option value="180">3 minuti - meno chiamate, piu latenza</option>
-      </select>
-    </div>
-    <button class="btn-primary" id="startSetupBtn" onclick="initRecording()">
-      Avvia sessione
-    </button>
-  </div>
-  <p class="note">Groq Whisper e completamente gratuito. La registrazione parte immediatamente dopo la conferma. Tieni lo schermo acceso e il dispositivo collegato alla corrente durante la riunione.</p>
-</div>
-
-<!-- RECORDING SCREEN -->
-
-<div class="recording-screen" id="recordingScreen">
-
-  <!-- STATUS -->
-
-  <div class="status-bar">
-    <div class="status-indicator idle" id="statusDot"></div>
-    <div class="status-text" id="statusText"><strong>Pronto</strong> — premi Avvia per iniziare</div>
-    <div class="timer" id="timerDisplay">00:00</div>
-  </div>
-
-  <!-- CHUNK PROGRESS -->
-
-  <div class="chunk-bar-wrap">
-    <div class="chunk-bar-label">
-      <span>Prossima trascrizione automatica</span>
-      <span id="chunkCountdown">—</span>
-    </div>
-    <div class="chunk-bar-track">
-      <div class="chunk-bar-fill" id="chunkBarFill"></div>
-    </div>
-  </div>
-
-  <!-- CONTROLS -->
-
-  <div class="controls">
-    <button class="btn-rec start" id="mainBtn" onclick="toggleRecording()">⏺ Avvia registrazione</button>
-    <button class="btn-clear" onclick="clearTranscript()">Svuota</button>
-  </div>
-
-  <!-- ERROR -->
-
-  <div class="error-banner" id="errorBanner"></div>
-
-  <!-- STATS -->
-
-  <div class="stats-row">
-    <div class="stat-box">
-      <div class="stat-value" id="statChunks">0</div>
-      <div class="stat-label">Chunk inviati</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-value" id="statWords">0</div>
-      <div class="stat-label">Parole totali</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-value" id="statCost">€0.00</div>
-      <div class="stat-label">Costo (gratuito)</div>
-    </div>
-  </div>
-
-  <!-- TRANSCRIPT -->
-
-  <div class="transcript-wrap">
-    <div class="transcript-header">
-      <div class="transcript-label">Trascrizione</div>
-    </div>
-    <div class="transcript-box" id="transcriptBox">
-      <div class="transcript-empty" id="transcriptEmpty">
-        <div class="transcript-empty-icon">📝</div>
-        <div>Il testo trascritto apparirà qui<br>durante la registrazione</div>
-      </div>
-    </div>
-  </div>
-
-</div>
+<!-- ════════════════════════════════════════════════════════════════════════
+     BLOCCO A — CONFIGURAZIONE AGENTE
+     Modifica solo questo blocco per cambiare il comportamento dell'agente.
+     Non toccare il codice JavaScript sotto.
+     ════════════════════════════════════════════════════════════════════════ -->
 
 <script>
-  // ─── CONFIG ────────────────────────────────────────────────────────────────
-  const OVERLAP_SEC = 4;
-  const MIN_BLOB_BYTES = 2000;
+const AGENT_CONFIG = {
 
-  // ─── STATE ─────────────────────────────────────────────────────────────────
-  let apiKey = '';
-  let chunkDurationSec = 120;
-  let isRecording = false;
-  let stream = null;
-  let mimeType = null;
-  let activeRecorder = null;
-  let activeChunks = [];
-  let totalSeconds = 0;
-  let chunkSeconds = 0;
-  let timerInterval = null;
-  let chunkInterval = null;
-  let totalWords = 0;
-  let totalChunks = 0;
-  let transcriptData = [];
-  let fullTranscript = '';
+  // Descrizione stabile del progetto — cambia solo se cambia l'impostazione fondamentale
+  projectDescription: `
+Progetto Super-NOVA (New Operating model Via AI).
+Obiettivo: ridurre costi di consulenza esterna, migliorare qualità operativa, sviluppare risorse junior in una funzione di middle office assicurativo/finanziario.
 
-  // ─── INIT ──────────────────────────────────────────────────────────────────
-  let selectedLanguage = '';
+Struttura in tre fasi:
+- FASE 0: Interviste agli owner dei processi. Obiettivi: identificare aree di intervento (non solo problemi — anche attività che funzionano ma assorbono risorse sproporzionate), classificare archetipi, raccogliere dati economici (budget consulenza, ore interne), costruire il business case e stimare il ROI per ogni archetipo.
+- FASE 1: Costruzione moduli AI specifici per archetipo su architettura modulare comune. Obiettivo: efficienza operativa senza cambiare i processi. Include automazione attività ad alto volume (es. configurazioni sistemi che oggi richiedono supporto consulenti per mole di lavoro).
+- FASE 2: Redesign AI-native dei processi, monitoring continuo tramite logger, formazione junior strutturata con assistenza spiegata e tutoring adattivo.
 
-  function loadSavedKey() {
-    try {
-      const saved = localStorage.getItem('groq_api_key');
-      if (saved) {
-        document.getElementById('apiKeyInput').value = saved;
-        document.getElementById('rememberKey').checked = true;
-        document.getElementById('forgetBtn').style.display = 'inline';
-        document.getElementById('setupText').textContent = 'Chiave salvata trovata. Premi Avvia per iniziare, oppure modifica la configurazione.';
-      }
-    } catch(e) {}
+Principio architetturale chiave: un unico agente AI con visione end-to-end accompagna tutte le fasi. La knowledge store è compatibile tra fasi. Gli archetipi classificati in Fase 0 corrispondono ai moduli da costruire in Fase 1. Il ROI confronta costi di sviluppo con saving atteso su consulenza esterna, ore interne, e organico nel tempo.
+  `,
+
+  // System prompt modalità SETUP
+  // Usato nelle conversazioni con il team di progetto (non con gli owner)
+  setupSystemPrompt: `
+Sei l'agente AI del Progetto Super-NOVA in modalità SETUP.
+
+Stai partecipando attivamente alle conversazioni strategiche del team di progetto. Non sei un osservatore passivo — sei un collega esperto che conosce Super-NOVA in profondità e vuole contribuire a ogni decisione importante. Intervieni spesso e con sostanza.
+
+QUANDO INTERVENIRE — intervieni ogni volta che c'è qualcosa di utile da dire:
+- Hai un suggerimento migliorativo rispetto a quello che si sta discutendo → proponilo direttamente
+- Vedi un'alternativa che il gruppo non sta considerando → portala all'attenzione
+- Una decisione importante sta per essere presa senza essere stata esplicitata chiaramente → nominala
+- Qualcosa detto contraddice o arricchisce il contesto che hai → segnalalo
+- La conversazione si blocca o gira in tondo → proponi come sbloccarla
+- Emerge qualcosa con implicazioni per Fase 1 o Fase 2 → collegalo esplicitamente
+- Vedi un rischio che il gruppo non ha nominato → sollevalo con la tua proposta per gestirlo
+- Hai un'opinione su una scelta che si sta facendo → esprimila, anche se diversa da quella del gruppo
+- Non hai informazioni sufficienti su qualcosa di rilevante → fai una domanda strutturata
+
+TONO E STILE:
+- Diretto, presente, collaborativo. Mai didattico.
+- Una cosa alla volta — mai elenchi.
+- Breve: max 3-4 frasi per intervento. Se hai molto da dire, scegli la cosa più importante.
+- Esprimi anche opinioni e preferenze, non solo fatti. Sei un partner, non un motore di ricerca.
+- Tutto è negoziabile — anche l'obiettivo finale del progetto.
+
+QUANDO NON SAI QUALCOSA:
+Formula una domanda strutturata con questo formato esatto:
+DOMANDA: [la domanda specifica]
+CONTESTO: [perché è rilevante ora e cosa cambierebbe sapendola]
+
+Chi è in sala decide se rispondere subito o verificare in chat con la AI. Non classificare tu il tipo di domanda.
+
+VERIFICA SUL TRANSCRIPT — OBBLIGATORIO:
+Prima di ogni intervento, verifica sul transcript completo della sessione. La sintesi è solo un indice — il territorio è il transcript. Non affermare mai qualcosa che non puoi verificare nel transcript o nel contesto che hai.
+  `,
+
+  // System prompt modalità FASE 0
+  // Usato nelle interviste agli owner dei processi
+  // [ESPANDIBILE] Aggiungi qui ulteriori modalità (FASE 1, FASE 2) quando necessario
+  fase0SystemPrompt: `
+Sei l'agente AI del Progetto Super-NOVA in modalità FASE 0.
+
+Stai conducendo un'intervista a un owner di processo per mappare un'area di intervento. Il tuo obiettivo è raccogliere tutto ciò che serve per: classificare l'attività in un archetipo, valutare la fattibilità tecnica del modulo AI, e costruire il business case con dati economici reali.
+
+Il tuo comportamento:
+- Conduci l'intervista come una conversazione, non come un questionario. Fai una domanda alla volta.
+- Parti sempre dall'attività concreta — come viene eseguita oggi, chi la fa, con quale frequenza.
+- Esplora in profondità: dove si perde tempo, dove la qualità dipende dall'esperienza di una persona specifica, dove ci sono regole implicite non scritte.
+- Raccogli i dati economici in modo naturale: budget consulenza esterna, ore interne dedicate, stima del costo annuo dell'attività.
+- Alla fine di ogni area esplorata, proponi una prima classificazione dell'archetipo e chiedi conferma all'owner.
+- Costruisci il business case in modo collaborativo: stima il saving potenziale e discutilo con l'owner, non lo imponi.
+- Non presupporre che l'attività sia un problema — potrebbe funzionare bene ma avere margine di efficientamento.
+  `,
+
+  // Soglia di intervento automatico: numero di chunk senza intervento prima che l'agente consideri di intervenire
+  // Aumenta questo numero se vuoi che l'agente intervenga meno frequentemente
+  interventionThresholdChunks: 1,
+
+  // Durata minima in secondi tra un intervento automatico e il successivo
+  interventionCooldownSec: 90
+
+};
+</script>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     FINE BLOCCO A
+     ════════════════════════════════════════════════════════════════════════ -->
+
+<!-- NOTIFICATION BANNER -->
+
+<div class="notif" id="notifBanner">
+  <div class="notif-label" id="notifLabel">Agente</div>
+  <div class="notif-text" id="notifText"></div>
+  <button class="notif-close" onclick="closeNotif()">×</button>
+</div>
+
+<!-- MODAL -->
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="modalTitle">Sessione</div>
+      <button class="btn-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body"><p id="modalBody"></p></div>
+    <div class="modal-foot">
+      <button class="btn-arch" onclick="closeModal()">Chiudi</button>
+      <button class="btn-arch" id="modalExportBtn">Esporta</button>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+
+<div class="hdr">
+  <div class="hdr-logo">Super<span>-NOVA</span></div>
+  <div class="mode-badge setup" id="modeBadge">Setup</div>
+  <div class="hdr-right">
+    <div class="rec-dot" id="recDot"></div>
+    <div class="hdr-timer" id="hdrTimer">00:00</div>
+    <button class="btn-nav active" id="navSess" onclick="showScreen('sess')">Sessione</button>
+    <button class="btn-nav" id="navArch" onclick="showScreen('arch')">Archivio</button>
+    <button class="btn-nav" id="navCfg" onclick="showScreen('cfg')">Config</button>
+  </div>
+</div>
+
+<!-- ── SCREEN: CONFIG ── -->
+
+<div class="screen active" id="screenCfg">
+  <div class="cfg-wrap">
+
+```
+<div class="cfg-card">
+  <div class="cfg-card-title">Chiavi API</div>
+  <div class="cfg-card-sub">Le chiavi vengono salvate nel browser di questo dispositivo se spunti "Ricorda".</div>
+  <div>
+    <div class="lbl">Chiave Groq (trascrizione audio)</div>
+    <input class="inp" type="password" id="groqKey" placeholder="gsk_..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+  </div>
+  <div>
+    <div class="lbl">Chiave Anthropic (agente AI)</div>
+    <input class="inp" type="password" id="anthropicKey" placeholder="sk-ant-..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+  </div>
+  <div class="chk-row">
+    <input type="checkbox" id="rememberKeys">
+    <label for="rememberKeys">Ricorda su questo dispositivo</label>
+    <button class="btn-forget" id="btnForget" onclick="forgetKeys()">Dimentica</button>
+  </div>
+</div>
+
+<div class="cfg-card">
+  <div class="cfg-card-title">Modalità agente</div>
+  <div style="display:none">
+    <div class="lbl">Modalità attiva</div>
+    <select class="sel" id="agentMode">
+      <option value="setup">Setup — conversazioni strategiche di progetto</option>
+      <option value="fase0">Fase 0 — interviste owner dei processi</option>
+    </select>
+  </div>
+  <div>
+    <div class="lbl">Lingua trascrizione</div>
+    <select class="sel" id="langSel">
+      <option value="">Rileva automaticamente</option>
+      <option value="it">Italiano</option>
+      <option value="en">English</option>
+      <option value="fr">Français</option>
+      <option value="de">Deutsch</option>
+      <option value="es">Español</option>
+      <option value="pt">Português</option>
+    </select>
+  </div>
+  <div>
+    <div class="lbl">Durata chunk audio</div>
+    <select class="sel" id="chunkDur">
+      <option value="60">1 minuto</option>
+      <option value="120" selected>2 minuti (raccomandato)</option>
+      <option value="180">3 minuti</option>
+    </select>
+  </div>
+</div>
+
+<div class="cfg-card">
+  <div class="cfg-card-title">Importa chat</div>
+  <div class="cfg-card-sub">Carica il JSON di contesto generato dalla chat AI. Viene fornito all'agente all'inizio di ogni sessione come Livello 1 di contesto. Se non caricato, l'agente funziona comunque ma con meno contesto storico.</div>
+  <div>
+    <div class="lbl">File JSON dalla chat</div>
+    <textarea class="ctx-area" id="projectContext" placeholder="Il contenuto del JSON importato apparirà qui..."></textarea>
+  </div>
+  <div class="upload-row">
+    <label class="btn-sec" style="cursor:pointer">
+      Carica JSON chat
+      <input type="file" accept=".json" style="display:none" onchange="loadChatJson(event)">
+    </label>
+  </div>
+</div>
+
+<button class="btn-primary" onclick="saveConfigAndStart()">Avvia sessione</button>
+<p class="note">La sessione inizia in modalità ascolto. Puoi avviare la registrazione quando sei pronto.</p>
+```
+
+  </div>
+</div>
+
+<!-- ── SCREEN: SESSIONE ── -->
+
+<div class="screen" id="screenSess">
+  <div class="sess-layout">
+
+```
+<!-- MAIN: transcript -->
+<div class="sess-main" id="transcriptPanel">
+  <div class="panel-label">Trascrizione</div>
+  <div class="transcript-empty" id="transcriptEmpty">
+    <div style="font-size:28px;opacity:.3">🎙</div>
+    <div>Avvia la registrazione per iniziare</div>
+  </div>
+</div>
+
+<!-- SIDE: agente -->
+<div class="sess-side">
+  <div class="agent-panel">
+    <div class="agent-header">
+      <div class="agent-title">Agente</div>
+      <button class="btn-ask" onclick="askAgent()">Chiedi ora</button>
+    </div>
+    <div class="agent-msgs" id="agentMsgs">
+      <div class="agent-empty" id="agentEmpty">
+        <div style="font-size:24px;opacity:.3">◈</div>
+        <div>L'agente interviene<br>durante la conversazione</div>
+      </div>
+    </div>
+    <div class="agent-input-row">
+      <input class="agent-inp" id="agentInp" placeholder="Fai una domanda all'agente..." onkeydown="if(event.key==='Enter')askAgent()">
+      <button class="btn-send" id="btnSend" onclick="askAgent()">→</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- CONTROLS -->
+<div class="sess-controls">
+  <button class="btn-rec start" id="btnRec" onclick="startRecording()">⏺ Avvia</button>
+  <button class="btn-rec stop" id="btnPause" onclick="pauseRecording()" style="display:none">⏸ Pausa</button>
+  <button class="btn-rec stop" id="btnStop" onclick="stopRecording()" style="display:none">⏹ Stop</button>
+  <div class="chunk-bar"><div class="chunk-fill" id="chunkFill"></div></div>
+  <div class="chunk-eta" id="chunkEta">—</div>
+</div>
+```
+
+  </div>
+</div>
+
+<!-- ── SCREEN: ARCHIVIO ── -->
+
+<div class="screen" id="screenArch">
+  <div class="arch-wrap" id="archWrap">
+    <div class="arch-empty" id="archEmpty">
+      <div style="font-size:32px;opacity:.3">🗂</div>
+      <div>Nessuna sessione salvata</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     BLOCCO B — CODICE APPLICAZIONE
+     Non modificare questo blocco.
+     ════════════════════════════════════════════════════════════════════════ -->
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let cfg = { groqKey:'', anthropicKey:'', mode:'setup', lang:'', chunkDur:120, projectContext:'' };
+let rec = { isRecording:false, stream:null, mimeType:null, activeRecorder:null, activeChunks:[], totalSec:0, chunkSec:0, timerInt:null, chunkInt:null };
+let tx = { chunks:[], full:'', summary:'' };
+let agentHistory = [];
+let sessions = [];
+let lastInterventionTime = 0;
+let chunksSinceIntervention = 0;
+let currentMode = 'setup';
+
+const OVERLAP_SEC = 4;
+const MIN_BLOB = 2000;
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  loadSavedKeys();
+  loadSessions();
+});
+
+function loadSavedKeys() {
+  try {
+    const gk = localStorage.getItem('sn_groq_key');
+    const ak = localStorage.getItem('sn_anthropic_key');
+    const ctx = localStorage.getItem('sn_project_context');
+    if (gk) { document.getElementById('groqKey').value = gk; document.getElementById('rememberKeys').checked = true; document.getElementById('btnForget').style.display='inline'; }
+    if (ak) document.getElementById('anthropicKey').value = ak;
+    if (ctx) document.getElementById('projectContext').value = ctx;
+    if (gk && ak) addSysMsg('Chiavi trovate. Configura la modalità e avvia la sessione.');
+  } catch(e) {}
+}
+
+function forgetKeys() {
+  try { localStorage.removeItem('sn_groq_key'); localStorage.removeItem('sn_anthropic_key'); } catch(e){}
+  document.getElementById('groqKey').value = '';
+  document.getElementById('anthropicKey').value = '';
+  document.getElementById('rememberKeys').checked = false;
+  document.getElementById('btnForget').style.display = 'none';
+}
+
+function saveConfigAndStart() {
+  const gk = document.getElementById('groqKey').value.trim();
+  const ak = document.getElementById('anthropicKey').value.trim();
+  if (!gk.startsWith('gsk_')) { alert('Chiave Groq non valida (deve iniziare con gsk_)'); return; }
+  if (!ak.startsWith('sk-ant-')) { alert('Chiave Anthropic non valida (deve iniziare con sk-ant-)'); return; }
+  cfg.groqKey = gk;
+  cfg.anthropicKey = ak;
+  cfg.mode = document.getElementById('agentMode').value;
+  cfg.lang = document.getElementById('langSel').value;
+  cfg.chunkDur = parseInt(document.getElementById('chunkDur').value);
+  cfg.projectContext = document.getElementById('projectContext').value.trim();
+  currentMode = cfg.mode;
+  // Pop-up se non c'è contesto chat
+  let hasCtx = cfg.projectContext;
+  if (!hasCtx) { try { hasCtx = localStorage.getItem('sn_chat_context'); } catch(e){} }
+  if (!hasCtx) {
+    const proceed = confirm("Nessun contesto dalla chat caricato. Procedere comunque?")
+    if (!proceed) return;
   }
-
-  function forgetKey() {
-    try { localStorage.removeItem('groq_api_key'); } catch(e) {}
-    document.getElementById('apiKeyInput').value = '';
-    document.getElementById('rememberKey').checked = false;
-    document.getElementById('forgetBtn').style.display = 'none';
-    document.getElementById('setupText').textContent = 'Inserisci la chiave API Groq per attivare la trascrizione continua via Whisper.';
+  if (document.getElementById('rememberKeys').checked) {
+    try { localStorage.setItem('sn_groq_key', gk); localStorage.setItem('sn_anthropic_key', ak); document.getElementById('btnForget').style.display='inline'; } catch(e){}
   }
+  try { if (cfg.projectContext) localStorage.setItem('sn_project_context', cfg.projectContext); } catch(e){}
+  updateModeUI();
+  showScreen('sess');
+  addSysMsg('Sessione avviata in modalità ' + (currentMode === 'setup' ? 'Setup' : 'Fase 0') + '. Avvia la registrazione quando sei pronto.');
+}
 
-  function initRecording() {
-    const key = document.getElementById('apiKeyInput').value.trim();
-    if (!key || !key.startsWith('gsk_')) {
-      alert('Inserisci una chiave API Groq valida (inizia con gsk_)');
-      return;
+// ─── NAVIGATION ───────────────────────────────────────────────────────────────
+function showScreen(id) {
+  ['cfg','sess','arch'].forEach(s => {
+    document.getElementById('screen'+s.charAt(0).toUpperCase()+s.slice(1)).classList.toggle('active', s===id);
+    document.getElementById('nav'+s.charAt(0).toUpperCase()+s.slice(1)).classList.toggle('active', s===id);
+  });
+  if (id === 'arch') renderArchive();
+}
+
+function switchMode(mode) {
+  currentMode = mode;
+  cfg.mode = mode;
+  updateModeUI();
+  addSysMsg('Modalità cambiata: ' + (mode==='setup' ? 'Setup' : 'Fase 0'));
+}
+
+function updateModeUI() {
+  const badge = document.getElementById('modeBadge');
+  badge.className = 'mode-badge ' + currentMode;
+  badge.textContent = currentMode === 'setup' ? 'Setup' : 'Fase 0';
+  document.getElementById('btnSetup').className = 'btn-mode' + (currentMode==='setup' ? ' active setup' : '');
+  document.getElementById('btnFase0').className = 'btn-mode' + (currentMode==='fase0' ? ' active fase0' : '');
+}
+
+// ─── RECORDING ────────────────────────────────────────────────────────────────
+async function startRecording() {
+  try {
+    rec.stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount:1, echoCancellation:true, noiseSuppression:true } });
+  } catch(e) { addSysMsg('Errore microfono: ' + e.message); return; }
+  rec.mimeType = getSupportedMime();
+  rec.isRecording = true;
+  rec.chunkSec = 0;
+  spawnRecorder();
+  document.getElementById('btnRec').style.display = 'none';
+  document.getElementById('btnPause').style.display = 'inline-block';
+  document.getElementById('btnStop').style.display = 'inline-block';
+  document.getElementById('recDot').className = 'rec-dot recording';
+  rec.timerInt = setInterval(() => {
+    rec.totalSec++;
+    document.getElementById('hdrTimer').textContent = fmt(rec.totalSec);
+  }, 1000);
+  rec.chunkInt = setInterval(() => {
+    rec.chunkSec++;
+    const pct = (rec.chunkSec / cfg.chunkDur) * 100;
+    document.getElementById('chunkFill').style.width = pct + '%';
+    document.getElementById('chunkEta').textContent = fmt(cfg.chunkDur - rec.chunkSec);
+    if (rec.chunkSec >= cfg.chunkDur) { rec.chunkSec = 0; document.getElementById('chunkFill').style.width='0%'; rollover(); }
+  }, 1000);
+}
+
+async function stopRecording() {
+  rec.isRecording = false;
+  clearInterval(rec.timerInt); clearInterval(rec.chunkInt);
+  document.getElementById('btnRec').style.display = 'inline-block';
+  document.getElementById('btnPause').style.display = 'none';
+  document.getElementById('btnStop').style.display = 'none';
+  document.getElementById('recDot').className = 'rec-dot';
+  document.getElementById('chunkFill').style.width = '0%';
+  document.getElementById('chunkEta').textContent = '—';
+  if (rec.activeRecorder && rec.activeRecorder.state !== 'inactive') {
+    const final = await collectAndStop(rec.activeRecorder, rec.activeChunks);
+    if (final.length > 0) await processChunk(final);
+  }
+  if (rec.stream) rec.stream.getTracks().forEach(t=>t.stop());
+  addSysMsg('Registrazione terminata.');
+}
+
+async function pauseRecording() {
+  if (!rec.isRecording) return;
+  rec.isRecording = false;
+  clearInterval(rec.timerInt); clearInterval(rec.chunkInt);
+  if (rec.activeRecorder && rec.activeRecorder.state !== 'inactive') {
+    const chunks = await collectAndStop(rec.activeRecorder, rec.activeChunks);
+    if (chunks.length > 0) await processChunk(chunks);
+  }
+  document.getElementById('recDot').className = 'rec-dot';
+  document.getElementById('chunkFill').style.width = '0%';
+  document.getElementById('chunkEta').textContent = '—';
+  document.getElementById('btnPause').innerHTML = '⏵ Riprendi';
+  document.getElementById('btnPause').onclick = null;
+  document.getElementById('btnPause').onclick = resumeRecording;
+  addSysMsg('Registrazione in pausa.');
+}
+
+async function resumeRecording() {
+  rec.chunkSec = 0;
+  spawnRecorder();
+  rec.isRecording = true;
+  document.getElementById('recDot').className = 'rec-dot recording';
+  document.getElementById('btnPause').innerHTML = '⏸ Pausa';
+  document.getElementById('btnPause').onclick = null;
+  document.getElementById('btnPause').onclick = pauseRecording;
+  rec.timerInt = setInterval(() => { rec.totalSec++; document.getElementById('hdrTimer').textContent = fmt(rec.totalSec); }, 1000);
+  rec.chunkInt = setInterval(() => {
+    rec.chunkSec++;
+    const pct = (rec.chunkSec / cfg.chunkDur) * 100;
+    document.getElementById('chunkFill').style.width = pct + '%';
+    document.getElementById('chunkEta').textContent = fmt(cfg.chunkDur - rec.chunkSec);
+    if (rec.chunkSec >= cfg.chunkDur) { rec.chunkSec = 0; document.getElementById('chunkFill').style.width='0%'; rollover(); }
+  }, 1000);
+  addSysMsg('Registrazione ripresa.');
+}
+
+function spawnRecorder() {
+  const chunks = [];
+  const mr = new MediaRecorder(rec.stream, rec.mimeType ? { mimeType: rec.mimeType } : {});
+  mr.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+  mr.start(500);
+  rec.activeRecorder = mr;
+  rec.activeChunks = chunks;
+}
+
+function rollover() {
+  const outRec = rec.activeRecorder;
+  const outChunks = rec.activeChunks;
+  spawnRecorder();
+  setTimeout(async () => {
+    if (outRec.state !== 'inactive') {
+      const collected = await collectAndStop(outRec, outChunks);
+      await processChunk(collected);
     }
-    apiKey = key;
-    // Salva se richiesto
-    try {
-      if (document.getElementById('rememberKey').checked) {
-        localStorage.setItem('groq_api_key', key);
-        document.getElementById('forgetBtn').style.display = 'inline';
-      } else {
-        localStorage.removeItem('groq_api_key');
-      }
-    } catch(e) {}
-    chunkDurationSec = parseInt(document.getElementById('chunkDuration').value);
-    selectedLanguage = document.getElementById('languageSelect').value;
-    document.getElementById('setupScreen').style.display = 'none';
-    document.getElementById('recordingScreen').style.display = 'flex';
-    // Mostra lingua attiva nello status
-    const langLabel = document.getElementById('languageSelect').options[document.getElementById('languageSelect').selectedIndex].text;
-    document.getElementById('activeLang').textContent = langLabel;
-  }
+  }, OVERLAP_SEC * 1000);
+}
 
-  // Carica chiave salvata al boot
-  document.addEventListener('DOMContentLoaded', loadSavedKey);
+function collectAndStop(mr, chunks) {
+  return new Promise(resolve => {
+    mr.onstop = () => resolve([...chunks]);
+    if (mr.state !== 'inactive') mr.stop(); else resolve([...chunks]);
+  });
+}
 
-  // ─── TOGGLE ────────────────────────────────────────────────────────────────
-  async function toggleRecording() {
-    if (!isRecording) await startSession();
-    else await stopSession();
-  }
-
-  // ─── START SESSION ─────────────────────────────────────────────────────────
-  async function startSession() {
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true }
-      });
-    } catch (err) {
-      showError('Impossibile accedere al microfono: ' + err.message);
-      return;
-    }
-    mimeType = getSupportedMimeType();
-    isRecording = true;
-    chunkSeconds = 0;
-    spawnRecorder();
-    setStatus('recording', 'Registrazione in corso — il microfono è attivo');
-    document.getElementById('mainBtn').className = 'btn-rec stop';
-    document.getElementById('mainBtn').innerHTML = '⏹ Ferma registrazione';
-    hideError();
-    timerInterval = setInterval(() => {
-      totalSeconds++;
-      document.getElementById('timerDisplay').textContent = formatTime(totalSeconds);
-    }, 1000);
-    chunkInterval = setInterval(() => {
-      chunkSeconds++;
-      const pct = (chunkSeconds / chunkDurationSec) * 100;
-      document.getElementById('chunkBarFill').style.width = pct + '%';
-      document.getElementById('chunkCountdown').textContent = formatTime(chunkDurationSec - chunkSeconds);
-      if (chunkSeconds >= chunkDurationSec) {
-        chunkSeconds = 0;
-        document.getElementById('chunkBarFill').style.width = '0%';
-        rolloverChunk();
-      }
-    }, 1000);
-  }
-
-  // ─── STOP SESSION ──────────────────────────────────────────────────────────
-  async function stopSession() {
-    isRecording = false;
-    clearInterval(timerInterval);
-    clearInterval(chunkInterval);
-    document.getElementById('mainBtn').className = 'btn-rec start';
-    document.getElementById('mainBtn').innerHTML = '⏺ Avvia registrazione';
-    document.getElementById('chunkBarFill').style.width = '0%';
-    document.getElementById('chunkCountdown').textContent = '—';
-    setStatus('processing', 'Invio chunk finale...');
-    if (activeRecorder && activeRecorder.state !== 'inactive') {
-      const finalChunks = await stopRecorderAndCollect(activeRecorder, activeChunks);
-      if (finalChunks.length > 0) await sendChunk(finalChunks);
-    }
-    if (stream) stream.getTracks().forEach(t => t.stop());
-    activeRecorder = null;
-    activeChunks = [];
-    setStatus('done', 'Registrazione terminata');
-  }
-
-  // ─── SPAWN NEW RECORDER ────────────────────────────────────────────────────
-  function spawnRecorder() {
-    const chunks = [];
-    const rec = new MediaRecorder(stream, mimeType ? { mimeType } : {});
-    rec.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunks.push(e.data); };
-    rec.start(500);
-    activeRecorder = rec;
-    activeChunks = chunks;
-  }
-
-  // ─── ROLLOVER WITH OVERLAP ─────────────────────────────────────────────────
-  function rolloverChunk() {
-    const outgoingRecorder = activeRecorder;
-    const outgoingChunks = activeChunks;
-    // Avvia subito il nuovo recorder — overlap inizia
-    spawnRecorder();
-    // Dopo OVERLAP_SEC ferma il vecchio e invia
-    setTimeout(async () => {
-      if (outgoingRecorder.state !== 'inactive') {
-        const collected = await stopRecorderAndCollect(outgoingRecorder, outgoingChunks);
-        await sendChunk(collected);
-      }
-    }, OVERLAP_SEC * 1000);
-  }
-
-  // ─── STOP RECORDER & COLLECT ───────────────────────────────────────────────
-  function stopRecorderAndCollect(rec, chunksArr) {
-    return new Promise((resolve) => {
-      rec.onstop = () => resolve([...chunksArr]);
-      if (rec.state !== 'inactive') rec.stop();
-      else resolve([...chunksArr]);
+// ─── TRANSCRIPTION ────────────────────────────────────────────────────────────
+async function processChunk(chunks) {
+  if (!chunks || chunks.length === 0) return;
+  const type = (chunks[0]?.type) || rec.mimeType || 'audio/mp4';
+  const blob = new Blob(chunks, { type });
+  if (blob.size < MIN_BLOB) return;
+  const idx = tx.chunks.length;
+  tx.chunks.push('');
+  addTxPlaceholder(idx);
+  document.getElementById('recDot').className = 'rec-dot processing';
+  try {
+    const ext = type.includes('mp4')||type.includes('m4a') ? 'm4a' : type.includes('ogg') ? 'ogg' : 'webm';
+    const fd = new FormData();
+    fd.append('file', blob, 'audio_'+idx+'.'+ext);
+    fd.append('model', 'whisper-large-v3-turbo');
+    if (cfg.lang) fd.append('language', cfg.lang);
+    fd.append('response_format', 'text');
+    const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+      method:'POST', headers:{'Authorization':'Bearer '+cfg.groqKey}, body:fd
     });
-  }
-
-  // ─── SEND CHUNK TO GROQ WHISPER ────────────────────────────────────────────
-  async function sendChunk(chunks) {
-    if (!chunks || chunks.length === 0) return;
-    const type = (chunks[0] && chunks[0].type) ? chunks[0].type : (mimeType || 'audio/mp4');
-    const blob = new Blob(chunks, { type });
-    if (blob.size < MIN_BLOB_BYTES) return;
-    const chunkIndex = totalChunks;
-    totalChunks++;
-    updateStats();
-    addProcessingPlaceholder(chunkIndex);
-    if (isRecording) setStatus('recording', 'Registrazione in corso — trascrizione chunk ' + totalChunks + ' in background');
-    try {
-      const ext = type.includes('mp4') || type.includes('m4a') ? 'm4a' : type.includes('ogg') ? 'ogg' : 'webm';
-      const formData = new FormData();
-      formData.append('file', blob, 'audio_' + chunkIndex + '.' + ext);
-      formData.append('model', 'whisper-large-v3-turbo');
-      if (selectedLanguage) formData.append('language', selectedLanguage);
-      formData.append('response_format', 'text');
-      const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + apiKey },
-        body: formData
-      });
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error?.message || 'HTTP ' + response.status);
-      }
-      const raw = (await response.text()).trim();
-      if (raw) {
-        const cleaned = deduplicateOverlap(transcriptData[chunkIndex - 1] || '', raw);
-        transcriptData[chunkIndex] = cleaned;
-        fullTranscript += (fullTranscript ? ' ' : '') + cleaned;
-        totalWords = fullTranscript.split(/\s+/).filter(Boolean).length;
-        updateChunkInDOM(chunkIndex, cleaned);
-        updateStats();
-      } else {
-        updateChunkInDOM(chunkIndex, null);
-      }
-      if (isRecording) setStatus('recording', 'Registrazione in corso — il microfono è attivo');
-      else setStatus('done', 'Registrazione terminata');
-    } catch (err) {
-      transcriptData[chunkIndex] = '';
-      updateChunkInDOM(chunkIndex, '[Errore trascrizione: ' + err.message + ']');
-      showError('Errore Whisper (chunk ' + (chunkIndex + 1) + '): ' + err.message);
-      if (isRecording) setStatus('recording', 'Registrazione in corso — errore nell\'ultimo chunk');
+    if (!res.ok) { const e = await res.json().catch(()=>{}); throw new Error(e?.error?.message||'HTTP '+res.status); }
+    const raw = (await res.text()).trim();
+    if (raw) {
+      const clean = dedup(tx.chunks[idx-1]||'', raw);
+      tx.chunks[idx] = clean;
+      tx.full += (tx.full ? ' ' : '') + clean;
+      updateTxDOM(idx, clean);
+      chunksSinceIntervention++;
+      autoSaveSession();
+      await maybeAgentIntervene(clean);
+    } else {
+      updateTxDOM(idx, null);
     }
+  } catch(e) {
+    tx.chunks[idx] = '';
+    updateTxDOM(idx, '[Errore: '+e.message+']');
+    addSysMsg('Errore trascrizione chunk '+(idx+1)+': '+e.message);
   }
+  if (rec.isRecording) document.getElementById('recDot').className = 'rec-dot recording';
+  else document.getElementById('recDot').className = 'rec-dot';
+}
 
-  // ─── OVERLAP DEDUPLICATION ─────────────────────────────────────────────────
-  function deduplicateOverlap(prevText, currText) {
-    if (!prevText) return currText;
-    const prevWords = prevText.trim().split(/\s+/);
-    const currWords = currText.trim().split(/\s+/);
-    const windowSize = Math.min(20, prevWords.length, currWords.length);
-    for (let len = windowSize; len >= 3; len--) {
-      const prevTail = prevWords.slice(-len).join(' ').toLowerCase();
-      const currHead = currWords.slice(0, len).join(' ').toLowerCase();
-      if (prevTail === currHead) return currWords.slice(len).join(' ');
+// ─── AGENT ────────────────────────────────────────────────────────────────────
+function buildSystemPrompt() {
+  const base = currentMode === 'setup' ? AGENT_CONFIG.setupSystemPrompt : AGENT_CONFIG.fase0SystemPrompt;
+  const parts = [AGENT_CONFIG.projectDescription, base];
+  let chatCtx = cfg.projectContext;
+  if (!chatCtx) {
+    try { const stored = JSON.parse(localStorage.getItem('sn_chat_context') || 'null'); if (stored) chatCtx = stored.content; } catch(e){}
+  }
+  if (chatCtx) parts.push('--- CONTESTO DALLA CHAT AI ---\n' + chatCtx);
+  if (tx.summary) parts.push('--- SINTESI SESSIONE CORRENTE ---\n' + tx.summary);
+  if (sessions.length > 0) {
+    const recent = sessions.slice(-2).map(function(s){ return 'Sessione ' + s.date + ':\n' + (s.summary || s.transcript.substring(0,500)); }).join('\n\n');
+    parts.push('--- SESSIONI RECENTI ---\n' + recent);
+  }
+  return parts.join('\n\n');
+}
+
+async function callClaude(userMessage, includeHistory = true) {
+  document.getElementById('btnSend').disabled = true;
+  const messages = includeHistory ? [...agentHistory, { role:'user', content: userMessage }]
+                                  : [{ role:'user', content: userMessage }];
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': cfg.anthropicKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: buildSystemPrompt(),
+        messages
+      })
+    });
+    if (!res.ok) { const e = await res.json().catch(()=>{}); throw new Error(e?.error?.message||'HTTP '+res.status); }
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || '';
+    if (includeHistory) {
+      agentHistory.push({ role:'user', content: userMessage });
+      agentHistory.push({ role:'assistant', content: reply });
+      if (agentHistory.length > 40) agentHistory = agentHistory.slice(-40);
     }
-    return currText;
-  }
-
-  // ─── DOM HELPERS ───────────────────────────────────────────────────────────
-  function addProcessingPlaceholder(index) {
-    const box = document.getElementById('transcriptBox');
-    document.getElementById('transcriptEmpty')?.remove();
-    const el = document.createElement('div');
-    el.className = 'transcript-chunk';
-    el.id = 'chunk-' + index;
-    el.innerHTML = '<div class="chunk-meta">Chunk ' + (index + 1) + ' · ' + formatTime(totalSeconds) + '</div><div class="chunk-processing"><span>Trascrizione in corso</span><span class="dots"><span>.</span><span>.</span><span>.</span></span></div>';
-    box.appendChild(el);
-    box.scrollTop = box.scrollHeight;
-  }
-
-  function updateChunkInDOM(index, text) {
-    const el = document.getElementById('chunk-' + index);
-    if (!el) return;
-    if (!text) { el.remove(); return; }
-    el.querySelector('.chunk-processing')?.remove();
-    let textEl = el.querySelector('.chunk-text');
-    if (!textEl) {
-      textEl = document.createElement('div');
-      textEl.className = 'chunk-text';
-      el.appendChild(textEl);
-    }
-    textEl.textContent = text;
-    document.getElementById('transcriptBox').scrollTop = 99999;
-  }
-
-  function updateStats() {
-    document.getElementById('statChunks').textContent = totalChunks;
-    document.getElementById('statWords').textContent = totalWords;
-    document.getElementById('statCost').textContent = '€0.00';
-  }
-
-  function clearTranscript() {
-    if (!confirm('Vuoi svuotare la trascrizione? I dati non possono essere recuperati.')) return;
-    totalWords = 0; totalChunks = 0;
-    transcriptData = []; fullTranscript = '';
-    updateStats();
-    document.getElementById('transcriptBox').innerHTML = '<div class="transcript-empty" id="transcriptEmpty"><div class="transcript-empty-icon">📝</div><div>Il testo trascritto apparirà qui<br>durante la registrazione</div></div>';
-  }
-
-  // ─── UI HELPERS ────────────────────────────────────────────────────────────
-  function setStatus(type, msg) {
-    document.getElementById('statusDot').className = 'status-indicator ' + type;
-    document.getElementById('statusText').innerHTML = msg.replace(/^([^—]+)/, '<strong>$1</strong>');
-  }
-  function showError(msg) { const b = document.getElementById('errorBanner'); b.textContent = msg; b.style.display = 'block'; }
-  function hideError() { document.getElementById('errorBanner').style.display = 'none'; }
-  function formatTime(sec) { return String(Math.floor(sec/60)).padStart(2,'0') + ':' + String(sec%60).padStart(2,'0'); }
-  function getSupportedMimeType() {
-    for (const t of ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg'])
-      if (MediaRecorder.isTypeSupported(t)) return t;
+    return reply;
+  } catch(e) {
+    addSysMsg('Errore agente: ' + e.message);
     return null;
+  } finally {
+    document.getElementById('btnSend').disabled = false;
   }
-  (function preventSleep() {
-    try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(()=>{}); } catch(e) {}
-  })();
+}
+
+async function maybeAgentIntervene(newChunkText) {
+  const now = Date.now();
+  const cooldown = AGENT_CONFIG.interventionCooldownSec * 1000;
+  if (now - lastInterventionTime < cooldown) return;
+  if (chunksSinceIntervention < AGENT_CONFIG.interventionThresholdChunks) return;
+
+  // RAG: usa il transcript completo come territorio, la sintesi come indice
+  const prompt = `Nuovo segmento di conversazione appena trascritto:
+"${newChunkText}"
+
+Transcript completo della sessione:
+${tx.full}
+
+${tx.summary ? 'Sintesi cumulativa (indice — verifica sempre sul transcript):\n' + tx.summary : ''}
+
+Analizza il transcript completo. Poi decidi se intervenire. Intervieni se hai: un suggerimento migliorativo, un'alternativa non considerata, un rischio non nominato, un collegamento con Fase 1 o Fase 2, un'opinione su una scelta in corso, o una domanda strutturata su qualcosa che non sai. Sii proattivo — è meglio intervenire spesso che tacere.
+
+Se intervieni: max 3-4 frasi, diretto, una cosa sola.
+Se non c'è davvero nulla di utile da aggiungere in questo momento: rispondi solo SILENZIO.`;
+
+  const reply = await callClaude(prompt, false);
+  if (!reply || reply.trim().toUpperCase() === 'SILENZIO') return;
+
+  lastInterventionTime = now;
+  chunksSinceIntervention = 0;
+  addAgentMsg(reply, currentMode);
+  showNotif(reply, currentMode);
+  playBeep();
+
+  // Aggiorna la sintesi cumulativa ogni 3 interventi
+  if (agentHistory.length % 6 === 0) await updateSummary();
+}
+
+async function askAgent() {
+  const inp = document.getElementById('agentInp');
+  const q = inp.value.trim();
+  if (!q) {
+    // Interrogazione senza domanda: chiedi all'agente una valutazione dello stato
+    const prompt = `Basandoti sull'intero transcript della sessione (che devi verificare punto per punto prima di rispondere):
+
+${tx.full || '(nessun transcript ancora)'}
+
+Qual è il tuo punto di vista sullo stato della discussione in questo momento? Cosa manca, cosa è stato chiarito bene, cosa potrebbe essere approfondito?`;
+    addSysMsg('Interrogazione agente in corso...');
+    const reply = await callClaude(prompt);
+    if (reply) { addAgentMsg(reply, currentMode); showNotif(reply, currentMode); playBeep(); }
+    return;
+  }
+  inp.value = '';
+  // Domanda esplicita con RAG obbligatorio sul transcript completo
+  const prompt = `Domanda del team: "${q}"
+
+Prima di rispondere, verifica ogni punto rilevante sul transcript completo della sessione:
+${tx.full || '(nessun transcript ancora)'}
+
+Rispondi in modo preciso e diretto, citando il transcript se rilevante.`;
+  const reply = await callClaude(prompt);
+  if (reply) addAgentMsg(reply, currentMode);
+}
+
+async function updateSummary() {
+  if (!tx.full) return;
+  const prompt = `Produci una sintesi strutturata della conversazione fino ad ora. La sintesi deve essere un indice preciso verso il transcript — non una sostituzione. Includi: decisioni prese, punti ancora aperti, elementi di contesto emersi. Sii conciso.
+
+Transcript:
+${tx.full}`;
+  const s = await callClaude(prompt, false);
+  if (s) { tx.summary = s; autoSaveSession(); }
+}
+
+// ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
+function showNotif(text, mode) {
+  const b = document.getElementById('notifBanner');
+  document.getElementById('notifLabel').textContent = mode === 'setup' ? 'Agente · Setup' : 'Agente · Fase 0';
+  document.getElementById('notifText').textContent = text;
+  b.style.borderColor = mode === 'setup' ? 'var(--setup)' : 'var(--fase0)';
+  b.classList.add('show');
+  setTimeout(closeNotif, 12000);
+}
+function closeNotif() { document.getElementById('notifBanner').classList.remove('show'); }
+
+function playBeep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = 520;
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.4);
+  } catch(e) {}
+}
+
+// ─── DOM HELPERS ─────────────────────────────────────────────────────────────
+function addTxPlaceholder(idx) {
+  document.getElementById('transcriptEmpty')?.remove();
+  const box = document.getElementById('transcriptPanel');
+  const el = document.createElement('div');
+  el.className = 't-chunk'; el.id = 'tc-'+idx;
+  el.innerHTML = '<div class="t-meta">'+fmt(rec.totalSec)+'</div><div class="t-processing"><span>Trascrizione in corso</span><span class="dots"><span>.</span><span>.</span><span>.</span></span></div>';
+  box.appendChild(el); box.scrollTop = box.scrollHeight;
+}
+function updateTxDOM(idx, text) {
+  const el = document.getElementById('tc-'+idx);
+  if (!el) return;
+  if (!text) { el.remove(); return; }
+  el.querySelector('.t-processing')?.remove();
+  let t = el.querySelector('.t-text');
+  if (!t) { t = document.createElement('div'); t.className='t-text'; el.appendChild(t); }
+  t.textContent = text;
+  const box = document.getElementById('transcriptPanel');
+  box.scrollTop = box.scrollHeight;
+}
+function addAgentMsg(text, mode) {
+  document.getElementById('agentEmpty')?.remove();
+  const box = document.getElementById('agentMsgs');
+  const el = document.createElement('div');
+  const isQuestion = text.includes('DOMANDA:') && text.includes('CONTESTO:');
+  if (isQuestion) {
+    el.className = 'msg question';
+    el.innerHTML = '<div class="q-label">⚠ Domanda strutturata</div>' + escHtml(text).replace('DOMANDA:', '<strong>DOMANDA:</strong>').replace('CONTESTO:', '<strong>CONTESTO:</strong>') +
+      '<div class="msg-time">' + new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}) + '</div>' +
+      '<button class="q-copy" onclick="copyToClipboard(this)">Copia domanda</button>';
+  } else {
+    el.className = 'msg agent-' + mode;
+    el.innerHTML = '<div class="msg-label">' + (mode==='setup' ? 'Setup' : 'Fase 0') + '</div>' + escHtml(text) + '<div class="msg-time">' + new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}) + '</div>';
+  }
+  box.appendChild(el); box.scrollTop = box.scrollHeight;
+}
+
+function copyToClipboard(btn) {
+  const text = btn.parentElement.textContent.replace('Copia domanda','').trim();
+  navigator.clipboard.writeText(text).then(() => { btn.textContent = 'Copiato ✓'; setTimeout(()=>btn.textContent='Copia domanda', 2000); }).catch(()=>{});
+}
+function addSysMsg(text) {
+  const box = document.getElementById('agentMsgs');
+  const empty = document.getElementById('agentEmpty');
+  if (empty) empty.remove();
+  const el = document.createElement('div');
+  el.className = 'msg system';
+  el.textContent = text;
+  box.appendChild(el); box.scrollTop = box.scrollHeight;
+}
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+
+// ─── SESSIONS ─────────────────────────────────────────────────────────────────
+// Sessione corrente: ID fisso per tutta la durata della sessione
+let currentSessionId = Date.now();
+
+function autoSaveSession() {
+  if (!tx.full) return;
+  // Aggiorna o crea la voce della sessione corrente
+  const idx = sessions.findIndex(s => s.id === currentSessionId);
+  const sess = {
+    id: currentSessionId,
+    date: new Date().toLocaleString('it-IT'),
+    mode: currentMode,
+    duration: rec.totalSec,
+    transcript: tx.full,
+    summary: tx.summary,
+    agentHistory: agentHistory.slice()
+  };
+  if (idx >= 0) sessions[idx] = sess;
+  else sessions.push(sess);
+  try { localStorage.setItem('sn_sessions', JSON.stringify(sessions)); } catch(e){}
+}
+
+function loadSessions() {
+  try {
+    const raw = localStorage.getItem('sn_sessions');
+    if (raw) sessions = JSON.parse(raw);
+  } catch(e) { sessions = []; }
+}
+
+function renderArchive() {
+  const wrap = document.getElementById('archWrap');
+  const empty = document.getElementById('archEmpty');
+  wrap.innerHTML = '';
+
+  // Chat imports section
+  let chatImport = null;
+  try { chatImport = JSON.parse(localStorage.getItem('sn_chat_context') || 'null'); } catch(e){}
+  const importSection = document.createElement('div');
+  importSection.innerHTML = '<div class="panel-label" style="margin-bottom:10px">Contesto importato dalla chat</div>';
+  if (chatImport) {
+    const el = document.createElement('div');
+    el.className = 'arch-sess';
+    el.style.borderColor = 'var(--a1)';
+    el.innerHTML = '<div class="arch-sess-hdr"><div class="arch-sess-title" style="color:var(--a2)">Livello 1 · Chat AI</div><div class="arch-sess-meta">' + (chatImport.date||'') + '</div></div>' +
+      '<div class="arch-preview">' + escHtml((chatImport.content||'').substring(0,200)) + '</div>' +
+      '<div class="arch-btn-row"><button class="btn-arch" onclick="viewChatImport()">Visualizza</button><button class="btn-arch danger" onclick="deleteChatImport()">Rimuovi</button></div>';
+    importSection.appendChild(el);
+  } else {
+    importSection.innerHTML += '<div style="font-size:12px;color:var(--faint);padding:12px 0">Nessun contesto dalla chat caricato. Caricalo dalla schermata Config.</div>';
+  }
+  wrap.appendChild(importSection);
+
+  // Sessions section
+  const sessLabel = document.createElement('div');
+  sessLabel.className = 'panel-label';
+  sessLabel.style.marginTop = '20px';
+  sessLabel.style.marginBottom = '10px';
+  sessLabel.textContent = 'Sessioni registrate';
+  wrap.appendChild(sessLabel);
+
+  if (sessions.length === 0) {
+    const noSess = document.createElement('div');
+    noSess.style.cssText = 'font-size:12px;color:var(--faint);padding:12px 0';
+    noSess.textContent = 'Nessuna sessione registrata ancora.';
+    wrap.appendChild(noSess);
+    return;
+  }
+  [...sessions].reverse().forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'arch-sess';
+    el.innerHTML = `
+      <div class="arch-sess-hdr">
+        <div class="arch-sess-title">${s.date} · <span style="color:var(--${s.mode})">${s.mode==='setup'?'Setup':'Fase 0'}</span></div>
+        <div class="arch-sess-meta">${fmt(s.duration||0)} · ${s.transcript.split(' ').length} parole</div>
+      </div>
+      <div class="arch-preview">${escHtml(s.transcript.substring(0,200))}</div>
+      <div class="arch-btn-row">
+        <button class="btn-arch" onclick="viewSession(${s.id},'transcript')">Transcript</button>
+        <button class="btn-arch" onclick="viewSession(${s.id},'summary')">Sintesi</button>
+        <button class="btn-arch" onclick="exportSession(${s.id})">Esporta JSON</button>
+        <button class="btn-arch danger" onclick="deleteSession(${s.id})">Elimina</button>
+      </div>`;
+    wrap.appendChild(el);
+  });
+}
+
+function viewSession(id, type) {
+  const s = sessions.find(x=>x.id===id);
+  if (!s) return;
+  document.getElementById('modalTitle').textContent = s.date + ' · ' + (type==='transcript'?'Transcript':'Sintesi');
+  document.getElementById('modalBody').textContent = type==='transcript' ? s.transcript : (s.summary||'Nessuna sintesi disponibile.');
+  document.getElementById('modalExportBtn').onclick = () => exportSession(id);
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
+
+function exportSession(id) {
+  const s = sessions.find(x=>x.id===id);
+  if (!s) return;
+  const blob = new Blob([JSON.stringify(s, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'supernova_sessione_'+s.id+'.json';
+  a.click();
+}
+
+function deleteSession(id) {
+  if (!confirm('Eliminare questa sessione? Non è recuperabile.')) return;
+  sessions = sessions.filter(x=>x.id!==id);
+  try { localStorage.setItem('sn_sessions', JSON.stringify(sessions)); } catch(e){}
+  renderArchive();
+}
+
+function loadChatJson(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      // Accetta sia formato {content, date} che formato libero
+      const content = data.content || data.summary || JSON.stringify(data, null, 2);
+      const date = data.date || new Date().toLocaleString('it-IT');
+      const stored = { content, date };
+      localStorage.setItem('sn_chat_context', JSON.stringify(stored));
+      cfg.projectContext = content;
+      document.getElementById('projectContext').value = content;
+      addSysMsg('Contesto chat caricato: ' + file.name);
+    } catch(err) { addSysMsg('Errore nel caricamento: ' + err.message); }
+  };
+  reader.readAsText(file);
+}
+
+function viewChatImport() {
+  try {
+    const data = JSON.parse(localStorage.getItem('sn_chat_context') || 'null');
+    if (!data) return;
+    document.getElementById('modalTitle').textContent = 'Contesto chat · ' + (data.date||'');
+    document.getElementById('modalBody').textContent = data.content || '';
+    document.getElementById('modalExportBtn').style.display = 'none';
+    document.getElementById('modalOverlay').classList.add('show');
+  } catch(e){}
+}
+
+function deleteChatImport() {
+  if (!confirm("Rimuovere il contesto importato dalla chat? L'agente avra meno contesto storico.")) return;
+  localStorage.removeItem('sn_chat_context');
+  cfg.projectContext = '';
+  document.getElementById('projectContext').value = '';
+  renderArchive();
+}
+
+function clearContext() {
+  document.getElementById('projectContext').value = '';
+  try { localStorage.removeItem('sn_project_context'); } catch(e){}
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function dedup(prev, curr) {
+  if (!prev) return curr;
+  const pw = prev.trim().split(/\s+/);
+  const cw = curr.trim().split(/\s+/);
+  const win = Math.min(20, pw.length, cw.length);
+  for (let l = win; l >= 3; l--) {
+    if (pw.slice(-l).join(' ').toLowerCase() === cw.slice(0,l).join(' ').toLowerCase())
+      return cw.slice(l).join(' ');
+  }
+  return curr;
+}
+function fmt(sec) { return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0'); }
+function getSupportedMime() {
+  for (const t of ['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg'])
+    if (MediaRecorder.isTypeSupported(t)) return t;
+  return null;
+}
+(function preventSleep() {
+  try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(()=>{}); } catch(e){}
+})();
+</script>
+
+<script>
+// ── ZOOM SUPPORT (pinch on iPad, ctrl+wheel on desktop) ──
+(function() {
+  let scale = 1;
+  const MIN = 0.5, MAX = 3;
+  const root = document.documentElement;
+
+  // Desktop: ctrl + wheel
+  document.addEventListener('wheel', function(e) {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    scale = Math.min(MAX, Math.max(MIN, scale - e.deltaY * 0.002));
+    root.style.zoom = scale;
+  }, { passive: false });
+
+  // iPad: pinch gesture
+  let lastDist = null;
+  document.addEventListener('touchstart', function(e) {
+    if (e.touches.length === 2) {
+      lastDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+    }
+  }, { passive: true });
+  document.addEventListener('touchmove', function(e) {
+    if (e.touches.length !== 2 || lastDist === null) return;
+    e.preventDefault();
+    const dist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+    scale = Math.min(MAX, Math.max(MIN, scale * (dist / lastDist)));
+    root.style.zoom = scale;
+    lastDist = dist;
+  }, { passive: false });
+  document.addEventListener('touchend', function() { lastDist = null; }, { passive: true });
+
+  // Double-tap to reset
+  let lastTap = 0;
+  document.addEventListener('touchend', function(e) {
+    const now = Date.now();
+    if (now - lastTap < 300) { scale = 1; root.style.zoom = 1; }
+    lastTap = now;
+  }, { passive: true });
+})();
 </script>
 
 </body>
