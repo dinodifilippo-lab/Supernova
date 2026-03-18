@@ -42,6 +42,20 @@ body{background:var(--bg);color:var(--text);font-family:var(--ff);font-weight:30
 .btn-primary{width:100%;background:var(--a1);border:none;border-radius:8px;padding:14px;color:white;font-family:var(--ff);font-size:15px;font-weight:500;cursor:pointer;transition:background .2s}
 .btn-primary:hover{background:var(--a2)}
 .cfg-note{font-size:11px;color:var(--faint);text-align:center;max-width:460px;line-height:1.6}
+/* TEST MODE */
+.test-banner{position:fixed;bottom:0;left:0;right:0;background:rgba(232,168,74,.95);color:#000;text-align:center;padding:8px;font-size:12px;font-weight:500;font-family:var(--fm);letter-spacing:.05em;z-index:300;display:none}
+.test-banner.on{display:block}
+body.testmode .hdr{border-bottom-color:var(--warn)}
+body.testmode .logo span{color:var(--warn)}
+.test-toggle{display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(232,168,74,.08);border:1px solid rgba(232,168,74,.25);border-radius:8px}
+.test-toggle label{font-size:13px;color:var(--text);cursor:pointer;flex:1}
+.test-toggle small{font-size:11px;color:var(--faint);display:block;margin-top:2px}
+.sw{position:relative;width:36px;height:20px;flex-shrink:0}
+.sw input{opacity:0;width:0;height:0}
+.sw-track{position:absolute;inset:0;background:var(--s3);border-radius:20px;border:1px solid var(--border2);transition:background .2s;cursor:pointer}
+.sw-track::before{content:'';position:absolute;width:14px;height:14px;left:2px;top:2px;background:var(--dim);border-radius:50%;transition:transform .2s,background .2s}
+.sw input:checked+.sw-track{background:rgba(232,168,74,.3);border-color:var(--warn)}
+.sw input:checked+.sw-track::before{transform:translateX(16px);background:var(--warn)}
 /* DOCUMENT LIBRARY */
 .doc-list{display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto}
 .doc-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--s3);border-radius:7px;border:1px solid var(--border)}
@@ -111,6 +125,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--ff);font-weight:30
 .acard-prev::after{content:'';position:absolute;bottom:0;left:0;right:0;height:16px;background:linear-gradient(transparent,var(--s1))}
 .acard-btns{display:flex;gap:7px;flex-wrap:wrap}
 .arch-note{font-size:12px;color:var(--faint);padding:6px 0}
+.sel-bar{display:none;align-items:center;gap:10px;padding:8px 14px;background:rgba(61,122,181,.08);border:1px solid var(--a1);border-radius:8px;margin-bottom:8px}
+.sel-bar.on{display:flex}
+.sel-count{font-size:12px;color:var(--a2);flex:1}
+.acard{position:relative}
+.acard-cb{position:absolute;top:14px;left:12px;width:16px;height:16px;accent-color:var(--a1);cursor:pointer;display:none}
+.sel-mode .acard-cb{display:block}
+.sel-mode .acard{padding-left:36px}
 /* NOTIF */
 .notif{position:fixed;top:56px;left:50%;transform:translateX(-50%);z-index:100;max-width:580px;width:92%;padding:14px 36px 14px 18px;border-radius:10px;background:var(--s1);border:1px solid var(--setup);box-shadow:0 8px 32px rgba(0,0,0,.5);display:none}
 .notif.on{display:block;animation:sd .3s ease}
@@ -240,8 +261,6 @@ var AGENT_CONFIG = {
   </div>
 </div>
 
-<div class="card">
-  <div class="ctitle">Documenti di contesto</div>
   <div class="csub">Carica qualsiasi documento rilevante: JSON dalla chat AI, Word del progetto, transcript di riunioni Teams, note, screenshot. L'agente analizza ogni file e segnala incoerenze con il contesto esistente.</div>
   <div>
     <div class="lbl">Documenti caricati</div>
@@ -306,6 +325,20 @@ var AGENT_CONFIG = {
 <!-- ARCHIVIO -->
 
 <div class="screen" id="sArch">
+  <div style="padding:12px 20px;border-bottom:1px solid var(--border);background:var(--s1);display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap">
+    <label class="file-lbl" style="padding:7px 14px;font-size:12px">
+      + Aggiungi documento
+      <input type="file" accept=".json,.txt,.docx,.pdf,.md,.png,.jpg,.jpeg,.webp" multiple style="display:none" id="docFiles" onchange="loadDocs(event)">
+    </label>
+    <span style="font-size:11px;color:var(--faint)">JSON, TXT, DOCX, PDF, MD, PNG, JPG</span>
+    <button class="btn-sm" id="btnSelMode" onclick="toggleSelMode()" style="margin-left:auto">Seleziona</button>
+    <button class="btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="clearAll()">Cancella tutto</button>
+  </div>
+  <div class="sel-bar" id="selBar">
+    <span class="sel-count" id="selCount">0 selezionati</span>
+    <button class="btn-sm" onclick="deleteSelected()" style="color:var(--danger);border-color:var(--danger)">Elimina selezionati</button>
+    <button class="btn-sm" onclick="toggleSelMode()">Annulla</button>
+  </div>
   <div class="arch-s" id="archContent"></div>
 </div>
 
@@ -316,6 +349,7 @@ var AGENT_CONFIG = {
 var G = {
   groqKey:'', anthKey:'', lang:'', chunkDur:120,
   chatCtx:'', docs:[], configured:false, mode:'setup',
+  testMode:false,
   recActive:false, recPaused:false,
   stream:null, mime:null, recorder:null, recChunks:[],
   totalSec:0, chunkSec:0, timerInt:null, chunkInt:null,
@@ -348,6 +382,28 @@ function forgetKeys() {
   document.getElementById('anthKey').value='';
   document.getElementById('remKeys').checked=false;
   document.getElementById('btnForget').style.display='none';
+}
+
+function toggleTestMode(on) {
+  G.testMode = on;
+  document.body.classList.toggle('testmode', on);
+  document.getElementById('testBanner').classList.toggle('on', on);
+  if(on) {
+    // Clear test session data from memory (not from localStorage)
+    G.txChunks = []; G.txFull = ''; G.txSummary = '';
+    G.history = []; G.sessId = Date.now(); G.lastInt = 0; G.chunksSinceInt = 0;
+    var panel = document.getElementById('txPanel');
+    var lbl = panel ? panel.querySelector('.plbl') : null;
+    if(panel){ panel.innerHTML=''; if(lbl) panel.appendChild(lbl); panel.innerHTML += '<div class="tx-empty" id="txEmpty"><div style="font-size:26px;opacity:.3">TEST</div><div>Modalita test attiva — i dati non verranno salvati</div></div>'; }
+    var msgs = document.getElementById('msgs');
+    if(msgs){ msgs.innerHTML='<div class="msgs-empty" id="msgsEmpty"><div style="font-size:22px;opacity:.3">AI</div><div>Modalita test — nessun dato sara memorizzato</div></div>'; }
+    sysMsg('Modalita test attiva. Puoi caricare file, registrare conversazioni e testare tutte le funzionalita. Nulla verra salvato.');
+  } else {
+    // Remove test docs and sessions from memory
+    G.docs = G.docs.filter(function(d){return !d.isTest;});
+    renderDocList();
+    sysMsg('Modalita test disattivata. Dati di test rimossi. Ritorno alla sessione normale.');
+  }
 }
 
 function loadDocs(e) {
@@ -418,7 +474,7 @@ function extractImageContent(id, name, b64, mime) {
 }
 
 function finalizeDoc(id, name, type, text) {
-  var doc = {id:id, name:name, type:type, date:new Date().toLocaleString('it-IT'), text:text, status:'ok'};
+  var doc = {id:id, name:name, type:type, date:new Date().toLocaleString('it-IT'), text:text, status:'ok', isTest:G.testMode};
   // Remove placeholder, add real doc
   G.docs = G.docs.filter(function(d){return d.id!==id;});
   G.docs.push(doc);
@@ -436,6 +492,7 @@ function removeDoc(id) {
 }
 
 function saveDocs() {
+  if(G.testMode) return; // Test mode: no persistence
   try {
     // Save without image base64 to save space (text only)
     var toSave = G.docs.map(function(d){return {id:d.id,name:d.name,type:d.type,date:d.date,text:d.text.substring(0,5000),status:d.status};});
@@ -452,12 +509,15 @@ function renderDocList() {
   var list = document.getElementById('docList');
   var empty = document.getElementById('docEmpty');
   if(!list) return;
+  // In test mode, show test indicator on docs
+  var testDocs = G.testMode ? G.docs.filter(function(d){return d.isTest;}) : G.docs;
+  var displayDocs = G.testMode ? testDocs : G.docs;
   list.innerHTML = '';
-  if(G.docs.length === 0) {
+  if(displayDocs.length === 0) {
     list.innerHTML = '<div class="doc-empty" id="docEmpty">Nessun documento caricato.</div>';
     return;
   }
-  G.docs.forEach(function(doc) {
+  displayDocs.forEach(function(doc) {
     var icon = doc.type==='JSON'?'{}':doc.type==='IMG'?'IMG':doc.type==='DOCX'?'W':doc.type==='PDF'?'P':'T';
     var statusLabel = doc.status==='proc'?'analisi...':doc.status==='warn'?'incoerenze':doc.status==='ok'?'ok':'';
     var statusClass = doc.status==='proc'?'proc':doc.status==='warn'?'warn':'ok';
@@ -709,10 +769,71 @@ function anon() {
 // Sessions
 function autoSave() {
   if(!G.txFull)return;
+  if(G.testMode)return; // Test mode: no persistence
   var sess={id:G.sessId,date:new Date().toLocaleString('it-IT'),mode:G.mode,duration:G.totalSec,transcript:G.txFull,summary:G.txSummary};
   var idx=G.sessions.findIndex(function(s){return s.id===G.sessId;});
   if(idx>=0)G.sessions[idx]=sess;else G.sessions.push(sess);
   try{localStorage.setItem('sn_sessions',JSON.stringify(G.sessions));}catch(e){}
+}
+
+var selMode = false;
+
+function toggleSelMode() {
+  selMode = !selMode;
+  var archContent = document.getElementById('archContent');
+  var selBar = document.getElementById('selBar');
+  var btnSel = document.getElementById('btnSelMode');
+  if(archContent) archContent.classList.toggle('sel-mode', selMode);
+  if(selBar) selBar.classList.toggle('on', selMode);
+  if(btnSel) btnSel.textContent = selMode ? 'Annulla selezione' : 'Seleziona';
+  if(!selMode) {
+    // Deselect all
+    document.querySelectorAll('.acard-cb').forEach(function(cb){ cb.checked = false; });
+    updateSelCount();
+  }
+}
+
+function updateSelCount() {
+  var checked = document.querySelectorAll('.acard-cb:checked').length;
+  var el = document.getElementById('selCount');
+  if(el) el.textContent = checked + ' selezionat' + (checked === 1 ? 'o' : 'i');
+}
+
+function deleteSelected() {
+  var checked = document.querySelectorAll('.acard-cb:checked');
+  if(checked.length === 0) { alert('Seleziona almeno un elemento.'); return; }
+  if(!confirm('Eliminare ' + checked.length + ' element' + (checked.length === 1 ? 'o' : 'i') + ' selezionat' + (checked.length === 1 ? 'o' : 'i') + '?')) return;
+  var docIds = [], sessIds = [];
+  checked.forEach(function(cb) {
+    var id = parseInt(cb.getAttribute('data-id'));
+    var type = cb.getAttribute('data-type');
+    if(type === 'doc') docIds.push(id);
+    else if(type === 'sess') sessIds.push(id);
+  });
+  if(docIds.length > 0) {
+    G.docs = G.docs.filter(function(d){ return docIds.indexOf(d.id) < 0; });
+    saveDocs();
+  }
+  if(sessIds.length > 0) {
+    G.sessions = G.sessions.filter(function(s){ return sessIds.indexOf(s.id) < 0; });
+    try { localStorage.setItem('sn_sessions', JSON.stringify(G.sessions)); } catch(e) {}
+  }
+  selMode = false;
+  renderArch();
+  sysMsg('Eliminati ' + (docIds.length + sessIds.length) + ' elementi.');
+}
+
+function clearAll() {
+  if(!confirm('Cancellare tutti i documenti, le sessioni e il contesto? L agente non ricordera nulla. I dati non possono essere recuperati.')) return;
+  G.docs = []; G.sessions = []; G.txChunks = []; G.txFull = ''; G.txSummary = ''; G.history = [];
+  G.sessId = Date.now(); G.lastInt = 0; G.chunksSinceInt = 0;
+  try {
+    localStorage.removeItem('sn_docs');
+    localStorage.removeItem('sn_sessions');
+    localStorage.removeItem('sn_ctx');
+  } catch(e) {}
+  renderArch();
+  sysMsg('Tutto cancellato. L agente non ha piu memoria di sessioni o documenti precedenti.');
 }
 
 function renderArch() {
@@ -722,7 +843,8 @@ function renderArch() {
   if(G.docs&&G.docs.length>0){
     G.docs.forEach(function(doc){
       var el=document.createElement('div');el.className='acard chat';
-      el.innerHTML='<div class="acard-hdr"><div class="acard-title" style="color:var(--a2)">'+esc(doc.name)+'</div><div class="acard-meta">'+doc.type+' &middot; '+doc.date+'</div></div>'+
+      el.innerHTML='<input type="checkbox" class="acard-cb" data-id="'+doc.id+'" data-type="doc" onchange="updateSelCount()">'+
+        '<div class="acard-hdr"><div class="acard-title" style="color:var(--a2)">'+esc(doc.name)+'</div><div class="acard-meta">'+doc.type+' &middot; '+doc.date+'</div></div>'+
         '<div class="acard-prev">'+esc((doc.text||'Immagine').substring(0,160))+'</div>'+
         '<div class="acard-btns"><button class="btn-sm" onclick="viewM(&apos;'+esc(doc.name)+'&apos;,&apos;DOC_'+doc.id+'&apos;)">Visualizza</button>'+
         '<button class="btn-sm" onclick="removeDoc('+doc.id+')">Rimuovi</button></div>';
@@ -733,8 +855,27 @@ function renderArch() {
   // Sessions
   var ss=document.createElement('div');ss.style.marginTop='18px';ss.innerHTML='<div class="sec-lbl">Sessioni registrate</div>';
   if(G.sessions.length===0){ss.innerHTML+='<p class="arch-note">Nessuna sessione ancora.</p>';}
-  else{G.sessions.slice().reverse().forEach(function(s){var el=document.createElement('div');el.className='acard';el.innerHTML='<div class="acard-hdr"><div class="acard-title">'+s.date+'</div><div class="acard-meta">'+fmt(s.duration||0)+' - '+s.transcript.split(' ').length+' parole</div></div><div class="acard-prev">'+esc(s.transcript.substring(0,160))+'</div><div class="acard-btns"><button class="btn-sm" onclick="viewM(\'Transcript '+s.date+'\',\''+s.id+'\'+\'T\')">Transcript</button><button class="btn-sm" onclick="viewM(\'Sintesi '+s.date+'\',\''+s.id+'\'+\'S\')">Sintesi</button><button class="btn-sm" onclick="delS('+s.id+')">Elimina</button></div>';ss.appendChild(el);});}
+  else{G.sessions.slice().reverse().forEach(function(s){
+    var el=document.createElement('div');el.className='acard';
+    var cb='<input type="checkbox" class="acard-cb" data-id="'+s.id+'" data-type="sess" onchange="updateSelCount()">';
+    var hdr='<div class="acard-hdr"><div class="acard-title">'+s.date+'</div><div class="acard-meta">'+fmt(s.duration||0)+' - '+s.transcript.split(' ').length+' parole</div></div>';
+    var prev='<div class="acard-prev">'+esc(s.transcript.substring(0,160))+'</div>';
+    var btns='<div class="acard-btns"><button class="btn-sm" onclick="viewModal(\'Transcript\',\''+s.id+'T\')">Transcript</button><button class="btn-sm" onclick="viewModal(\'Sintesi\',\''+s.id+'S\')">Sintesi</button><button class="btn-sm" onclick="delS('+s.id+')">Elimina</button></div>';
+    el.innerHTML=cb+hdr+prev+btns;ss.appendChild(el);
+  });}
   w.appendChild(ss);
+}
+
+function viewModal(type, key) {
+  if(type === 'Transcript') {
+    var id = parseInt(key.replace('T',''));
+    var s = G.sessions.find(function(x){return x.id===id;});
+    viewM('Transcript ' + (s?s.date:''), key);
+  } else if(type === 'Sintesi') {
+    var id2 = parseInt(key.replace('S',''));
+    var s2 = G.sessions.find(function(x){return x.id===id2;});
+    viewM('Sintesi ' + (s2?s2.date:''), key);
+  }
 }
 
 function viewM(title,key) {
