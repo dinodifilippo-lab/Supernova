@@ -304,9 +304,8 @@ Il tuo comportamento:
   <div class="hdr-right">
     <div class="rec-dot" id="recDot"></div>
     <div class="hdr-timer" id="hdrTimer">00:00</div>
-    <button class="btn-nav" id="navSess" onclick="showScreen('sess')">Sessione</button>
-    <button class="btn-nav" id="navArch" onclick="showScreen('arch')">Archivio</button>
-    <button class="btn-nav active" id="navCfg" onclick="showScreen('cfg')">Config</button>
+    <button class="btn-nav" id="navArch" onclick="showScreen('arch')" style="display:none">Archivio</button>
+    <button class="btn-nav" id="navCfg" onclick="goToConfig()">← Config</button>
   </div>
 </div>
 
@@ -430,6 +429,7 @@ Il tuo comportamento:
   <button class="btn-rec stop" id="btnStop" onclick="stopRecording()" style="display:none">⏹ Stop</button>
   <div class="chunk-bar"><div class="chunk-fill" id="chunkFill"></div></div>
   <div class="chunk-eta" id="chunkEta">—</div>
+  <button class="btn-nav" onclick="anonymizeTranscript()" title="Rimuovi nomi propri dal transcript">Anonimizza</button>
 </div>
 ```
 
@@ -495,8 +495,8 @@ function forgetKeys() {
 function saveConfigAndStart() {
   const gk = document.getElementById('groqKey').value.trim();
   const ak = document.getElementById('anthropicKey').value.trim();
-  if (!gk.startsWith('gsk_')) { alert('Chiave Groq non valida (deve iniziare con gsk_)'); return; }
-  if (!ak.startsWith('sk-ant-')) { alert('Chiave Anthropic non valida (deve iniziare con sk-ant-)'); return; }
+  if (!gk.startsWith('gsk_')) { alert('Chiave Groq non valida (inizia con gsk_)'); return; }
+  if (!ak.startsWith('sk-ant-')) { alert('Chiave Anthropic non valida (inizia con sk-ant-)'); return; }
   cfg.groqKey = gk;
   cfg.anthropicKey = ak;
   cfg.mode = document.getElementById('agentMode').value;
@@ -504,33 +504,43 @@ function saveConfigAndStart() {
   cfg.chunkDur = parseInt(document.getElementById('chunkDur').value);
   cfg.projectContext = document.getElementById('projectContext').value.trim();
   currentMode = cfg.mode;
-  // Pop-up se non c'è contesto chat
-  let hasCtx = cfg.projectContext;
-  if (!hasCtx) { try { hasCtx = localStorage.getItem('sn_chat_context'); } catch(e){} }
-  if (!hasCtx) {
-    addSysMsg('Nessun contesto dalla chat caricato — le sessioni funzioneranno con meno contesto storico.');
-  }
   if (document.getElementById('rememberKeys').checked) {
     try { localStorage.setItem('sn_groq_key', gk); localStorage.setItem('sn_anthropic_key', ak); document.getElementById('btnForget').style.display='inline'; } catch(e){}
   }
   try { if (cfg.projectContext) localStorage.setItem('sn_project_context', cfg.projectContext); } catch(e){}
   updateModeUI();
+  // Go to session screen FIRST, then add messages
   showScreen('sess');
-  addSysMsg('Sessione avviata in modalità ' + (currentMode === 'setup' ? 'Setup' : 'Fase 0') + '. Avvia la registrazione quando sei pronto.');
+  // Check chat context AFTER screen is shown so messages appear
+  let hasCtx = cfg.projectContext;
+  if (!hasCtx) { try { const s = localStorage.getItem('sn_chat_context'); if (s) hasCtx = s; } catch(e){} }
+  if (!hasCtx) addSysMsg('Nessun contesto chat caricato. Caricalo dalla Config prima di iniziare.');
+  addSysMsg('Sessione pronta. Premi ⏺ Avvia per iniziare la registrazione.');
 }
-
 // ─── NAVIGATION ───────────────────────────────────────────────────────────────
 function showScreen(id) {
-  // Block access to sess without valid config
-  if (id === 'sess' && !cfg.groqKey) {
-    addSysMsg('Configura le chiavi API prima di avviare la sessione.');
-    return;
-  }
   ['cfg','sess','arch'].forEach(s => {
     document.getElementById('screen'+s.charAt(0).toUpperCase()+s.slice(1)).classList.toggle('active', s===id);
-    document.getElementById('nav'+s.charAt(0).toUpperCase()+s.slice(1)).classList.toggle('active', s===id);
   });
+  // Show archivio nav only in sess/arch screens
+  const archNav = document.getElementById('navArch');
+  const cfgNav = document.getElementById('navCfg');
+  if (id === 'cfg') {
+    if (archNav) archNav.style.display = 'none';
+    if (cfgNav) cfgNav.style.display = 'none';
+  } else {
+    if (archNav) archNav.style.display = 'inline-block';
+    if (cfgNav) { cfgNav.style.display = 'inline-block'; cfgNav.textContent = id === 'arch' ? 'Sessione' : '← Config'; cfgNav.onclick = id === 'arch' ? function(){ showScreen('sess'); } : goToConfig; }
+  }
   if (id === 'arch') renderArchive();
+}
+
+function goToConfig() {
+  if (rec.isRecording) {
+    if (!confirm('La registrazione e in corso. Andare in Config mettera in pausa. Continuare?')) return;
+    pauseRecording();
+  }
+  showScreen('cfg');
 }
 
 function switchMode(mode) {
@@ -880,6 +890,30 @@ function addAgentMsg(text, mode) {
     el.innerHTML = '<div class="msg-label">' + (mode==='setup' ? 'Setup' : 'Fase 0') + '</div>' + escHtml(text) + '<div class="msg-time">' + new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}) + '</div>';
   }
   box.appendChild(el); box.scrollTop = box.scrollHeight;
+}
+
+async function anonymizeTranscript() {
+  if (!tx.full) { addSysMsg('Nessun transcript da anonimizzare.'); return; }
+  if (!confirm("Anonimizzare il transcript? Nomi propri verranno sostituiti con placeholder. Il transcript originale non sara recuperabile.")) return;
+  addSysMsg('Anonimizzazione in corso...');
+  const prompt = "Analizza questo transcript e sostituisci nomi propri di persone con [Persona A] [Persona B] ecc. in modo consistente, nomi di societa con [Societa], ruoli identificativi con [Ruolo]. Non toccare termini tecnici acronimi di processo nomi di fasi. Restituisci SOLO il transcript anonimizzato.\n\nTRANSCRIPT:\n" + tx.full;
+
+  const reply = await callClaude(prompt, false);
+  if (!reply) { addSysMsg('Errore durante anonimizzazione.'); return; }
+  // Update transcript
+  tx.full = reply;
+  tx.chunks = [reply];
+  // Redraw transcript panel
+  const panel = document.getElementById('transcriptPanel');
+  const label = panel.querySelector('.panel-label');
+  panel.innerHTML = '';
+  if (label) panel.appendChild(label);
+  const el = document.createElement('div');
+  el.className = 't-chunk'; el.id = 'tc-0';
+  const t = document.createElement('div'); t.className = 't-text'; t.textContent = reply;
+  el.appendChild(t); panel.appendChild(el);
+  autoSaveSession();
+  addSysMsg('Transcript anonimizzato. Nomi propri sostituiti con placeholder.');
 }
 
 function copyToClipboard(btn) {
