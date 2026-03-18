@@ -217,6 +217,7 @@ var AGENT_CONFIG = {
     <div class="dot" id="dot"></div>
     <div class="timer" id="timer">00:00</div>
     <button class="btn-h" id="btnArch" onclick="goTo('arch')">Archivio</button>
+    <button class="btn-h" id="btnCfg" onclick="goTo('cfg')" style="display:none">Config</button>
     <button class="btn-h" id="btnBack">torna</button>
   </div>
 </div>
@@ -262,6 +263,7 @@ var AGENT_CONFIG = {
         <label for="remKeys">Ricorda su questo dispositivo</label>
         <button class="btn-forget" id="btnForget" onclick="forgetKeys()">Dimentica</button>
       </div>
+      <button class="btn-sm" onclick="resetCredentials()" style="font-size:11px;color:var(--faint);align-self:flex-start;margin-top:4px">Reimposta credenziali di accesso</button>
     </div>
 
 ```
@@ -304,7 +306,6 @@ var AGENT_CONFIG = {
 
 <button class="btn-primary" onclick="avvia()">Avvia sessione</button>
 <p class="cfg-note">Il transcript viene inviato a Groq (trascrizione) e Anthropic (agente AI). Nessun altro server coinvolto.</p>
-<button class="btn-sm" onclick="resetUsers()" style="font-size:11px;color:var(--faint)">Reset credenziali accesso</button>
 ```
 
   </div>
@@ -440,14 +441,20 @@ function doLogin() {
 function loginSuccess() {
   document.getElementById('loginErr').textContent = '';
   G.loggedIn = true;
-  goTo('cfg');
-  // Show a welcome msg if keys already saved
+  goTo('sess');
   setTimeout(function() {
-    if(G.groqKey && G.anthKey) {
-      goTo('sess');
-      sysMsg('Bentornato. Premi Avvia per iniziare la registrazione.');
-    }
+    sysMsg(G.groqKey && G.anthKey ? 'Bentornato. Premi Avvia per iniziare la registrazione.' : 'Benvenuto. Vai in Config per inserire le chiavi API prima di iniziare.');
   }, 100);
+}
+
+function resetCredentials() {
+  if(!confirm('Stai per eliminare le credenziali di accesso.\n\nTutti gli altri dati (sessioni, documenti, chiavi API, transcript) rimarranno intatti.\n\nContinuare?')) return;
+  try { localStorage.removeItem('sn_users'); } catch(e) {}
+  G.loggedIn = false;
+  goTo('home');
+  setTimeout(function(){
+    document.getElementById('loginErr').textContent = 'Credenziali resettate. Imposta le nuove credenziali.';
+  }, 200);
 }
 
 function resetUsers() {
@@ -672,9 +679,9 @@ function goTo(scr) {
     document.getElementById('s'+s).className='screen'+(scr===s.toLowerCase()?' on':'');
   });
   var ba=document.getElementById('btnArch'),bb=document.getElementById('btnBack'),ti=document.getElementById('timer');
-  if(scr==='home'||scr==='cfg'){ba.style.display='none';bb.style.display='none';ti.style.display='none';}
-  else if(scr==='sess'){ba.style.display='inline-block';bb.style.display='inline-block';bb.textContent='Config';bb.onclick=function(){goTo('cfg');};ti.style.display='inline';}
-  else if(scr==='arch'){ba.style.display='none';bb.style.display='inline-block';bb.textContent='Sessione';bb.onclick=function(){goTo('sess');};ti.style.display='none';renderArch();}
+  if(scr==='home'||scr==='cfg'){ba.style.display='none';document.getElementById('btnCfg').style.display='none';bb.style.display=scr==='cfg'?'inline-block':'none';if(scr==='cfg'){bb.textContent='Sessione';bb.onclick=function(){goTo('sess');};}ti.style.display='none';}
+  else if(scr==='sess'){ba.style.display='inline-block';document.getElementById('btnCfg').style.display='inline-block';bb.style.display='none';ti.style.display='inline';}
+  else if(scr==='arch'){ba.style.display='none';document.getElementById('btnCfg').style.display='inline-block';bb.style.display='inline-block';bb.textContent='Sessione';bb.onclick=function(){goTo('sess');};ti.style.display='none';renderArch();}
 }
 
 // Avvia
