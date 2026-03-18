@@ -304,9 +304,9 @@ Il tuo comportamento:
   <div class="hdr-right">
     <div class="rec-dot" id="recDot"></div>
     <div class="hdr-timer" id="hdrTimer">00:00</div>
-    <button class="btn-nav active" id="navSess" onclick="showScreen('sess')">Sessione</button>
+    <button class="btn-nav" id="navSess" onclick="showScreen('sess')">Sessione</button>
     <button class="btn-nav" id="navArch" onclick="showScreen('arch')">Archivio</button>
-    <button class="btn-nav" id="navCfg" onclick="showScreen('cfg')">Config</button>
+    <button class="btn-nav active" id="navCfg" onclick="showScreen('cfg')">Config</button>
   </div>
 </div>
 
@@ -508,8 +508,7 @@ function saveConfigAndStart() {
   let hasCtx = cfg.projectContext;
   if (!hasCtx) { try { hasCtx = localStorage.getItem('sn_chat_context'); } catch(e){} }
   if (!hasCtx) {
-    const proceed = confirm("Nessun contesto dalla chat caricato. Procedere comunque?")
-    if (!proceed) return;
+    addSysMsg('Nessun contesto dalla chat caricato — le sessioni funzioneranno con meno contesto storico.');
   }
   if (document.getElementById('rememberKeys').checked) {
     try { localStorage.setItem('sn_groq_key', gk); localStorage.setItem('sn_anthropic_key', ak); document.getElementById('btnForget').style.display='inline'; } catch(e){}
@@ -522,6 +521,11 @@ function saveConfigAndStart() {
 
 // ─── NAVIGATION ───────────────────────────────────────────────────────────────
 function showScreen(id) {
+  // Block access to sess without valid config
+  if (id === 'sess' && !cfg.groqKey) {
+    addSysMsg('Configura le chiavi API prima di avviare la sessione.');
+    return;
+  }
   ['cfg','sess','arch'].forEach(s => {
     document.getElementById('screen'+s.charAt(0).toUpperCase()+s.slice(1)).classList.toggle('active', s===id);
     document.getElementById('nav'+s.charAt(0).toUpperCase()+s.slice(1)).classList.toggle('active', s===id);
