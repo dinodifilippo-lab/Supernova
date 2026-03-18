@@ -480,8 +480,16 @@ window.onload = function() {
 function loadSaved() {
   try {
     var gk=localStorage.getItem('sn_g'), ak=localStorage.getItem('sn_a');
-    if(gk){document.getElementById('groqKey').value=gk;document.getElementById('remKeys').checked=true;document.getElementById('btnForget').style.display='inline';}
-    if(ak){document.getElementById('anthKey').value=ak;}
+    if(gk){
+      G.groqKey=gk;
+      document.getElementById('groqKey').value=gk;
+      document.getElementById('remKeys').checked=true;
+      document.getElementById('btnForget').style.display='inline';
+    }
+    if(ak){
+      G.anthKey=ak;
+      document.getElementById('anthKey').value=ak;
+    }
     var ds=localStorage.getItem('sn_docs');
     if(ds){G.docs=JSON.parse(ds);renderDocList();}
   } catch(e){}
@@ -720,8 +728,7 @@ function avvia() {
 function startRec() {
   if(G.recPaused){resumeRec();return;}
   if(!G.groqKey || !G.anthKey) {
-    sysMsg('Chiavi API mancanti. Vai in Config per inserire le chiavi Groq e Anthropic.');
-    goTo('cfg');
+    sysMsg('Chiavi API mancanti — vai in Config (tasto in alto) per inserire le chiavi Groq e Anthropic.');
     return;
   }
   navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true}})
@@ -833,7 +840,7 @@ function claude(msg,hist) {
   document.getElementById('btnSend').disabled=true;
   var msgs=hist?G.history.concat([{role:'user',content:msg}]):[{role:'user',content:msg}];
   if(!G.anthKey) {
-    sysMsg('Chiave Anthropic mancante. Vai in Config per inserirla.');
+    sysMsg('Chiave Anthropic mancante — vai in Config (tasto in alto) per inserirla.');
     document.getElementById('btnSend').disabled=false;
     return Promise.resolve(null);
   }
