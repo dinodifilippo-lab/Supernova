@@ -350,6 +350,7 @@ var AGENT_CONFIG = {
       <div class="cbar"><div class="cfill" id="cfill"></div></div>
       <div class="ceta" id="ceta">--</div>
       <button class="btn-sm" onclick="anon()">Anonimizza</button>
+      <button class="btn-sm" onclick="clearTxUI()" title="Pulisce lo schermo senza cancellare la trascrizione salvata">Pulisci schermo</button>
     </div>
   </div>
 </div>
@@ -448,8 +449,11 @@ function loginSuccess() {
   G.loggedIn = true;
   goTo('sess');
   setTimeout(function() {
-    if(!G.groqKey || !G.anthKey) sysMsg('Chiavi API mancanti — vai in Config per inserire le chiavi Groq e Anthropic prima di iniziare.');
-  }, 100);
+    // Read directly from localStorage — G may not be populated yet at login time
+    var hasKeys = false;
+    try { hasKeys = !!(localStorage.getItem('sn_g') && localStorage.getItem('sn_a')); } catch(e) {}
+    if(!hasKeys) sysMsg('Chiavi API mancanti — vai in Config per inserirle prima di iniziare.');
+  }, 150);
 }
 
 function resetCredentials() {
@@ -862,6 +866,19 @@ function ask(q) {
 function updateSum() {
   if(!G.txFull)return;
   claude('Sintesi come indice verso il transcript - non una sostituzione. Decisioni, punti aperti, contesto. Sii conciso.\n\nTranscript:\n'+G.txFull,false).then(function(s){if(s){G.txSummary=s;autoSave();}});
+}
+
+function clearTxUI() {
+  // Clears only the visual panel — G.txFull and saved sessions remain intact
+  var panel = document.getElementById('txPanel');
+  var lbl = panel ? panel.querySelector('.plbl') : null;
+  if(!panel) return;
+  panel.innerHTML = '';
+  if(lbl) panel.appendChild(lbl);
+  var empty = document.createElement('div');
+  empty.className = 'tx-empty'; empty.id = 'txEmpty';
+  empty.innerHTML = '<div style="font-size:22px;opacity:.3">ok</div><div>Schermo pulito - trascrizione salvata in Archivio</div>';
+  panel.appendChild(empty);
 }
 
 function anon() {
