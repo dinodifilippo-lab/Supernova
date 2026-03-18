@@ -366,9 +366,13 @@ function avvia() {
   if(document.getElementById('remKeys').checked){
     try{localStorage.setItem('sn_g',gk);localStorage.setItem('sn_a',ak);document.getElementById('btnForget').style.display='inline';}catch(e){}
   }
+  var firstStart = !G.configured;
+  G.configured = true;
   goTo('sess');
-  sysMsg(G.chatCtx?'Sessione avviata con contesto dalla chat.':'Sessione avviata senza contesto dalla chat.');
-  sysMsg('Premi Avvia per iniziare la registrazione.');
+  if (firstStart) {
+    sysMsg(G.chatCtx ? 'Sessione configurata con contesto dalla chat.' : 'Sessione configurata senza contesto dalla chat.');
+    sysMsg('Premi Avvia per iniziare la registrazione.');
+  }
 }
 
 // Recording
