@@ -482,16 +482,21 @@ function loadSaved() {
     var gk=localStorage.getItem('sn_g'), ak=localStorage.getItem('sn_a');
     if(gk){
       G.groqKey=gk;
-      document.getElementById('groqKey').value=gk;
-      document.getElementById('remKeys').checked=true;
-      document.getElementById('btnForget').style.display='inline';
+      try{document.getElementById('groqKey').value=gk;}catch(e2){}
+      try{document.getElementById('remKeys').checked=true;}catch(e2){}
+      try{document.getElementById('btnForget').style.display='inline';}catch(e2){}
     }
     if(ak){
       G.anthKey=ak;
-      document.getElementById('anthKey').value=ak;
+      try{document.getElementById('anthKey').value=ak;}catch(e2){}
     }
+    // Load session settings
+    var lang=localStorage.getItem('sn_lang');
+    if(lang){G.lang=lang;try{document.getElementById('langSel').value=lang;}catch(e2){}}
+    var cd=localStorage.getItem('sn_cd');
+    if(cd){G.chunkDur=parseInt(cd);try{document.getElementById('chunkDur').value=cd;}catch(e2){}}
     var ds=localStorage.getItem('sn_docs');
-    if(ds){G.docs=JSON.parse(ds);renderDocList();}
+    if(ds){G.docs=JSON.parse(ds);}
   } catch(e){}
 }
 
@@ -711,12 +716,17 @@ function avvia() {
   G.lang=document.getElementById('langSel').value;
   AGENT_CONFIG.interventionCooldownSec=parseInt(document.getElementById('cooldownSel').value);
   G.chunkDur=parseInt(document.getElementById('chunkDur').value);
+  var firstStart=!G.configured;
   G.configured=true;
   if(document.getElementById('remKeys').checked){
-    try{localStorage.setItem('sn_g',gk);localStorage.setItem('sn_a',ak);document.getElementById('btnForget').style.display='inline';}catch(e){}
+    try{
+      localStorage.setItem('sn_g',gk);
+      localStorage.setItem('sn_a',ak);
+      localStorage.setItem('sn_lang',G.lang);
+      localStorage.setItem('sn_cd',G.chunkDur);
+      document.getElementById('btnForget').style.display='inline';
+    }catch(e){}
   }
-  var firstStart = !G.configured;
-  G.configured = true;
   goTo('sess');
   if (firstStart) {
     sysMsg(G.chatCtx ? 'Sessione configurata con contesto dalla chat.' : 'Sessione configurata senza contesto dalla chat.');
