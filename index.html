@@ -448,7 +448,7 @@ function loginSuccess() {
   G.loggedIn = true;
   goTo('sess');
   setTimeout(function() {
-    sysMsg(G.groqKey && G.anthKey ? 'Bentornato. Premi Avvia per iniziare la registrazione.' : 'Benvenuto. Vai in Config per inserire le chiavi API prima di iniziare.');
+    if(!G.groqKey || !G.anthKey) sysMsg('Chiavi API mancanti — vai in Config per inserire le chiavi Groq e Anthropic prima di iniziare.');
   }, 100);
 }
 
