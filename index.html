@@ -44,7 +44,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--ff);font-weight:30
 .cfg-note{font-size:11px;color:var(--faint);text-align:center;max-width:460px;line-height:1.6}
 /* HOME */
 .home-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;min-height:0}
-.home-bg{position:absolute;inset:0;background:url('https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Hercules_A_-_HST_-_heic1210e.jpg/1280px-Hercules_A_-_HST_-_heic1210e.jpg') center/cover no-repeat;filter:brightness(.35);z-index:0}
+.home-bg{position:absolute;inset:0;z-index:0;background:
+  radial-gradient(ellipse at 20% 50%, rgba(74,20,140,.6) 0%, transparent 50%),
+  radial-gradient(ellipse at 80% 20%, rgba(13,71,161,.5) 0%, transparent 45%),
+  radial-gradient(ellipse at 60% 80%, rgba(0,96,100,.4) 0%, transparent 40%),
+  radial-gradient(ellipse at 50% 50%, rgba(10,12,15,1) 0%, rgba(15,10,30,1) 100%)}
+.home-bg::before{content:'';position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1600&q=80&fm=jpg') center/cover no-repeat;opacity:.45;mix-blend-mode:screen}
 .home-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:24px;padding:40px 24px;width:100%;max-width:400px}
 .home-title{font-family:var(--fd);font-size:48px;color:white;text-align:center;letter-spacing:.02em;line-height:1.1}
 .home-title span{color:var(--a3)}
