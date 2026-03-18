@@ -42,6 +42,21 @@ body{background:var(--bg);color:var(--text);font-family:var(--ff);font-weight:30
 .btn-primary{width:100%;background:var(--a1);border:none;border-radius:8px;padding:14px;color:white;font-family:var(--ff);font-size:15px;font-weight:500;cursor:pointer;transition:background .2s}
 .btn-primary:hover{background:var(--a2)}
 .cfg-note{font-size:11px;color:var(--faint);text-align:center;max-width:460px;line-height:1.6}
+/* DOCUMENT LIBRARY */
+.doc-list{display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto}
+.doc-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--s3);border-radius:7px;border:1px solid var(--border)}
+.doc-icon{font-size:16px;flex-shrink:0}
+.doc-info{flex:1;min-width:0}
+.doc-name{font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-meta{font-size:10px;color:var(--faint);font-family:var(--fm)}
+.doc-status{font-size:10px;padding:2px 7px;border-radius:4px;font-family:var(--fm);white-space:nowrap}
+.doc-status.ok{background:rgba(74,158,114,.15);color:var(--setup)}
+.doc-status.warn{background:rgba(232,168,74,.15);color:var(--warn)}
+.doc-status.proc{background:rgba(90,159,212,.15);color:var(--a2)}
+.btn-doc-rm{background:none;border:none;color:var(--faint);cursor:pointer;font-size:14px;padding:2px 4px;line-height:1}
+.btn-doc-rm:hover{color:var(--danger)}
+.doc-empty{font-size:12px;color:var(--faint);padding:8px 0;text-align:center}
+.upload-btns{display:flex;gap:8px;flex-wrap:wrap}
 /* SESSION */
 .sess-grid{flex:1;overflow:hidden;display:grid;grid-template-columns:1fr 340px;grid-template-rows:1fr auto}
 .tx-panel{overflow-y:auto;padding:18px 20px;border-right:1px solid var(--border);display:flex;flex-direction:column}
@@ -214,19 +229,33 @@ var AGENT_CONFIG = {
       <option value="180">3 minuti</option>
     </select>
   </div>
+  <div>
+    <div class="lbl">Frequenza interventi agente</div>
+    <select class="sel" id="cooldownSel">
+      <option value="60">Alta — ogni ~1 minuto (riunioni brevi e dense)</option>
+      <option value="90" selected>Media — ogni ~90 secondi (default)</option>
+      <option value="180">Bassa — ogni ~3 minuti (riunioni lunghe)</option>
+      <option value="300">Minima — ogni ~5 minuti (solo punti critici)</option>
+    </select>
+  </div>
 </div>
 
 <div class="card">
-  <div class="ctitle">Importa chat</div>
-  <div class="csub">Carica il JSON generato dalla chat AI. Sovrascrive il precedente: ogni nuovo JSON contiene gia tutto il contesto aggiornato.</div>
+  <div class="ctitle">Documenti di contesto</div>
+  <div class="csub">Carica qualsiasi documento rilevante: JSON dalla chat AI, Word del progetto, transcript di riunioni Teams, note, screenshot. L'agente analizza ogni file e segnala incoerenze con il contesto esistente.</div>
   <div>
-    <div class="lbl">Contesto caricato</div>
-    <textarea class="ctx-area" id="ctxArea" readonly placeholder="Nessun contesto caricato."></textarea>
+    <div class="lbl">Documenti caricati</div>
+    <div class="doc-list" id="docList">
+      <div class="doc-empty" id="docEmpty">Nessun documento caricato.</div>
+    </div>
   </div>
-  <label class="file-lbl">
-    Carica JSON chat
-    <input type="file" accept=".json" style="display:none" id="jsonFile" onchange="loadJson(event)">
-  </label>
+  <div class="upload-btns">
+    <label class="file-lbl">
+      + Aggiungi documento
+      <input type="file" accept=".json,.txt,.docx,.pdf,.md,.png,.jpg,.jpeg,.webp" multiple style="display:none" id="docFiles" onchange="loadDocs(event)">
+    </label>
+  </div>
+  <div class="csub" style="font-size:10px;color:var(--faint)">Formati supportati: JSON, TXT, DOCX, PDF, MD, PNG, JPG, WebP</div>
 </div>
 
 <button class="btn-primary" onclick="avvia()">Avvia sessione</button>
@@ -286,7 +315,7 @@ var AGENT_CONFIG = {
 // State
 var G = {
   groqKey:'', anthKey:'', lang:'', chunkDur:120,
-  chatCtx:'', configured:false, mode:'setup',
+  chatCtx:'', docs:[], configured:false, mode:'setup',
   recActive:false, recPaused:false,
   stream:null, mime:null, recorder:null, recChunks:[],
   totalSec:0, chunkSec:0, timerInt:null, chunkInt:null,
@@ -305,10 +334,11 @@ window.onload = function() {
 
 function loadSaved() {
   try {
-    var gk=localStorage.getItem('sn_g'), ak=localStorage.getItem('sn_a'), ctx=localStorage.getItem('sn_c');
+    var gk=localStorage.getItem('sn_g'), ak=localStorage.getItem('sn_a');
     if(gk){document.getElementById('groqKey').value=gk;document.getElementById('remKeys').checked=true;document.getElementById('btnForget').style.display='inline';}
     if(ak){document.getElementById('anthKey').value=ak;}
-    if(ctx){G.chatCtx=ctx;document.getElementById('ctxArea').value=ctx.substring(0,300)+(ctx.length>300?'..':'');}
+    var ds=localStorage.getItem('sn_docs');
+    if(ds){G.docs=JSON.parse(ds);renderDocList();}
   } catch(e){}
 }
 
@@ -320,19 +350,161 @@ function forgetKeys() {
   document.getElementById('btnForget').style.display='none';
 }
 
-function loadJson(e) {
-  var file=e.target.files[0]; if(!file)return;
-  var r=new FileReader();
-  r.onload=function(ev){
-    try{
-      var d=JSON.parse(ev.target.result);
-      G.chatCtx=d.content||d.summary||JSON.stringify(d);
-      try{localStorage.setItem('sn_c',G.chatCtx);}catch(e2){}
-      document.getElementById('ctxArea').value=G.chatCtx.substring(0,300)+(G.chatCtx.length>300?'..':'');
-      alert('Contesto caricato: '+file.name);
-    }catch(err){alert('Errore JSON: '+err.message);}
-  };
-  r.readAsText(file);
+function loadDocs(e) {
+  var files = Array.from(e.target.files);
+  if(!files.length) return;
+  files.forEach(function(file) { processDocFile(file); });
+  e.target.value = '';
+}
+
+function processDocFile(file) {
+  var name = file.name;
+  var ext = name.split('.').pop().toLowerCase();
+  var id = Date.now() + Math.random();
+  var isImage = ['png','jpg','jpeg','webp','gif'].indexOf(ext) >= 0;
+  
+  // Add placeholder in doc list
+  addDocToList({id:id, name:name, type:ext.toUpperCase(), date:new Date().toLocaleString('it-IT'), text:'', status:'proc', isImage:false});
+  
+  if(isImage) {
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      var b64 = ev.target.result.split(',')[1];
+      var mime = file.type || 'image/jpeg';
+      // Send image to Claude for extraction
+      extractImageContent(id, name, b64, mime);
+    };
+    reader.readAsDataURL(file);
+  } else if(ext === 'docx') {
+    var reader2 = new FileReader();
+    reader2.onload = function(ev) {
+      // Use mammoth for docx extraction
+      if(typeof mammoth !== 'undefined') {
+        mammoth.extractRawText({arrayBuffer: ev.target.result}).then(function(result) {
+          finalizeDoc(id, name, ext.toUpperCase(), result.value);
+        }).catch(function(e2) { finalizeDoc(id, name, ext.toUpperCase(), '[Errore estrazione DOCX: '+e2.message+']'); });
+      } else {
+        finalizeDoc(id, name, ext.toUpperCase(), '[mammoth.js non disponibile per estrazione DOCX]');
+      }
+    };
+    reader2.readAsArrayBuffer(file);
+  } else {
+    // TXT, JSON, MD, PDF as text
+    var reader3 = new FileReader();
+    reader3.onload = function(ev) {
+      var text = ev.target.result;
+      if(ext === 'json') {
+        try { var d=JSON.parse(text); text = JSON.stringify(d, null, 2); } catch(e3) {}
+      }
+      finalizeDoc(id, name, ext.toUpperCase(), text);
+    };
+    reader3.readAsText(file);
+  }
+}
+
+function extractImageContent(id, name, b64, mime) {
+  if(!G.anthKey) { finalizeDoc(id, name, 'IMG', '[Chiave Anthropic necessaria per leggere immagini]'); return; }
+  fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':G.anthKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:[
+      {type:'image',source:{type:'base64',media_type:mime,data:b64}},
+      {type:'text',text:'Estrai tutto il contenuto testuale da questa immagine in modo fedele e strutturato. Se e uno screenshot di un documento o una slide, mantieni la struttura. Se e una lavagna o note scritte a mano, trascrivi il testo. Restituisci solo il contenuto estratto, senza commenti.'}
+    ]}]})
+  }).then(function(r){return r.json();}).then(function(d){
+    var text = (d.content&&d.content[0]) ? d.content[0].text : '[Impossibile estrarre contenuto]';
+    finalizeDoc(id, name, 'IMG', text);
+  }).catch(function(e){finalizeDoc(id, name, 'IMG', '[Errore estrazione immagine: '+e.message+']');});
+}
+
+function finalizeDoc(id, name, type, text) {
+  var doc = {id:id, name:name, type:type, date:new Date().toLocaleString('it-IT'), text:text, status:'ok'};
+  // Remove placeholder, add real doc
+  G.docs = G.docs.filter(function(d){return d.id!==id;});
+  G.docs.push(doc);
+  saveDocs();
+  renderDocList();
+  // Run coherence check against existing context
+  runCoherenceCheck(doc);
+}
+
+function removeDoc(id) {
+  G.docs = G.docs.filter(function(d){return d.id!==id;});
+  saveDocs();
+  renderDocList();
+  sysMsg('Documento rimosso.');
+}
+
+function saveDocs() {
+  try {
+    // Save without image base64 to save space (text only)
+    var toSave = G.docs.map(function(d){return {id:d.id,name:d.name,type:d.type,date:d.date,text:d.text.substring(0,5000),status:d.status};});
+    localStorage.setItem('sn_docs', JSON.stringify(toSave));
+  } catch(e) {}
+}
+
+function addDocToList(doc) {
+  G.docs.push(doc);
+  renderDocList();
+}
+
+function renderDocList() {
+  var list = document.getElementById('docList');
+  var empty = document.getElementById('docEmpty');
+  if(!list) return;
+  list.innerHTML = '';
+  if(G.docs.length === 0) {
+    list.innerHTML = '<div class="doc-empty" id="docEmpty">Nessun documento caricato.</div>';
+    return;
+  }
+  G.docs.forEach(function(doc) {
+    var icon = doc.type==='JSON'?'{}':doc.type==='IMG'?'IMG':doc.type==='DOCX'?'W':doc.type==='PDF'?'P':'T';
+    var statusLabel = doc.status==='proc'?'analisi...':doc.status==='warn'?'incoerenze':doc.status==='ok'?'ok':'';
+    var statusClass = doc.status==='proc'?'proc':doc.status==='warn'?'warn':'ok';
+    var el = document.createElement('div');
+    el.className = 'doc-item';
+    el.innerHTML = '<div class="doc-icon">'+icon+'</div>'+
+      '<div class="doc-info"><div class="doc-name">'+esc(doc.name)+'</div><div class="doc-meta">'+doc.type+' &middot; '+doc.date+'</div></div>'+
+      '<span class="doc-status '+statusClass+'">'+statusLabel+'</span>'+
+      '<button class="btn-doc-rm" onclick="removeDoc('+doc.id+')" title="Rimuovi">x</button>';
+    list.appendChild(el);
+  });
+}
+
+function runCoherenceCheck(newDoc) {
+  if(!G.anthKey || !newDoc.text) return;
+  // Build existing context summary for comparison
+  var existingCtx = buildSys().substring(0, 6000);
+  var p1 = 'Documento: '+newDoc.name+'\n\nContenuto:\n'+newDoc.text.substring(0,3000);
+  var p2 = 'Contesto esistente:\n'+existingCtx;
+  var p3 = 'Rispondi: COERENTE se ok, NUOVO: [cosa aggiunge] se nuovo ma coerente, INCOERENZA: [contraddizione + domanda chiarimento] se contraddice. Sii preciso e diretto.';
+  var prompt = p1+'\n\n'+p2+'\n\n'+p3;
+  fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':G.anthKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,system:buildSys(),messages:[{role:'user',content:prompt}]})
+  }).then(function(r){return r.json();}).then(function(d){
+    var reply = (d.content&&d.content[0]) ? d.content[0].text.trim() : '';
+    if(!reply || reply.startsWith('COERENTE')) {
+      // Update status to ok, quiet
+      G.docs = G.docs.map(function(doc){return doc.id===newDoc.id ? Object.assign({},doc,{status:'ok'}) : doc;});
+      renderDocList();
+      sysMsg('Documento caricato: ' + newDoc.name + ' — nessuna incoerenza rilevata.');
+    } else if(reply.startsWith('NUOVO:')) {
+      G.docs = G.docs.map(function(doc){return doc.id===newDoc.id ? Object.assign({},doc,{status:'ok'}) : doc;});
+      renderDocList();
+      sysMsg('Documento caricato: ' + newDoc.name);
+      addMsg('Nuovo contesto da "' + newDoc.name + '": ' + reply.replace('NUOVO:','').trim());
+    } else if(reply.startsWith('INCOERENZA:')) {
+      G.docs = G.docs.map(function(doc){return doc.id===newDoc.id ? Object.assign({},doc,{status:'warn'}) : doc;});
+      renderDocList();
+      sysMsg('Documento caricato: ' + newDoc.name + ' — incoerenze rilevate.');
+      addMsg(reply.replace('INCOERENZA:','').trim());
+      showN('Incoerenza rilevata in "' + newDoc.name + '" — vedi pannello agente.');
+      beep();
+    }
+    saveDocs();
+  }).catch(function(e){ sysMsg('Errore analisi coerenza: '+e.message); });
 }
 
 // Navigation
@@ -361,6 +533,7 @@ function avvia() {
   if(!ak||!ak.startsWith('sk-ant-')){alert('Chiave Anthropic non valida (inizia con sk-ant-)');return;}
   G.groqKey=gk; G.anthKey=ak;
   G.lang=document.getElementById('langSel').value;
+  AGENT_CONFIG.interventionCooldownSec=parseInt(document.getElementById('cooldownSel').value);
   G.chunkDur=parseInt(document.getElementById('chunkDur').value);
   G.configured=true;
   if(document.getElementById('remKeys').checked){
@@ -472,7 +645,12 @@ function procChunk(chunks) {
 function buildSys() {
   var base=G.mode==='setup'?AGENT_CONFIG.setupSystemPrompt:AGENT_CONFIG.fase0SystemPrompt;
   var parts=[AGENT_CONFIG.projectDescription,base];
-  if(G.chatCtx)parts.push('--- CONTESTO DALLA CHAT ---\n'+G.chatCtx);
+  // All loaded documents
+  if(G.docs&&G.docs.length>0){
+    G.docs.forEach(function(doc){
+      if(doc.text) parts.push('--- DOCUMENTO: '+doc.name+' ('+doc.type+', caricato '+doc.date+') ---\n'+doc.text.substring(0,4000));
+    });
+  }
   if(G.txSummary)parts.push('--- SINTESI SESSIONE ---\n'+G.txSummary);
   if(G.sessions.length>0){var rec=G.sessions.slice(-2).map(function(s){return 'Sessione '+s.date+':\n'+(s.summary||s.transcript.substring(0,400));}).join('\n\n');parts.push('--- SESSIONI PRECEDENTI ---\n'+rec);}
   return parts.join('\n\n');
@@ -495,7 +673,8 @@ function maybeInt(chunk) {
   var now=Date.now();
   if(now-G.lastInt<AGENT_CONFIG.interventionCooldownSec*1000)return;
   if(G.chunksSinceInt<AGENT_CONFIG.interventionThresholdChunks)return;
-  var p='Nuovo segmento:\n"'+chunk+'"\n\nTranscript completo (verifica ogni punto qui prima di rispondere):\n'+(G.txFull||'(vuoto)')+'\n\n'+(G.txSummary?'Sintesi (solo indice):\n'+G.txSummary+'\n\n':'')+'Hai un suggerimento, alternativa, rischio, opinione o domanda strutturata da portare al gruppo? Max 3-4 frasi su UNA cosa. Se non hai nulla di utile: SILENZIO';
+  var docNote=G.docs&&G.docs.length>0?' Hai anche '+G.docs.length+' documenti di contesto caricati — verifica se il nuovo segmento e coerente con essi.':'';
+  var p='Nuovo segmento:\n"'+chunk+'"\n\nTranscript completo (verifica ogni punto qui prima di rispondere):\n'+(G.txFull||'(vuoto)')+'\n\n'+(G.txSummary?'Sintesi (solo indice):\n'+G.txSummary+'\n\n':'')+'Hai un suggerimento, alternativa, rischio, opinione, domanda strutturata, o incoerenza rispetto al contesto?'+docNote+' Max 3-4 frasi su UNA cosa. Se non hai nulla di utile: SILENZIO';
   claude(p,false).then(function(r){if(!r||r.trim().toUpperCase()==='SILENZIO')return;G.lastInt=Date.now();G.chunksSinceInt=0;addMsg(r);showN(r);beep();if(G.history.length>0&&G.history.length%6===0)updateSum();});
 }
 
@@ -538,10 +717,18 @@ function autoSave() {
 
 function renderArch() {
   var w=document.getElementById('archContent');w.innerHTML='';
-  // Chat context
-  var cs=document.createElement('div');cs.innerHTML='<div class="sec-lbl">Contesto dalla chat</div>';
-  if(G.chatCtx){var cc=document.createElement('div');cc.className='acard chat';cc.innerHTML='<div class="acard-hdr"><div class="acard-title" style="color:var(--a2)">JSON chat caricato</div></div><div class="acard-prev">'+esc(G.chatCtx.substring(0,180))+'</div><div class="acard-btns"><button class="btn-sm" onclick="viewM(\'Contesto chat\',G.chatCtx)">Visualizza</button></div>';cs.appendChild(cc);}
-  else{cs.innerHTML+='<p class="arch-note">Nessun contesto caricato.</p>';}
+  // Documents section
+  var cs=document.createElement('div');cs.innerHTML='<div class="sec-lbl">Documenti di contesto</div>';
+  if(G.docs&&G.docs.length>0){
+    G.docs.forEach(function(doc){
+      var el=document.createElement('div');el.className='acard chat';
+      el.innerHTML='<div class="acard-hdr"><div class="acard-title" style="color:var(--a2)">'+esc(doc.name)+'</div><div class="acard-meta">'+doc.type+' &middot; '+doc.date+'</div></div>'+
+        '<div class="acard-prev">'+esc((doc.text||'Immagine').substring(0,160))+'</div>'+
+        '<div class="acard-btns"><button class="btn-sm" onclick="viewM(&apos;'+esc(doc.name)+'&apos;,&apos;DOC_'+doc.id+'&apos;)">Visualizza</button>'+
+        '<button class="btn-sm" onclick="removeDoc('+doc.id+')">Rimuovi</button></div>';
+      cs.appendChild(el);
+    });
+  } else{cs.innerHTML+='<p class="arch-note">Nessun documento caricato.</p>';}
   w.appendChild(cs);
   // Sessions
   var ss=document.createElement('div');ss.style.marginTop='18px';ss.innerHTML='<div class="sec-lbl">Sessioni registrate</div>';
@@ -553,7 +740,7 @@ function renderArch() {
 function viewM(title,key) {
   document.getElementById('mtitle').textContent=title;
   var text='';
-  if(key==='G.chatCtx'){text=G.chatCtx;}
+  if(key.startsWith('DOC_')){var docId=parseInt(key.replace('DOC_',''));var doc=G.docs.find(function(d){return d.id===docId;});text=doc?doc.text:'Non trovato.';}
   else if(key.endsWith('T')){var id=parseInt(key);var s=G.sessions.find(function(x){return x.id===id;});text=s?s.transcript:'Non trovato.';}
   else if(key.endsWith('S')){var id2=parseInt(key);var s2=G.sessions.find(function(x){return x.id===id2;});text=s2?(s2.summary||'Nessuna sintesi.'):'Non trovato.';}
   else{text=key;}
