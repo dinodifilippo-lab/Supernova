@@ -116,6 +116,14 @@ body.testmode .logo span{color:var(--warn)}
 .dots span{animation:db 1.2s infinite;opacity:0}.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
 @keyframes db{0%,80%,100%{opacity:0}40%{opacity:1}}
 .log-entry{font-size:11px;line-height:1.5;padding:5px 8px;background:var(--s2);border-radius:5px;border-left:2px solid var(--border2)}
+.q-banner{position:fixed;top:56px;left:50%;transform:translateX(-50%);z-index:150;max-width:640px;width:94%;background:var(--s1);border:2px solid var(--warn);border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.6);padding:18px 44px 18px 20px;display:none;animation:qslide .3s ease}
+.q-banner.on{display:block}
+@keyframes qslide{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.q-banner-lbl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--warn);font-family:var(--fm);margin-bottom:8px}
+.q-banner-text{font-size:14px;line-height:1.7;color:var(--text);white-space:pre-wrap}
+.q-banner-actions{display:flex;gap:8px;margin-top:12px}
+.q-banner-x{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--faint);font-size:20px;cursor:pointer;padding:0 4px;line-height:1}
+.q-banner-x:hover{color:var(--text)}
 .log-entry .log-time{font-family:var(--fm);font-size:9px;color:var(--faint);margin-right:6px}
 .log-entry.info{border-left-color:var(--a1)}
 .log-entry.ok{border-left-color:var(--ok)}
@@ -288,6 +296,18 @@ async function sbLoadAll() {
 /* ===== FINE SUPABASE CONFIG ===== */
 </script>
 
+<!-- QUESTION BANNER -->
+
+<div class="q-banner" id="qBanner">
+  <button class="q-banner-x" onclick="closeQBanner()">×</button>
+  <div class="q-banner-lbl">Domanda strutturata dell'agente</div>
+  <div class="q-banner-text" id="qBannerText"></div>
+  <div class="q-banner-actions">
+    <button class="btn-sm" id="qBannerCopy" onclick="copyQBanner()">Copia domanda</button>
+    <button class="btn-sm" onclick="closeQBanner()">Chiudi</button>
+  </div>
+</div>
+
 <!-- LOG POPUP -->
 
 <div class="log-popup" id="logPopup" onclick="if(event.target===this)closeLog()">
@@ -454,7 +474,10 @@ async function sbLoadAll() {
     <div class="agent-panel">
       <div class="agent-hdr">
         <div class="agent-lbl">Agente</div>
-        <button class="btn-ask" onclick="ask('')">Chiedi ora</button>
+        <div style="display:flex;gap:6px">
+          <button class="btn-ask" style="font-size:10px;padding:4px 8px;border-color:var(--border);color:var(--faint)" onclick="clearAgentPanel()" title="Pulisce i messaggi visibili">Pulisci</button>
+          <button class="btn-ask" onclick="ask('')">Chiedi ora</button>
+        </div>
       </div>
       <div class="msgs" id="msgs">
         <div class="msgs-empty" id="msgsEmpty">
@@ -1086,12 +1109,40 @@ function ask(q) {
   var question=q||(document.getElementById('agentInp').value.trim());
   if(!question){var p='Valuta lo stato della discussione. Verifica sul transcript completo:\n'+(G.txFull||'(nessun transcript)')+'\n\nCosa manca, cosa va approfondito, cosa e stato chiarito bene?';claude(p,true).then(function(r){if(r)addMsg(r);});return;}
   var p='Domanda: "'+question+'"\n\nVerifica prima sul transcript completo:\n'+(G.txFull||'(vuoto)')+'\n\nRispondi in modo preciso.';
-  claude(p,true).then(function(r){if(r)addMsg(r);});
+  claude(p,true).then(function(r){if(r){addMsg(r);beep();}});
 }
 
 function updateSum() {
   if(!G.txFull)return;
   claude('Sintesi come indice verso il transcript - non una sostituzione. Decisioni, punti aperti, contesto. Sii conciso.\n\nTranscript:\n'+G.txFull,false).then(function(s){if(s){G.txSummary=s;autoSave();}});
+}
+
+// ── QUESTION BANNER ───────────────────────────────────────────────────────────
+function showQBanner(text) {
+  document.getElementById('qBannerText').textContent = text;
+  document.getElementById('qBanner').classList.add('on');
+  // Auto-close after 30s
+  clearTimeout(window._qTimer);
+  window._qTimer = setTimeout(closeQBanner, 30000);
+}
+
+function closeQBanner() {
+  document.getElementById('qBanner').classList.remove('on');
+  clearTimeout(window._qTimer);
+}
+
+function copyQBanner() {
+  var text = document.getElementById('qBannerText').textContent;
+  navigator.clipboard && navigator.clipboard.writeText(text).then(function(){
+    var btn = document.getElementById('qBannerCopy');
+    btn.textContent = 'Copiato!';
+    setTimeout(function(){ btn.textContent = 'Copia domanda'; }, 2000);
+  });
+}
+
+function clearAgentPanel() {
+  var box = document.getElementById('msgs');
+  box.innerHTML = '<div class="msgs-empty" id="msgsEmpty"><div style="font-size:22px;opacity:.3">AI</div><div>Pannello pulito</div></div>';
 }
 
 // ── LOG ───────────────────────────────────────────────────────────────────────
@@ -1400,7 +1451,8 @@ function exportAll() {
 }
 
 function clearAll() {
-  if(!confirm('Cancellare tutti i documenti, le sessioni e il contesto? L agente non ricordera nulla. I dati non possono essere recuperati.')) return;
+  if(!confirm('Cancellare tutti i documenti, le sessioni e il contesto?\n\nI dati non possono essere recuperati.')) return;
+  var alsoSB = confirm('Vuoi eliminare anche da Supabase?\n\nSe dici NO, i dati rimangono su Supabase e torneranno al prossimo login.\nSe dici SI, vengono eliminati definitivamente anche dal database.');
   G.docs = []; G.sessions = []; G.txChunks = []; G.txFull = ''; G.txSummary = ''; G.history = [];
   G.sessId = Date.now(); G.lastInt = 0; G.chunksSinceInt = 0;
   try {
@@ -1408,8 +1460,19 @@ function clearAll() {
     localStorage.removeItem('sn_sessions');
     localStorage.removeItem('sn_ctx');
   } catch(e) {}
+  if(alsoSB) {
+    Promise.all([
+      sbFetch('sn_sessions?id=gte.0', 'DELETE'),
+      sbFetch('sn_documents?id=gte.0', 'DELETE'),
+      sbFetch('sn_chunks?id=gte.0', 'DELETE')
+    ]).then(function(){
+      addLog('Tutto eliminato anche da Supabase.', 'ok');
+    }).catch(function(e){
+      addLog('Errore eliminazione Supabase: ' + e.message, 'err');
+    });
+  }
   renderArch();
-  sysMsg('Tutto cancellato. L agente non ha piu memoria di sessioni o documenti precedenti.');
+  sysMsg('Tutto cancellato' + (alsoSB ? ' incluso Supabase' : ' localmente') + '. L agente non ha piu memoria.');
 }
 
 function renderArch() {
@@ -1474,7 +1537,27 @@ function delS(id) {
 
 // Notifications
 function showN(text){document.getElementById('ntxt').textContent=text;var n=document.getElementById('notif');n.classList.add('on');setTimeout(function(){n.classList.remove('on');},13000);}
-function beep(){try{var c=new(window.AudioContext||window.webkitAudioContext)();var o=c.createOscillator();var g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=520;g.gain.setValueAtTime(0.15,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.4);o.start();o.stop(c.currentTime+0.4);}catch(e){}}
+function beep(){
+  try{
+    var ctx=new(window.AudioContext||window.webkitAudioContext)();
+    // Note 1: A4 (440Hz)
+    var o1=ctx.createOscillator();var g1=ctx.createGain();
+    o1.connect(g1);g1.connect(ctx.destination);
+    o1.type='sine';o1.frequency.value=440;
+    g1.gain.setValueAtTime(0,ctx.currentTime);
+    g1.gain.linearRampToValueAtTime(0.18,ctx.currentTime+0.02);
+    g1.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.18);
+    o1.start(ctx.currentTime);o1.stop(ctx.currentTime+0.18);
+    // Note 2: A5 (880Hz) — delayed
+    var o2=ctx.createOscillator();var g2=ctx.createGain();
+    o2.connect(g2);g2.connect(ctx.destination);
+    o2.type='sine';o2.frequency.value=880;
+    g2.gain.setValueAtTime(0,ctx.currentTime+0.15);
+    g2.gain.linearRampToValueAtTime(0.22,ctx.currentTime+0.18);
+    g2.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.45);
+    o2.start(ctx.currentTime+0.15);o2.stop(ctx.currentTime+0.45);
+  }catch(e){}
+}
 
 // DOM
 function addTxPh(idx){
@@ -1497,7 +1580,13 @@ function addMsg(text) {
   var box=document.getElementById('msgs');
   var el=document.createElement('div');
   var isQ=text.indexOf('DOMANDA:')>=0&&text.indexOf('CONTESTO:')>=0;
-  if(isQ){el.className='msg quest';el.innerHTML='<div class="mlbl q">Domanda strutturata</div>'+esc(text).replace('DOMANDA:','<strong>DOMANDA:</strong>').replace('CONTESTO:','<strong>CONTESTO:</strong>')+'<div class="mtime">'+now()+'</div><button class="btn-copy" onclick="var t=this.parentElement.textContent.replace(\'Copia\',\'\').trim();navigator.clipboard&&navigator.clipboard.writeText(t).then(function(){});">Copia</button>';}
+  if(isQ){
+    el.className='msg quest';
+    el.innerHTML='<div class="mlbl q">Domanda strutturata</div>'+esc(text).replace('DOMANDA:','<strong>DOMANDA:</strong>').replace('CONTESTO:','<strong>CONTESTO:</strong>')+'<div class="mtime">'+now()+'</div><button class="btn-copy" onclick="var t=this.parentElement.textContent.replace(\'Copia\',\'\').trim();navigator.clipboard&&navigator.clipboard.writeText(t).then(function(){});">Copia</button>';
+    // Show prominent banner + sound
+    showQBanner(text);
+    beep();
+  }
   else{el.className='msg agent';el.innerHTML='<div class="mlbl">Agente</div>'+esc(text)+'<div class="mtime">'+now()+'</div>';}
   box.appendChild(el);box.scrollTop=box.scrollHeight;
   // TTS for Fase 0 and Fase 1 — speak agent messages
