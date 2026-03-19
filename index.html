@@ -228,11 +228,11 @@ var AGENT_CONFIG = {
 
   projectDescription: "Progetto Super-NOVA (New Operating model Via AI). Progetto di trasformazione genuina: immaginare come sarebbe questa funzione di middle office assicurativo/finanziario se fosse progettata fin dall inizio nell era dell AI. La riduzione dei costi e la conseguenza della trasformazione, non l obiettivo che la guida.\n\nQuattro fasi:\n- SETUP: Conversazioni strategiche del team di progetto. L agente partecipa attivamente.\n- FASE 0: Capire cosa succede oggi. Interviste esplorative aperte agli owner dei processi. Far emergere difficolta, problemi, lamentele, inefficienze, aspetti positivi, wins. Raccogliere anche costi e tempi in modo naturale. Output: mappa delle attivita con classificazione in archetipi e prioritizzazione su ROI allargato (impatto economico + impatto operativo AI).\n- FASE 1: Capire perche succede e come risolverlo. Approfondimento mirato sui temi emersi in Fase 0. Raccogliere tutto quanto serve per definire l agente AI: regole operative esplicite e implicite, esempi concreti, casi limite, flussi, eccezioni. Output: specifiche dell agente per quell archetipo.\n- FASE 2: Non ancora attiva. Quando verra costruita, il suo obiettivo sara monitorare i processi tramite un logger, identificare pattern di inefficienza e opportunita di miglioramento, e proporre ridefinizioni AI-native dei processi. Tieni presente durante Fase 0 e Fase 1 che le informazioni raccolte - specialmente su frequenze, volumi, eccezioni, e dipendenze da persone chiave - saranno input essenziali per Fase 2.\n\nPrincipio architetturale chiave: unico agente con visione end-to-end. La sintesi e solo un indice - il territorio e sempre il transcript completo. Verificare ogni punto sul transcript prima di produrre output.",
 
-  setupSystemPrompt: "Sei l agente AI del Progetto Super-NOVA in modalita SETUP.\n\nStai partecipando alle conversazioni strategiche del team di progetto. Sei un collega esperto che conosce Super-NOVA in profondita e contribuisce attivamente a ogni decisione. Non sei un osservatore passivo.\n\nINTERVIENI QUANDO:\n- Hai un suggerimento migliorativo su quanto discusso\n- Vedi un alternativa non considerata\n- Una decisione importante sta per essere presa senza essere esplicitata\n- Qualcosa detto contraddice o arricchisce il contesto che hai\n- La conversazione si blocca o gira in tondo\n- Emerge qualcosa con implicazioni per Fase 0, 1 o 2\n- Vedi un rischio non nominato\n- Hai un opinione su una scelta in corso\n- Non hai informazioni sufficienti su qualcosa di rilevante\n\nSTILE: Diretto, collaborativo, mai didattico. Una cosa alla volta, mai elenchi. Max 3-4 frasi. Esprimi anche opinioni, sei un partner non un motore di ricerca.\n\nDOMANDA STRUTTURATA: Quando non sai qualcosa di rilevante, usa questo formato esatto:\nDOMANDA: [la domanda specifica]\nCONTESTO: [perche e rilevante e cosa cambierebbe saperla]\n\nOBBLIGATORIO: Prima di ogni intervento, verifica sul transcript completo. La sintesi e solo un indice - il territorio e il transcript.",
+  setupSystemPrompt: "Sei l agente AI del Progetto Super-NOVA in modalita SETUP.\n\nStai partecipando alle conversazioni strategiche del team di progetto. Sei un collega esperto che conosce Super-NOVA in profondita e contribuisce attivamente a ogni decisione. Non sei un osservatore passivo.\n\nINTERVIENI QUANDO:\n- Hai un suggerimento migliorativo su quanto discusso\n- Vedi un alternativa non considerata\n- Una decisione importante sta per essere presa senza essere esplicitata\n- Qualcosa detto contraddice o arricchisce il contesto che hai\n- La conversazione si blocca o gira in tondo\n- Emerge qualcosa con implicazioni per Fase 0, 1 o 2\n- Vedi un rischio non nominato\n- Hai un opinione su una scelta in corso\n- Non hai informazioni sufficienti su qualcosa di rilevante\n\nSTILE: Diretto, collaborativo, mai didattico. Una cosa alla volta, mai elenchi. Max 3-4 frasi. Esprimi anche opinioni, sei un partner non un motore di ricerca.\n\nDOMANDA STRUTTURATA: Quando non sai qualcosa di rilevante, usa questo formato esatto:\nDOMANDA: [la domanda specifica]\nCONTESTO: [perche e rilevante e cosa cambierebbe saperla]\n\nOBBLIGATORIO: Prima di ogni intervento, verifica sul transcript completo. La sintesi e solo un indice - il territorio e il transcript.\n\nGESTIONE DOMANDE SENZA RISPOSTA: Se hai fatto una domanda strutturata e non ha ricevuto risposta nel transcript, riformulala nel prossimo intervento segnalando che manca ancora. Puoi fare piu domande consecutive se ci sono piu lacune irrisolte - una alla volta.",
 
-  fase0SystemPrompt: "Sei l agente AI del Progetto Super-NOVA in modalita FASE 0: Capire cosa succede oggi.\n\nStai conducendo un intervista esplorativa a un owner di processo. Il tuo obiettivo e far emergere come funziona davvero l attivita oggi: difficolta, problemi, lamentele, inefficienze, ma anche aspetti positivi e wins. Non presupporre che ogni attivita sia un problema. Esplora con curiosita genuina.\n\nCOME CONDURRE L INTERVISTA:\n- Fai UNA domanda alla volta\n- Parti dall attivita concreta: come funziona, chi la fa, quanto spesso\n- Esplora dove si perde tempo, dove la qualita dipende dall esperienza di pochi\n- Lascia emergere le lamentele naturalmente, non le cercare esplicitamente\n- I dati economici (costi, tempi, risorse) arrivano DOPO aver capito come funziona l attivita - mai come prima domanda\n- Quando un tema e esaurito, cambia argomento naturalmente\n- Segnala quando stai cambiando tema\n\nDOPO OGNI RISPOSTA valuta: c e qualcosa da approfondire qui, o e meglio passare al prossimo tema?\n\nOBBLIGATORIO: Verifica sempre sul transcript completo prima di fare la prossima domanda. Non ripetere domande gia fatte.",
+  fase0SystemPrompt: "Sei l agente AI del Progetto Super-NOVA in modalita FASE 0: Capire cosa succede oggi.\n\nStai conducendo un intervista esplorativa a un owner di processo. Il tuo obiettivo e far emergere come funziona davvero l attivita oggi: difficolta, problemi, lamentele, inefficienze, ma anche aspetti positivi e wins. Non presupporre che ogni attivita sia un problema. Esplora con curiosita genuina.\n\nCOME CONDURRE L INTERVISTA:\n- Fai UNA domanda alla volta\n- Parti dall attivita concreta: come funziona, chi la fa, quanto spesso\n- Esplora dove si perde tempo, dove la qualita dipende dall esperienza di pochi\n- Lascia emergere le lamentele naturalmente, non le cercare esplicitamente\n- I dati economici (costi, tempi, risorse) arrivano DOPO aver capito come funziona l attivita - mai come prima domanda\n- Quando un tema e esaurito, cambia argomento naturalmente\n- Segnala quando stai cambiando tema\n\nDOPO OGNI RISPOSTA valuta: c e qualcosa da approfondire qui, o e meglio passare al prossimo tema?\n\nOBBLIGATORIO: Verifica sempre sul transcript completo prima di fare la prossima domanda. Se una domanda precedente non ha ricevuto risposta, riformulala segnalando che manca ancora quella informazione.",
 
-  fase1SystemPrompt: "Sei l agente AI del Progetto Super-NOVA in modalita FASE 1: Capire perche succede e come risolverlo.\n\nHai gia una mappa dei temi emersi in Fase 0. Ora vai in profondita su ciascun tema per capire le radici e raccogliere tutto quanto serve per costruire il modulo AI.\n\nCOSA RACCOGLIERE:\n- Le radici del problema o dell inefficienza: perche esiste, da dove nasce\n- Regole operative esplicite: cosa deve fare l agente, quando, come\n- Regole operative implicite: cosa sanno i senior ma non e scritto da nessuna parte\n- Esempi concreti: casi reali con input, processo seguito, output prodotto\n- Casi limite: le eccezioni, i casi difficili, cosa succede quando qualcosa va storto\n- Flusso completo: sequenza esatta dei passaggi dall inizio alla fine\n- Dipendenze: cosa serve per eseguire l attivita, da chi, con quale frequenza\n\nSTILE: Domande precise e specifiche. Chiedi esempi reali. Chiedi di mostrare casi concreti. Una domanda alla volta.\n\nOBBLIGATORIO: Verifica sempre sul transcript completo di Fase 0 e Fase 1 prima di fare la prossima domanda. L output di questa fase sono le specifiche dell agente AI.",
+  fase1SystemPrompt: "Sei l agente AI del Progetto Super-NOVA in modalita FASE 1: Capire perche succede e come risolverlo.\n\nHai gia una mappa dei temi emersi in Fase 0. Ora vai in profondita su ciascun tema per capire le radici e raccogliere tutto quanto serve per costruire il modulo AI.\n\nCOSA RACCOGLIERE:\n- Le radici del problema o dell inefficienza: perche esiste, da dove nasce\n- Regole operative esplicite: cosa deve fare l agente, quando, come\n- Regole operative implicite: cosa sanno i senior ma non e scritto da nessuna parte\n- Esempi concreti: casi reali con input, processo seguito, output prodotto\n- Casi limite: le eccezioni, i casi difficili, cosa succede quando qualcosa va storto\n- Flusso completo: sequenza esatta dei passaggi dall inizio alla fine\n- Dipendenze: cosa serve per eseguire l attivita, da chi, con quale frequenza\n\nSTILE: Domande precise e specifiche. Chiedi esempi reali. Chiedi di mostrare casi concreti. Una domanda alla volta.\n\nOBBLIGATORIO: Verifica sempre sul transcript completo di Fase 0 e Fase 1 prima di fare la prossima domanda. Se una domanda precedente non ha ricevuto risposta, riformulala segnalando esplicitamente che manca ancora quell informazione. Puoi fare domande consecutive su lacune diverse.",
 
   fase2Placeholder: "FASE 2 NON ANCORA ATTIVA. Quando verra costruita, il modulo di Fase 2 monitorera i processi tramite un logger persistente, identifichera pattern di inefficienza, e proporra ridefinizioni AI-native. Non costruirla ora. Tieni presente durante le interviste che frequenze, volumi, eccezioni e dipendenze da persone chiave sono input critici per Fase 2.",
 
@@ -307,6 +307,139 @@ async function sbLoadAll() {
     return { sessions: sessions || [], docs: docs || [] };
   } catch(e) { return null; }
 }
+// ── RAG: Generate embedding via Edge Function ──────────────────────────────
+async function generateEmbedding(text) {
+  try {
+    var res = await fetch(SB_URL + '/functions/v1/embed-chunks', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + SB_KEY
+      },
+      body: JSON.stringify({ texts: [text.substring(0, 2000)] })
+    });
+    if (!res.ok) return null;
+    var data = await res.json();
+    return data.embeddings && data.embeddings[0] ? data.embeddings[0] : null;
+  } catch(e) {
+    addLog('Embedding error: ' + e.message, 'warn');
+    return null;
+  }
+}
+
+// ── RAG: Save chunk with embedding ─────────────────────────────────────────
+async function sbSaveChunkWithEmbedding(sessId, idx, text) {
+  // First save the chunk
+  var res = await sbFetch('sn_chunks', 'POST', {
+    session_id: sessId,
+    chunk_index: idx,
+    text: text
+  });
+  if (!res) return;
+
+  // Get the saved chunk id
+  var chunks = await sbFetch('sn_chunks?session_id=eq.' + sessId + '&chunk_index=eq.' + idx + '&select=id');
+  if (!chunks || chunks.length === 0) return;
+  var chunkId = chunks[0].id;
+
+  // Generate and save embedding async
+  var embedding = await generateEmbedding(text);
+  if (embedding) {
+    await sbFetch('sn_chunks?id=eq.' + chunkId, 'PATCH', { embedding: embedding });
+    addLog('Embedding salvato per chunk ' + idx, 'ok');
+  }
+}
+
+// ── RAG: Search relevant chunks ────────────────────────────────────────────
+async function searchRelevantChunks(query, matchCount) {
+  matchCount = matchCount || 8;
+  try {
+    // Generate embedding for the query
+    var queryEmbedding = await generateEmbedding(query);
+    if (!queryEmbedding) return [];
+
+    // Call search function via RPC
+    var res = await fetch(SB_URL + '/rest/v1/rpc/search_chunks', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY
+      },
+      body: JSON.stringify({
+        query_embedding: queryEmbedding,
+        match_threshold: 0.45,
+        match_count: matchCount
+      })
+    });
+    if (!res.ok) return [];
+    var results = await res.json();
+    return results || [];
+  } catch(e) {
+    addLog('RAG search error: ' + e.message, 'warn');
+    return [];
+  }
+}
+
+// ── RAG: Index a document into chunks ─────────────────────────────────────
+async function indexDocument(doc) {
+  if(!doc || !doc.text || doc.text.length < 50) return;
+  
+  // Split document into ~500 word chunks with 50 word overlap
+  var words = doc.text.split(/\s+/);
+  var chunkSize = 500, overlap = 50;
+  var chunks = [];
+  for(var i = 0; i < words.length; i += chunkSize - overlap) {
+    var chunk = words.slice(i, i + chunkSize).join(' ');
+    if(chunk.length > 50) chunks.push(chunk);
+  }
+  
+  addLog('Indicizzazione "' + doc.name + '": ' + chunks.length + ' chunk', 'info');
+  
+  // Save each chunk with embedding
+  for(var j = 0; j < chunks.length; j++) {
+    var res = await sbFetch('sn_chunks', 'POST', {
+      session_id: null,
+      chunk_index: j,
+      text: '[DOC: ' + doc.name + '] ' + chunks[j]
+    });
+    if(res) {
+      // Get id of saved chunk
+      var saved = await sbFetch('sn_chunks?chunk_index=eq.' + j + '&text=like.[DOC:+' + encodeURIComponent(doc.name) + ']*&select=id&order=id.desc&limit=1');
+      if(saved && saved.length > 0) {
+        var emb = await generateEmbedding(chunks[j]);
+        if(emb) await sbFetch('sn_chunks?id=eq.' + saved[0].id, 'PATCH', { embedding: emb });
+      }
+    }
+  }
+  addLog('Indicizzazione completata: ' + doc.name, 'ok');
+}
+
+// ── RAG: Index existing sessions ───────────────────────────────────────────
+async function indexAllSessions() {
+  if(G.sessions.length === 0) return;
+  addLog('Indicizzazione sessioni storiche...', 'info');
+  for(var i = 0; i < G.sessions.length; i++) {
+    var sess = G.sessions[i];
+    if(!sess.transcript) continue;
+    var words = sess.transcript.split(/\s+/);
+    var chunkSize = 500, overlap = 50;
+    for(var j = 0; j < words.length; j += chunkSize - overlap) {
+      var chunk = words.slice(j, j + chunkSize).join(' ');
+      if(chunk.length < 50) continue;
+      var chunkIdx = Math.floor(j / (chunkSize - overlap));
+      await sbSaveChunkWithEmbedding(sess.id, chunkIdx, chunk);
+    }
+  }
+  addLog('Indicizzazione sessioni completata', 'ok');
+}
+
+// ── RAG: Search with broad query for synthesis ─────────────────────────────
+async function searchForSynthesis(query, matchCount) {
+  matchCount = matchCount || 25;
+  return searchRelevantChunks(query, matchCount);
+}
+
 /* ===== FINE SUPABASE CONFIG ===== */
 </script>
 
@@ -562,7 +695,7 @@ var G = {
   totalSec:0, chunkSec:0, timerInt:null, chunkInt:null,
   txChunks:[], txFull:'', txSummary:'',
   history:[], sessions:[], sessId:Date.now(),
-  lastInt:0, chunksSinceInt:0
+  lastInt:0, chunksSinceInt:0, pendingQuestions:[]
 };
 
 var OVERLAP=4, MIN_BLOB=2000;
@@ -683,6 +816,8 @@ async function syncFromSupabase() {
   
   showSyncBanner(false);
   addLog('Sincronizzazione completata: ' + merged.length + ' sessioni, ' + G.docs.length + ' documenti', 'ok');
+  // Index historical sessions for RAG
+  setTimeout(function(){ indexAllSessions(); }, 2000);
   // Auto-restore most recent session to screen if transcript panel is empty
   if(!G.txFull && merged.length > 0) {
     var latest = merged.sort(function(a,b){ return b.id - a.id; })[0];
@@ -814,6 +949,8 @@ function extractImageContent(id, name, b64, mime) {
 
 function finalizeDoc(id, name, type, text) {
   var doc = {id:id, name:name, type:type, date:new Date().toLocaleString('it-IT'), text:text, status:'ok', isTest:G.testMode};
+  // Index document in RAG
+  if(text && text.length > 100) indexDocument(doc);
   // Remove placeholder, add real doc
   G.docs = G.docs.filter(function(d){return d.id!==id;});
   G.docs.push(doc);
@@ -1074,7 +1211,7 @@ function procChunk(chunks) {
     .then(function(res){if(!res.ok)return res.json().then(function(e){throw new Error((e.error&&e.error.message)||('HTTP '+res.status));});return res.text();})
     .then(function(raw){
       var clean=(raw||'').trim();
-      if(clean){clean=dedup(G.txChunks[idx-1]||'',clean);G.txChunks[idx]=clean;G.txFull+=(G.txFull?' ':'')+clean;updTx(idx,clean);G.chunksSinceInt++;autoSave();maybeInt(clean);}
+      if(clean){clean=dedup(G.txChunks[idx-1]||'',clean);G.txChunks[idx]=clean;G.txFull+=(G.txFull?' ':'')+clean;updTx(idx,clean);G.chunksSinceInt++;sbSaveChunkWithEmbedding(G.sessId,idx,clean);autoSave();maybeInt(clean);}
       else{updTx(idx,null);}
       document.getElementById('dot').className=G.recActive&&!G.recPaused?'dot rec':'dot';
     })
@@ -1124,16 +1261,65 @@ function maybeInt(chunk) {
   var now=Date.now();
   if(now-G.lastInt<AGENT_CONFIG.interventionCooldownSec*1000)return;
   if(G.chunksSinceInt<AGENT_CONFIG.interventionThresholdChunks)return;
-  var docNote=G.docs&&G.docs.length>0?' Hai anche '+G.docs.length+' documenti di contesto caricati — verifica se il nuovo segmento e coerente con essi.':'';
-  var p='Nuovo segmento:\n"'+chunk+'"\n\nTranscript completo (verifica ogni punto qui prima di rispondere):\n'+(G.txFull||'(vuoto)')+'\n\n'+(G.txSummary?'Sintesi (solo indice):\n'+G.txSummary+'\n\n':'')+'Hai un suggerimento, alternativa, rischio, opinione, domanda strutturata, o incoerenza rispetto al contesto?'+docNote+' Max 3-4 frasi su UNA cosa. Se non hai nulla di utile: SILENZIO';
-  claude(p,false).then(function(r){if(!r||r.trim().toUpperCase()==='SILENZIO')return;G.lastInt=Date.now();G.chunksSinceInt=0;addMsg(r);showN(r);beep();if(G.history.length>0&&G.history.length%6===0)updateSum();});
+
+  var unanswered = G.pendingQuestions.filter(function(q){ return !q.answered; });
+  var unansweredNote = '';
+  if(unanswered.length > 0) {
+    var uqList = unanswered.map(function(q,qi){ return (qi+1)+'. '+q.text; }).join(' | ');
+    unansweredNote = ' DOMANDE SENZA RISPOSTA: ' + uqList + ' — verifica se hanno risposta nel transcript, se no riformulale.';
+  }
+
+  var historyNote = '';
+  if(G.history.length > 0) {
+    var histText = G.history.map(function(m){ return (m.role==='assistant'?'Agente':'Team')+': '+m.content.substring(0,300); }).join('\n');
+    historyNote = '\n\nSTORIA CONVERSAZIONE AGENTE:\n' + histText;
+  }
+
+  var docNote = G.docs&&G.docs.length>0?' Hai '+G.docs.length+' documenti di contesto.':'';
+  var recentTx = G.txFull ? G.txFull.split(' ').slice(-3000).join(' ') : '(vuoto)';
+
+  searchRelevantChunks(chunk, 10).then(function(ragResults) {
+    var contextTx;
+    if(ragResults && ragResults.length > 0) {
+      var ragText = ragResults.sort(function(a,b){ return a.chunk_index-b.chunk_index; }).map(function(r){ return r.text; }).join('\n---\n');
+      contextTx = 'FRAMMENTI RILEVANTI (semantica):\n' + ragText + '\n\nTRANSCRIPT RECENTE:\n' + recentTx;
+      addLog('RAG: '+ragResults.length+' chunk trovati', 'info');
+    } else {
+      contextTx = 'TRANSCRIPT COMPLETO:\n' + (G.txFull||'(vuoto)');
+    }
+
+    var p = 'Nuovo segmento:\n"'+chunk+'"\n\n'+contextTx+(G.txSummary?'\n\nSINTESI:\n'+G.txSummary:'')+historyNote+unansweredNote+docNote+'\n\nIntervieni con max 3-4 frasi su UNA cosa. Se nulla di utile: SILENZIO';
+
+    claude(p, false).then(function(r){
+      if(!r||r.trim().toUpperCase()==='SILENZIO') return;
+      G.lastInt=Date.now(); G.chunksSinceInt=0;
+      if(unanswered.length>0){ G.pendingQuestions.forEach(function(q){ q.answered=true; }); }
+      G.history.push({role:'user', content:'[chunk: '+chunk.substring(0,100)+']'});
+      G.history.push({role:'assistant', content:r});
+      addMsg(r); showN(r); beep();
+      if(G.history.length%6===0) updateSum();
+    });
+  });
 }
 
 function ask(q) {
-  var question=q||(document.getElementById('agentInp').value.trim());
-  if(!question){var p='Valuta lo stato della discussione. Verifica sul transcript completo:\n'+(G.txFull||'(nessun transcript)')+'\n\nCosa manca, cosa va approfondito, cosa e stato chiarito bene?';claude(p,true).then(function(r){if(r)addMsg(r);});return;}
-  var p='Domanda: "'+question+'"\n\nVerifica prima sul transcript completo:\n'+(G.txFull||'(vuoto)')+'\n\nRispondi in modo preciso.';
-  claude(p,true).then(function(r){if(r){addMsg(r);beep();}});
+  var question = q || (document.getElementById('agentInp').value.trim());
+  var isSynthesis = question && (question.toLowerCase().includes('archeti') || question.toLowerCase().includes('sintesi') || question.toLowerCase().includes('riassumi') || question.toLowerCase().includes('fase 0') || question.toLowerCase().includes('fase 1') || question.toLowerCase().includes('emerso') || question.toLowerCase().includes('raccolto') || question.toLowerCase().includes('priorit'));
+  var matchCount = isSynthesis ? 25 : 10;
+  var queryText = question || 'stato discussione punti aperti decisioni';
+  searchRelevantChunks(queryText, matchCount).then(function(ragResults) {
+    var ragContext = '';
+    if(ragResults && ragResults.length > 0) {
+      var ragText = ragResults.sort(function(a,b){ return (a.chunk_index||0)-(b.chunk_index||0); }).map(function(r){ return r.text; }).join('\n---\n');
+      ragContext = '\n\nCONTESTI RILEVANTI DAL CORPUS:\n' + ragText;
+      addLog('RAG: '+ragResults.length+' chunk trovati', 'info');
+    }
+    var recentTx = G.txFull ? '\n\nTRANSCRIPT RECENTE:\n' + G.txFull.split(' ').slice(-2000).join(' ') : '';
+    var p = question
+      ? 'Domanda: "' + question + '"' + ragContext + recentTx + '\n\nRispondi in modo preciso e completo usando tutto il contesto disponibile.'
+      : 'Valuta lo stato della discussione. Cosa manca, cosa va approfondito?' + ragContext + recentTx;
+    claude(p, true).then(function(r){ if(r){ addMsg(r); beep(); } });
+  });
 }
 
 function updateSum() {
@@ -1180,7 +1366,7 @@ function copyQBanner() {
   navigator.clipboard && navigator.clipboard.writeText(text).then(function(){
     var btn = document.getElementById('qBannerCopy');
     btn.textContent = 'Copiato!';
-    setTimeout(function(){ btn.textContent = 'Copia domanda'; }, 2000);
+    setTimeout(function(){ closeQBanner(); }, 800);
   });
 }
 
@@ -1507,7 +1693,7 @@ function clearAll() {
 }
 
 function doClearLocal(alsoSB) {
-  G.docs=[]; G.sessions=[]; G.txChunks=[]; G.txFull=''; G.txSummary=''; G.history=[];
+  G.docs=[]; G.sessions=[]; G.txChunks=[]; G.txFull=''; G.txSummary=''; G.history=[]; G.pendingQuestions=[];
   G.sessId=Date.now(); G.lastInt=0; G.chunksSinceInt=0;
   try{ localStorage.removeItem('sn_docs'); localStorage.removeItem('sn_sessions'); localStorage.removeItem('sn_ctx'); }catch(e){}
   if(alsoSB){
@@ -1630,6 +1816,8 @@ function addMsg(text) {
     // Show prominent banner + sound
     showQBanner(text);
     beep();
+    // Track as pending question
+    G.pendingQuestions.push({ text: text, timestamp: Date.now(), answered: false });
   }
   else{el.className='msg agent';el.innerHTML='<div class="mlbl">Agente</div>'+esc(text)+'<div class="mtime">'+now()+'</div>';}
   box.appendChild(el);box.scrollTop=box.scrollHeight;
