@@ -115,6 +115,20 @@ body.testmode .logo span{color:var(--warn)}
 .tc-proc{font-size:12px;color:var(--warn);display:flex;align-items:center;gap:6px}
 .dots span{animation:db 1.2s infinite;opacity:0}.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
 @keyframes db{0%,80%,100%{opacity:0}40%{opacity:1}}
+.confirm-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:400;display:none;align-items:center;justify-content:center;padding:20px}
+.confirm-ov.on{display:flex}
+.confirm-box{background:var(--s1);border:1px solid var(--border2);border-radius:12px;max-width:420px;width:100%;padding:24px}
+.confirm-title{font-family:var(--fd);font-size:16px;margin-bottom:8px}
+.confirm-msg{font-size:13px;color:var(--dim);line-height:1.65;margin-bottom:20px}
+.confirm-btns{display:flex;flex-direction:column;gap:8px}
+.confirm-btn{padding:11px 16px;border-radius:8px;border:none;font-family:var(--ff);font-size:13px;font-weight:500;cursor:pointer;text-align:left;transition:all .2s}
+.confirm-btn.danger{background:rgba(217,95,95,.15);color:var(--danger);border:1px solid rgba(217,95,95,.3)}
+.confirm-btn.danger:hover{background:rgba(217,95,95,.25)}
+.confirm-btn.warn{background:rgba(232,168,74,.1);color:var(--warn);border:1px solid rgba(232,168,74,.3)}
+.confirm-btn.warn:hover{background:rgba(232,168,74,.2)}
+.confirm-btn.neutral{background:var(--s2);color:var(--dim);border:1px solid var(--border)}
+.confirm-btn.neutral:hover{border-color:var(--a1);color:var(--text)}
+.confirm-btn small{display:block;font-size:11px;font-weight:300;margin-top:2px;opacity:.7}
 .log-entry{font-size:11px;line-height:1.5;padding:5px 8px;background:var(--s2);border-radius:5px;border-left:2px solid var(--border2)}
 .q-banner{position:fixed;top:56px;left:50%;transform:translateX(-50%);z-index:150;max-width:640px;width:94%;background:var(--s1);border:2px solid var(--warn);border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.6);padding:18px 44px 18px 20px;display:none;animation:qslide .3s ease}
 .q-banner.on{display:block}
@@ -295,6 +309,16 @@ async function sbLoadAll() {
 }
 /* ===== FINE SUPABASE CONFIG ===== */
 </script>
+
+<!-- CUSTOM CONFIRM POPUP -->
+
+<div class="confirm-ov" id="confirmOv">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirmTitle"></div>
+    <div class="confirm-msg" id="confirmMsg"></div>
+    <div class="confirm-btns" id="confirmBtns"></div>
+  </div>
+</div>
 
 <!-- QUESTION BANNER -->
 
@@ -1117,6 +1141,26 @@ function updateSum() {
   claude('Sintesi come indice verso il transcript - non una sostituzione. Decisioni, punti aperti, contesto. Sii conciso.\n\nTranscript:\n'+G.txFull,false).then(function(s){if(s){G.txSummary=s;autoSave();}});
 }
 
+// ── CUSTOM CONFIRM ────────────────────────────────────────────────────────────
+function showConfirm(title, msg, buttons) {
+  // buttons: [{label, sub, style, action}]
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  var btns = document.getElementById('confirmBtns');
+  btns.innerHTML = '';
+  buttons.forEach(function(b) {
+    var el = document.createElement('button');
+    el.className = 'confirm-btn ' + (b.style || 'neutral');
+    el.innerHTML = b.label + (b.sub ? '<small>' + b.sub + '</small>' : '');
+    el.onclick = function() {
+      document.getElementById('confirmOv').classList.remove('on');
+      if(b.action) b.action();
+    };
+    btns.appendChild(el);
+  });
+  document.getElementById('confirmOv').classList.add('on');
+}
+
 // ── QUESTION BANNER ───────────────────────────────────────────────────────────
 function showQBanner(text) {
   document.getElementById('qBannerText').textContent = text;
@@ -1451,28 +1495,28 @@ function exportAll() {
 }
 
 function clearAll() {
-  if(!confirm('Cancellare tutti i documenti, le sessioni e il contesto?\n\nI dati non possono essere recuperati.')) return;
-  var alsoSB = confirm('Vuoi eliminare anche da Supabase?\n\nSe dici NO, i dati rimangono su Supabase e torneranno al prossimo login.\nSe dici SI, vengono eliminati definitivamente anche dal database.');
-  G.docs = []; G.sessions = []; G.txChunks = []; G.txFull = ''; G.txSummary = ''; G.history = [];
-  G.sessId = Date.now(); G.lastInt = 0; G.chunksSinceInt = 0;
-  try {
-    localStorage.removeItem('sn_docs');
-    localStorage.removeItem('sn_sessions');
-    localStorage.removeItem('sn_ctx');
-  } catch(e) {}
-  if(alsoSB) {
-    Promise.all([
-      sbFetch('sn_sessions?id=gte.0', 'DELETE'),
-      sbFetch('sn_documents?id=gte.0', 'DELETE'),
-      sbFetch('sn_chunks?id=gte.0', 'DELETE')
-    ]).then(function(){
-      addLog('Tutto eliminato anche da Supabase.', 'ok');
-    }).catch(function(e){
-      addLog('Errore eliminazione Supabase: ' + e.message, 'err');
-    });
+  showConfirm(
+    'Cancella dati',
+    'Scegli cosa vuoi eliminare. I dati cancellati non possono essere recuperati.',
+    [
+      { label: 'Cancella solo locale', sub: 'Rimuove da questo dispositivo. Supabase intatto — i dati tornano al prossimo login.', style: 'warn', action: function() { doClearLocal(false); } },
+      { label: 'Cancella tutto — locale + Supabase', sub: 'Elimina definitivamente tutto, incluso il database remoto. Non recuperabile.', style: 'danger', action: function() { doClearLocal(true); } },
+      { label: 'Annulla', sub: 'Non viene cancellato nulla.', style: 'neutral', action: null }
+    ]
+  );
+}
+
+function doClearLocal(alsoSB) {
+  G.docs=[]; G.sessions=[]; G.txChunks=[]; G.txFull=''; G.txSummary=''; G.history=[];
+  G.sessId=Date.now(); G.lastInt=0; G.chunksSinceInt=0;
+  try{ localStorage.removeItem('sn_docs'); localStorage.removeItem('sn_sessions'); localStorage.removeItem('sn_ctx'); }catch(e){}
+  if(alsoSB){
+    Promise.all([sbFetch('sn_sessions?id=gte.0','DELETE'),sbFetch('sn_documents?id=gte.0','DELETE'),sbFetch('sn_chunks?id=gte.0','DELETE')])
+      .then(function(){ addLog('Eliminato locale + Supabase.','ok'); })
+      .catch(function(e){ addLog('Errore Supabase: '+e.message,'err'); });
   }
   renderArch();
-  sysMsg('Tutto cancellato' + (alsoSB ? ' incluso Supabase' : ' localmente') + '. L agente non ha piu memoria.');
+  addLog('Dati cancellati'+(alsoSB?' (locale + Supabase)':' (solo locale)')+'.','ok');
 }
 
 function renderArch() {
