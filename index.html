@@ -612,6 +612,9 @@ async function searchForSynthesis(query, matchCount) {
 </div>
 
 </div>
+
+<div id="cfgKeysNote" style="display:none;background:rgba(232,168,74,.1);border:1px solid rgba(232,168,74,.3);border-radius:8px;padding:12px;font-size:12px;color:var(--warn);text-align:center">Inserisci le chiavi API sopra per continuare</div>
+<button class="btn-primary" onclick="avvia()" id="btnAvviaConfig" style="display:none">Vai in Sessione</button>
 ```
 
   </div>
@@ -754,14 +757,16 @@ function doLogin() {
 function loginSuccess() {
   document.getElementById('loginErr').textContent = '';
   G.loggedIn = true;
-  goTo('sess');
-  setTimeout(function() {
-    // Read directly from localStorage — G may not be populated yet at login time
-    var hasKeys = false;
-    try { hasKeys = !!(localStorage.getItem('sn_g') && localStorage.getItem('sn_a')); } catch(e) {}
-    if(!hasKeys) sysMsg('Chiavi API mancanti — vai in Config per inserirle prima di iniziare.');
-  }, 150);
-  setTimeout(function(){ syncFromSupabase(); }, 500);
+  var hasKeys = false;
+  try { hasKeys = !!(localStorage.getItem('sn_g') && localStorage.getItem('sn_a')); } catch(e) {}
+  if(hasKeys) {
+    goTo('sess');
+    showSyncBanner(true);
+    setTimeout(function(){ syncFromSupabase(); }, 300);
+  } else {
+    goTo('cfg');
+    setTimeout(function(){ var n=document.getElementById('cfgKeysNote'); var b=document.getElementById('btnAvviaConfig'); if(n) n.style.display='block'; if(b) b.style.display='block'; }, 150);
+  }
 }
 
 function resetCredentials() {
@@ -1094,29 +1099,40 @@ function goTo(scr) {
 
 // Avvia
 function avvia() {
-  var gk=document.getElementById('groqKey').value.trim();
-  var ak=document.getElementById('anthKey').value.trim();
-  if(!gk||!gk.startsWith('gsk_')){alert('Chiave Groq non valida (inizia con gsk_)');return;}
-  if(!ak||!ak.startsWith('sk-ant-')){alert('Chiave Anthropic non valida (inizia con sk-ant-)');return;}
-  G.groqKey=gk; G.anthKey=ak;
-  G.lang=document.getElementById('langSel').value;
-  AGENT_CONFIG.interventionCooldownSec=parseInt(document.getElementById('cooldownSel').value);
-  G.chunkDur=parseInt(document.getElementById('chunkDur').value);
-  var firstStart=!G.configured;
-  G.configured=true;
-  if(document.getElementById('remKeys').checked){
-    try{
-      localStorage.setItem('sn_g',gk);
-      localStorage.setItem('sn_a',ak);
-      localStorage.setItem('sn_lang',G.lang);
-      localStorage.setItem('sn_cd',G.chunkDur);
-      document.getElementById('btnForget').style.display='inline';
-    }catch(e){}
+  // G already populated by loadSaved() on window.onload
+  // But also read from fields in case user just typed them in Config
+  var gkField = document.getElementById('groqKey');
+  var akField = document.getElementById('anthKey');
+  if(gkField && gkField.value.trim()) G.groqKey = gkField.value.trim();
+  if(akField && akField.value.trim()) G.anthKey = akField.value.trim();
+
+  if(!G.groqKey || !G.groqKey.startsWith('gsk_')) {
+    alert('Chiave Groq non valida o mancante — vai in Config e inseriscila.');
+    return;
   }
+  if(!G.anthKey || !G.anthKey.startsWith('sk-ant-')) {
+    alert('Chiave Anthropic non valida o mancante — vai in Config e inseriscila.');
+    return;
+  }
+
+  // Read settings from fields if available, else keep G values
+  var langSel = document.getElementById('langSel');
+  var chunkDurSel = document.getElementById('chunkDur');
+  var cooldownSel = document.getElementById('cooldownSel');
+  if(langSel) G.lang = langSel.value;
+  if(chunkDurSel) G.chunkDur = parseInt(chunkDurSel.value);
+  if(cooldownSel) AGENT_CONFIG.interventionCooldownSec = parseInt(cooldownSel.value);
+
+  var remKeys = document.getElementById('remKeys');
+  if(remKeys && remKeys.checked) {
+    try { localStorage.setItem('sn_g', G.groqKey); localStorage.setItem('sn_a', G.anthKey); localStorage.setItem('sn_lang', G.lang); localStorage.setItem('sn_cd', G.chunkDur); } catch(e) {}
+  }
+
+  var firstStart = !G.configured;
+  G.configured = true;
   goTo('sess');
-  if (firstStart) {
-    sysMsg(G.chatCtx ? 'Sessione configurata con contesto dalla chat.' : 'Sessione configurata senza contesto dalla chat.');
-    sysMsg('Premi Avvia per iniziare la registrazione.');
+  if(firstStart) {
+    sysMsg(G.chatCtx ? 'Configurato con contesto dalla chat.' : 'Configurato. Premi Avvia per iniziare la registrazione.');
   }
 }
 
