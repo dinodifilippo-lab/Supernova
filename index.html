@@ -903,8 +903,10 @@ function setSyncBannerState(state, msg) {
 }
 
 async function syncFromSupabase() {
+  addLog('[SYNC] start', 'info');
   addLog('Sincronizzazione con Supabase...', 'info');
   setSyncBannerState('loading', 'Connessione a Supabase in corso -- attendi prima di iniziare...');
+  addLog('[SYNC] banner impostato', 'info');
   
   // After 8 seconds, update message to indicate slow connection (SB waking up)
   var slowTimer = setTimeout(function(){
@@ -924,6 +926,7 @@ async function syncFromSupabase() {
     return;
   }
   clearTimeout(slowTimer);
+  addLog('[SYNC] dati ricevuti: ' + (data ? 'ok, sess=' + (data.sessions||[]).length + ' docs=' + (data.docs||[]).length : 'NULL'), 'info');
   if(!data) {
     setSyncBannerState('error', 'Supabase non ha risposto. Riprova.');
     addLog('Sync fallita: nessun dato ricevuto.', 'err');
@@ -953,6 +956,7 @@ async function syncFromSupabase() {
     renderDocList();
   }
   
+  addLog('[SYNC] completato - nascondo banner', 'ok');
   setSyncBannerState('hidden');
   addLog('Sincronizzazione completata: ' + merged.length + ' sessioni, ' + G.docs.length + ' documenti', 'ok');
   checkSyncStatus();
