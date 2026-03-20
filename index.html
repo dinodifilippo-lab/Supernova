@@ -516,9 +516,12 @@ async function searchForSynthesis(query, matchCount) {
 
 <!-- SYNC BANNER -->
 
-<div id="syncBanner" style="display:none;background:rgba(61,122,181,.12);border-bottom:1px solid rgba(61,122,181,.3);padding:8px 20px;font-size:12px;color:var(--a2);font-family:var(--fm);letter-spacing:.04em;text-align:center;flex-shrink:0">
+  <div id="syncBanner" style="display:none;padding:12px 20px;font-size:12px;font-family:var(--fm);letter-spacing:.04em;text-align:center;flex-shrink:0;background:rgba(61,122,181,.12);border-bottom:1px solid rgba(61,122,181,.3);color:var(--a2)">
   Sincronizzazione con Supabase in corso — attendi prima di iniziare...
   <span id="syncSpinner" style="display:inline-block;animation:spin 1s linear infinite;margin-left:8px">↻</span>
+  <span id="syncBannerMsg">Connessione a Supabase in corso -- attendi prima di iniziare...</span>
+  <span id="syncSpinner" style="display:inline-block;animation:spin 1s linear infinite;margin-left:8px">&#8635;</span>
+  <button id="syncRetryBtn" onclick="syncFromSupabase()" style="display:none;margin-left:12px;padding:3px 10px;border-radius:5px;border:1px solid currentColor;background:none;color:inherit;font-family:var(--fm);font-size:11px;cursor:pointer">Riprova</button>
 </div>
 <style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
 
@@ -777,7 +780,7 @@ function loginSuccess() {
   try { hasKeys = !!(localStorage.getItem('sn_g') && localStorage.getItem('sn_a')); } catch(e) {}
   if(hasKeys) {
     goTo('sess');
-    showSyncBanner(true);
+    setSyncBannerState('loading', 'Connessione a Supabase in corso -- attendi prima di iniziare...');
     setTimeout(function(){ syncFromSupabase(); }, 300);
   } else {
     goTo('cfg');
@@ -861,10 +864,64 @@ function stopSyncCheck() {
   clearInterval(syncCheckInterval);
 }
 
+function setSyncBannerState(state, msg) {
+  var banner = document.getElementById('syncBanner');
+  var msgEl = document.getElementById('syncBannerMsg');
+  var spinner = document.getElementById('syncSpinner');
+  var retry = document.getElementById('syncRetryBtn');
+  if(!banner) return;
+  banner.style.display = 'block';
+  if(msgEl) msgEl.textContent = msg || '';
+  if(state === 'loading') {
+    banner.style.background = 'rgba(61,122,181,.12)';
+    banner.style.borderBottomColor = 'rgba(61,122,181,.3)';
+    banner.style.color = 'var(--a2)';
+    if(spinner) spinner.style.display = 'inline-block';
+    if(retry) retry.style.display = 'none';
+  } else if(state === 'slow') {
+    banner.style.background = 'rgba(232,168,74,.12)';
+    banner.style.borderBottomColor = 'rgba(232,168,74,.3)';
+    banner.style.color = 'var(--warn)';
+    if(spinner) spinner.style.display = 'inline-block';
+    if(retry) retry.style.display = 'none';
+  } else if(state === 'error') {
+    banner.style.background = 'rgba(217,95,95,.12)';
+    banner.style.borderBottomColor = 'rgba(217,95,95,.3)';
+    banner.style.color = 'var(--danger)';
+    if(spinner) spinner.style.display = 'none';
+    if(retry) retry.style.display = 'inline-block';
+  } else if(state === 'hidden') {
+    banner.style.display = 'none';
+  }
+}
+
 async function syncFromSupabase() {
   addLog('Sincronizzazione con Supabase...', 'info');
-  var data = await sbLoadAll();
-  if(!data) { showSyncBanner(false); addLog('Supabase non raggiungibile -- lavoro offline con dati locali. Riprova al prossimo login.', 'warn'); return; }
+  setSyncBannerState('loading', 'Connessione a Supabase in corso -- attendi prima di iniziare...');
+  
+  // After 8 seconds, update message to indicate slow connection (SB waking up)
+  var slowTimer = setTimeout(function(){
+    setSyncBannerState('slow', 'Supabase si sta svegliando, attendi ancora qualche secondo...');
+  }, 8000);
+  
+  var data = null;
+  try {
+    data = await Promise.race([
+      sbLoadAll(),
+      new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('timeout dopo 30s')); }, 30000); })
+    ]);
+  } catch(e) {
+    clearTimeout(slowTimer);
+    setSyncBannerState('error', 'Supabase non raggiungibile -- ' + e.message + '. Riprova quando la connessione e disponibile.');
+    addLog('Sync fallita: ' + e.message, 'err');
+    return;
+  }
+  clearTimeout(slowTimer);
+  if(!data) {
+    setSyncBannerState('error', 'Supabase non ha risposto. Riprova.');
+    addLog('Sync fallita: nessun dato ricevuto.', 'err');
+    return;
+  }
   
   // Merge sessions: Supabase wins for existing, keep local-only
   var sbIds = (data.sessions||[]).map(function(s){return s.id;});
@@ -889,7 +946,7 @@ async function syncFromSupabase() {
     renderDocList();
   }
   
-  showSyncBanner(false);
+  setSyncBannerState('hidden');
   addLog('Sincronizzazione completata: ' + merged.length + ' sessioni, ' + G.docs.length + ' documenti', 'ok');
   checkSyncStatus();
   // Index historical sessions for RAG
