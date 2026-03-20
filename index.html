@@ -273,7 +273,7 @@ async function sbFetch(path, method, body) {
         'Content-Type': 'application/json',
         'apikey': SB_KEY,
         'Authorization': 'Bearer ' + SB_KEY,
-        'Prefer': method === 'POST' ? 'resolution=merge-duplicates' : ''
+        'Prefer': method === 'POST' ? 'resolution=merge-duplicates' : (method === 'DELETE' ? 'return=minimal' : '')
       },
       body: body ? JSON.stringify(body) : undefined,
       signal: controller.signal
@@ -284,7 +284,9 @@ async function sbFetch(path, method, body) {
       addLog('Supabase error: ' + err.substring(0, 100), 'warn');
       return null;
     }
-    return method === 'GET' ? await res.json() : true;
+    if(method === 'GET') return await res.json();
+    if(method === 'DELETE') return true; // DELETE returns 204 no content
+    return true;
   } catch(e) {
     clearTimeout(timeout);
     if(e.name === 'AbortError') throw new Error('timeout connessione Supabase');
@@ -1886,11 +1888,18 @@ function doClearLocal(alsoSB) {
   G.sessId=Date.now(); G.lastInt=0; G.chunksSinceInt=0;
   try{ localStorage.removeItem('sn_docs'); localStorage.removeItem('sn_sessions'); localStorage.removeItem('sn_ctx'); }catch(e){}
   if(alsoSB){
-    Promise.all([sbFetch('sn_sessions?id=gte.0','DELETE'),sbFetch('sn_documents?id=gte.0','DELETE'),sbFetch('sn_chunks?id=gte.0','DELETE')])
-      .then(function(){ addLog('Eliminato locale + Supabase.','ok'); })
-      .catch(function(e){ addLog('Errore Supabase: '+e.message,'err'); });
+    // Use created_at filter to match all rows - more reliable than id>=0
+    Promise.all([
+      sbFetchSafe('sn_chunks?id=gte.0','DELETE'),
+      sbFetchSafe('sn_documents?id=gte.0','DELETE'),
+      sbFetchSafe('sn_sessions?id=gte.0','DELETE')
+    ]).then(function(){
+      addLog('Eliminato locale + Supabase.','ok');
+      setTimeout(checkSyncStatus, 1000);
+    }).catch(function(e){ addLog('Errore Supabase: '+e.message,'err'); });
   }
   renderArch();
+  setTimeout(checkSyncStatus, 500);
   addLog('Dati cancellati'+(alsoSB?' (locale + Supabase)':' (solo locale)')+'.','ok');
 }
 
