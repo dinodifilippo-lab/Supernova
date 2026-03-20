@@ -523,13 +523,6 @@ async function searchForSynthesis(query, matchCount) {
   </div>
 </div>
 
-<!-- SYNC BANNER -->
-
-  <div id="syncBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:500;padding:12px 20px;font-size:12px;font-family:var(--fm);letter-spacing:.04em;text-align:center;background:rgba(61,122,181,.95);border-bottom:1px solid rgba(61,122,181,.6);color:#fff;backdrop-filter:blur(4px)">
-  <span id="syncBannerMsg">Connessione a Supabase in corso -- attendi prima di iniziare...</span>
-  <span id="syncSpinner" style="display:inline-block;animation:spin 1s linear infinite;margin-left:8px">&#8635;</span>
-  <button id="syncRetryBtn" onclick="syncFromSupabase()" style="display:none;margin-left:12px;padding:3px 10px;border-radius:5px;border:1px solid currentColor;background:none;color:inherit;font-family:var(--fm);font-size:11px;cursor:pointer">Riprova</button>
-</div>
 <style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
 
 <!-- HEADER -->
@@ -644,6 +637,11 @@ async function searchForSynthesis(query, matchCount) {
 <!-- SESSIONE -->
 
 <div class="screen" id="sSess">
+  <div id="syncBanner" style="display:none;padding:10px 20px;font-size:12px;font-family:var(--fm);text-align:center;flex-shrink:0;background:rgba(61,122,181,.15);border-bottom:1px solid rgba(61,122,181,.3);color:var(--a2)">
+    <span id="syncBannerMsg">Connessione a Supabase in corso -- attendi prima di iniziare...</span>
+    <span id="syncSpinner" style="display:inline-block;animation:spin 1s linear infinite;margin-left:8px">&#8635;</span>
+    <button id="syncRetryBtn" onclick="syncFromSupabase()" style="display:none;margin-left:12px;padding:3px 10px;border-radius:5px;border:1px solid currentColor;background:none;color:inherit;font-family:var(--fm);font-size:11px;cursor:pointer">Riprova</button>
+  </div>
   <div class="sess-grid">
     <div class="tx-panel" id="txPanel">
       <div class="plbl">Trascrizione</div>
@@ -877,36 +875,27 @@ function setSyncBannerState(state, msg) {
   var spinner = document.getElementById('syncSpinner');
   var retry = document.getElementById('syncRetryBtn');
   if(!banner) return;
+  if(state === 'hidden') { banner.style.display = 'none'; return; }
   banner.style.display = 'block';
   if(msgEl) msgEl.textContent = msg || '';
   if(state === 'loading') {
-    banner.style.background = 'rgba(61,122,181,.95)';
-    banner.style.borderBottomColor = 'rgba(61,122,181,.6)';
-    banner.style.color = '#fff';
+    banner.style.cssText = 'display:block;padding:10px 20px;font-size:12px;font-family:var(--fm);text-align:center;flex-shrink:0;background:rgba(61,122,181,.15);border-bottom:1px solid rgba(61,122,181,.4);color:#4a9fd5';
     if(spinner) spinner.style.display = 'inline-block';
     if(retry) retry.style.display = 'none';
   } else if(state === 'slow') {
-    banner.style.background = 'rgba(180,120,20,.95)';
-    banner.style.borderBottomColor = 'rgba(180,120,20,.6)';
-    banner.style.color = '#fff';
+    banner.style.cssText = 'display:block;padding:10px 20px;font-size:12px;font-family:var(--fm);text-align:center;flex-shrink:0;background:rgba(180,130,0,.15);border-bottom:1px solid rgba(180,130,0,.4);color:#b88000';
     if(spinner) spinner.style.display = 'inline-block';
     if(retry) retry.style.display = 'none';
   } else if(state === 'error') {
-    banner.style.background = 'rgba(180,40,40,.95)';
-    banner.style.borderBottomColor = 'rgba(180,40,40,.6)';
-    banner.style.color = '#fff';
+    banner.style.cssText = 'display:block;padding:10px 20px;font-size:12px;font-family:var(--fm);text-align:center;flex-shrink:0;background:rgba(180,40,40,.15);border-bottom:1px solid rgba(180,40,40,.4);color:#d95f5f';
     if(spinner) spinner.style.display = 'none';
     if(retry) retry.style.display = 'inline-block';
-  } else if(state === 'hidden') {
-    banner.style.display = 'none';
   }
 }
 
 async function syncFromSupabase() {
-  addLog('[SYNC] start', 'info');
   addLog('Sincronizzazione con Supabase...', 'info');
   setSyncBannerState('loading', 'Connessione a Supabase in corso -- attendi prima di iniziare...');
-  addLog('[SYNC] banner impostato', 'info');
   
   // After 8 seconds, update message to indicate slow connection (SB waking up)
   var slowTimer = setTimeout(function(){
@@ -926,7 +915,6 @@ async function syncFromSupabase() {
     return;
   }
   clearTimeout(slowTimer);
-  addLog('[SYNC] dati ricevuti: ' + (data ? 'ok, sess=' + (data.sessions||[]).length + ' docs=' + (data.docs||[]).length : 'NULL'), 'info');
   if(!data) {
     setSyncBannerState('error', 'Supabase non ha risposto. Riprova.');
     addLog('Sync fallita: nessun dato ricevuto.', 'err');
@@ -956,7 +944,6 @@ async function syncFromSupabase() {
     renderDocList();
   }
   
-  addLog('[SYNC] completato - nascondo banner', 'ok');
   setSyncBannerState('hidden');
   addLog('Sincronizzazione completata: ' + merged.length + ' sessioni, ' + G.docs.length + ' documenti', 'ok');
   checkSyncStatus();
