@@ -257,7 +257,15 @@ var AGENT_CONFIG = {
 var SB_URL = 'https://ygpbozycacpncohdjqft.supabase.co';
 var SB_KEY = 'sb_publishable_Evfe7sPUsrjIe0TK65k52g_irQA-ifa';
 
+// Safe version for non-critical calls (errors don't propagate)
+async function sbFetchSafe(path, method, body) {
+  try { return await sbFetch(path, method, body); } 
+  catch(e) { addLog('Supabase: ' + e.message, 'warn'); return null; }
+}
+
 async function sbFetch(path, method, body) {
+  var controller = new AbortController();
+  var timeout = setTimeout(function(){ controller.abort(); }, 25000);
   try {
     var res = await fetch(SB_URL + '/rest/v1/' + path, {
       method: method || 'GET',
@@ -267,8 +275,10 @@ async function sbFetch(path, method, body) {
         'Authorization': 'Bearer ' + SB_KEY,
         'Prefer': method === 'POST' ? 'resolution=merge-duplicates' : ''
       },
-      body: body ? JSON.stringify(body) : undefined
+      body: body ? JSON.stringify(body) : undefined,
+      signal: controller.signal
     });
+    clearTimeout(timeout);
     if (!res.ok) {
       var err = await res.text();
       addLog('Supabase error: ' + err.substring(0, 100), 'warn');
@@ -276,13 +286,14 @@ async function sbFetch(path, method, body) {
     }
     return method === 'GET' ? await res.json() : true;
   } catch(e) {
-    addLog('Supabase connection error: ' + e.message, 'warn');
-    return null;
+    clearTimeout(timeout);
+    if(e.name === 'AbortError') throw new Error('timeout connessione Supabase');
+    throw e;
   }
 }
 
 async function sbSaveSession(sess) {
-  return sbFetch('sn_sessions?on_conflict=id', 'POST', {
+  return sbFetchSafe('sn_sessions?on_conflict=id', 'POST', {
     id: sess.id,
     updated_at: new Date().toISOString(),
     mode: sess.mode || 'setup',
@@ -294,7 +305,7 @@ async function sbSaveSession(sess) {
 }
 
 async function sbSaveDoc(doc) {
-  return sbFetch('sn_documents?on_conflict=id', 'POST', {
+  return sbFetchSafe('sn_documents?on_conflict=id', 'POST', {
     id: doc.id,
     name: doc.name,
     type: doc.type,
@@ -304,7 +315,7 @@ async function sbSaveDoc(doc) {
 }
 
 async function sbSaveChunk(sessId, idx, text) {
-  return sbFetch('sn_chunks', 'POST', {
+  return sbFetchSafe('sn_chunks', 'POST', {
     session_id: sessId,
     chunk_index: idx,
     text: text
@@ -312,11 +323,9 @@ async function sbSaveChunk(sessId, idx, text) {
 }
 
 async function sbLoadAll() {
-  try {
-    var sessions = await sbFetch('sn_sessions?select=*&order=created_at.desc');
-    var docs = await sbFetch('sn_documents?select=*&order=created_at.desc');
-    return { sessions: sessions || [], docs: docs || [] };
-  } catch(e) { return null; }
+  var sessions = await sbFetch('sn_sessions?select=*&order=created_at.desc');
+  var docs = await sbFetch('sn_documents?select=*&order=created_at.desc');
+  return { sessions: sessions || [], docs: docs || [] };
 }
 // -- RAG: Generate embedding via Edge Function ------------------------------
 async function generateEmbedding(text) {
@@ -341,7 +350,7 @@ async function generateEmbedding(text) {
 // -- RAG: Save chunk with embedding -----------------------------------------
 async function sbSaveChunkWithEmbedding(sessId, idx, text) {
   // First save the chunk
-  var res = await sbFetch('sn_chunks', 'POST', {
+  var res = await sbFetchSafe('sn_chunks', 'POST', {
     session_id: sessId,
     chunk_index: idx,
     text: text
@@ -349,14 +358,14 @@ async function sbSaveChunkWithEmbedding(sessId, idx, text) {
   if (!res) return;
 
   // Get the saved chunk id
-  var chunks = await sbFetch('sn_chunks?session_id=eq.' + sessId + '&chunk_index=eq.' + idx + '&select=id');
+  var chunks = await sbFetchSafe('sn_chunks?session_id=eq.' + sessId + '&chunk_index=eq.' + idx + '&select=id');
   if (!chunks || chunks.length === 0) return;
   var chunkId = chunks[0].id;
 
   // Generate and save embedding async
   var embedding = await generateEmbedding(text);
   if (embedding) {
-    await sbFetch('sn_chunks?id=eq.' + chunkId, 'PATCH', { embedding: embedding });
+    await sbFetchSafe('sn_chunks?id=eq.' + chunkId, 'PATCH', { embedding: embedding });
     addLog('Embedding salvato per chunk ' + idx, 'ok');
   }
 }
@@ -409,7 +418,7 @@ async function indexDocument(doc) {
   
   // Save each chunk with embedding
   for(var j = 0; j < chunks.length; j++) {
-    var res = await sbFetch('sn_chunks', 'POST', {
+    var res = await sbFetchSafe('sn_chunks', 'POST', {
       session_id: null,
       chunk_index: j,
       text: '[DOC: ' + doc.name + '] ' + chunks[j]
@@ -419,7 +428,7 @@ async function indexDocument(doc) {
       var saved = await sbFetch('sn_chunks?chunk_index=eq.' + j + '&text=like.[DOC:+' + encodeURIComponent(doc.name) + ']*&select=id&order=id.desc&limit=1');
       if(saved && saved.length > 0) {
         var emb = await generateEmbedding(chunks[j]);
-        if(emb) await sbFetch('sn_chunks?id=eq.' + saved[0].id, 'PATCH', { embedding: emb });
+        if(emb) await sbFetchSafe('sn_chunks?id=eq.' + saved[0].id, 'PATCH', { embedding: emb });
       }
     }
   }
@@ -1833,14 +1842,14 @@ function doDeleteSelected(docIds, sessIds, alsoSB) {
   if(docIds.length > 0) {
     G.docs = G.docs.filter(function(d){ return docIds.indexOf(d.id) < 0; });
     saveDocs();
-    if(alsoSB) docIds.forEach(function(id){ sbFetch('sn_documents?id=eq.'+id, 'DELETE'); });
+    if(alsoSB) docIds.forEach(function(id){ sbFetchSafe('sn_documents?id=eq.'+id, 'DELETE'); });
   }
   if(sessIds.length > 0) {
     G.sessions = G.sessions.filter(function(s){ return sessIds.indexOf(s.id) < 0; });
     try{localStorage.setItem('sn_sessions', JSON.stringify(G.sessions));}catch(e){}
     if(alsoSB) sessIds.forEach(function(id){
-      sbFetch('sn_sessions?id=eq.'+id, 'DELETE');
-      sbFetch('sn_chunks?session_id=eq.'+id, 'DELETE');
+      sbFetchSafe('sn_sessions?id=eq.'+id, 'DELETE');
+      sbFetchSafe('sn_chunks?session_id=eq.'+id, 'DELETE');
     });
   }
   selMode = false;
@@ -1963,8 +1972,8 @@ function doDelS(id, alsoSB) {
   G.sessions = G.sessions.filter(function(s){ return s.id !== id; });
   try{localStorage.setItem('sn_sessions', JSON.stringify(G.sessions));}catch(e){}
   if(alsoSB) {
-    sbFetch('sn_sessions?id=eq.'+id, 'DELETE');
-    sbFetch('sn_chunks?session_id=eq.'+id, 'DELETE');
+    sbFetchSafe('sn_sessions?id=eq.'+id, 'DELETE');
+    sbFetchSafe('sn_chunks?session_id=eq.'+id, 'DELETE');
   }
   renderArch();
   addLog('Sessione eliminata' + (alsoSB?' (locale+Supabase)':' (solo locale)') + '.', 'ok');
@@ -1975,7 +1984,7 @@ function clearTranscript(id) {
   if(!sess) return;
   showConfirm('Cancella trascrizione', 'Cancellare la trascrizione di questa sessione?', [
     { label: 'Cancella solo locale', style: 'warn', action: function(){ sess.transcript=''; sess.summary=''; try{localStorage.setItem('sn_sessions',JSON.stringify(G.sessions));}catch(e){} renderArch(); addLog('Trascrizione cancellata localmente.','ok'); } },
-    { label: 'Cancella locale + Supabase', style: 'danger', action: function(){ sess.transcript=''; sess.summary=''; try{localStorage.setItem('sn_sessions',JSON.stringify(G.sessions));}catch(e){} sbFetch('sn_sessions?id=eq.'+id,'PATCH',{transcript:'',summary:''}); sbFetch('sn_chunks?session_id=eq.'+id,'DELETE'); renderArch(); addLog('Trascrizione cancellata (locale+Supabase).','ok'); } },
+    { label: 'Cancella locale + Supabase', style: 'danger', action: function(){ sess.transcript=''; sess.summary=''; try{localStorage.setItem('sn_sessions',JSON.stringify(G.sessions));}catch(e){} sbFetchSafe('sn_sessions?id=eq.'+id,'PATCH',{transcript:'',summary:''}); sbFetchSafe('sn_chunks?session_id=eq.'+id,'DELETE'); renderArch(); addLog('Trascrizione cancellata (locale+Supabase).','ok'); } },
     { label: 'Annulla', style: 'neutral', action: null }
   ]);
 }
