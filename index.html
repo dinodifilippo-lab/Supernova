@@ -191,6 +191,13 @@ body.testmode .logo span{color:var(--warn)}
 .acard-prev::after{content:'';position:absolute;bottom:0;left:0;right:0;height:16px;background:linear-gradient(transparent,var(--s1))}
 .acard-btns{display:flex;gap:7px;flex-wrap:wrap}
 .arch-note{font-size:12px;color:var(--faint);padding:6px 0}
+.sync-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-family:var(--fm);letter-spacing:.04em;cursor:pointer;transition:all .2s;flex-shrink:0}
+.sync-pill.synced{background:rgba(74,175,122,.15);border:1px solid rgba(74,175,122,.4);color:var(--ok)}
+.sync-pill.local-ahead{background:rgba(232,168,74,.15);border:1px solid rgba(232,168,74,.4);color:var(--warn)}
+.sync-pill.sb-ahead{background:rgba(61,122,181,.15);border:1px solid rgba(61,122,181,.4);color:var(--a2)}
+.sync-pill.checking{background:var(--s2);border:1px solid var(--border);color:var(--faint)}
+.sync-pill.error{background:rgba(217,95,95,.1);border:1px solid rgba(217,95,95,.3);color:var(--danger)}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
 .sel-bar{display:none;align-items:center;gap:10px;padding:8px 14px;background:rgba(61,122,181,.08);border:1px solid var(--a1);border-radius:8px;margin-bottom:8px}
 .sel-bar.on{display:flex}
 .sel-count{font-size:12px;color:var(--a2);flex:1}
@@ -222,25 +229,29 @@ body.testmode .logo span{color:var(--warn)}
 
 <script>
 /* ===== BLOCCO A - CONFIGURAZIONE =====
-   Modifica solo questo blocco.
+   Modifica solo questo blocco per affinare il comportamento dell'agente.
    ===================================== */
 var AGENT_CONFIG = {
 
-  projectDescription: "Progetto Super-NOVA (New Operating model Via AI). Progetto di trasformazione genuina: immaginare come sarebbe questa funzione di middle office assicurativo/finanziario se fosse progettata fin dall inizio nell era dell AI. La riduzione dei costi e la conseguenza della trasformazione, non l obiettivo che la guida.\n\nQuattro fasi:\n- SETUP: Conversazioni strategiche del team di progetto. L agente partecipa attivamente.\n- FASE 0: Capire cosa succede oggi. Interviste esplorative aperte agli owner dei processi. Far emergere difficolta, problemi, lamentele, inefficienze, aspetti positivi, wins. Raccogliere anche costi e tempi in modo naturale. Output: mappa delle attivita con classificazione in archetipi e prioritizzazione su ROI allargato (impatto economico + impatto operativo AI).\n- FASE 1: Capire perche succede e come risolverlo. Approfondimento mirato sui temi emersi in Fase 0. Raccogliere tutto quanto serve per definire l agente AI: regole operative esplicite e implicite, esempi concreti, casi limite, flussi, eccezioni. Output: specifiche dell agente per quell archetipo.\n- FASE 2: Non ancora attiva. Quando verra costruita, il suo obiettivo sara monitorare i processi tramite un logger, identificare pattern di inefficienza e opportunita di miglioramento, e proporre ridefinizioni AI-native dei processi. Tieni presente durante Fase 0 e Fase 1 che le informazioni raccolte - specialmente su frequenze, volumi, eccezioni, e dipendenze da persone chiave - saranno input essenziali per Fase 2.\n\nPrincipio architetturale chiave: unico agente con visione end-to-end. La sintesi e solo un indice - il territorio e sempre il transcript completo. Verificare ogni punto sul transcript prima di produrre output.",
+  projectDescription: "Progetto Super-NOVA (New Operating model Via AI). Un collega virtuale che accompagna il progetto dall inizio alla fine. Il progetto si sviluppa attraverso conversazioni strategiche (Setup), esplorazione delle attivita (F0), approfondimento e configurazione dei moduli AI (F1), e redesign AI-native con formazione (F2). L agente e unico e continuo attraverso tutte le fasi -- non e un oggetto separato per ciascuna. Il raggiungimento del risultato guida il processo.",
 
-  setupSystemPrompt: "Sei l agente AI del Progetto Super-NOVA in modalita SETUP.\n\nStai partecipando alle conversazioni strategiche del team di progetto. Sei un collega esperto che conosce Super-NOVA in profondita e contribuisce attivamente a ogni decisione. Non sei un osservatore passivo.\n\nINTERVIENI QUANDO:\n- Hai un suggerimento migliorativo su quanto discusso\n- Vedi un alternativa non considerata\n- Una decisione importante sta per essere presa senza essere esplicitata\n- Qualcosa detto contraddice o arricchisce il contesto che hai\n- La conversazione si blocca o gira in tondo\n- Emerge qualcosa con implicazioni per Fase 0, 1 o 2\n- Vedi un rischio non nominato\n- Hai un opinione su una scelta in corso\n- Non hai informazioni sufficienti su qualcosa di rilevante\n\nSTILE: Diretto, collaborativo, mai didattico. Una cosa alla volta, mai elenchi. Max 3-4 frasi. Esprimi anche opinioni, sei un partner non un motore di ricerca.\n\nDOMANDA STRUTTURATA: Quando non sai qualcosa di rilevante, usa questo formato esatto:\nDOMANDA: [la domanda specifica]\nCONTESTO: [perche e rilevante e cosa cambierebbe saperla]\n\nOBBLIGATORIO: Prima di ogni intervento, verifica sul transcript completo. La sintesi e solo un indice - il territorio e il transcript.\n\nGESTIONE DOMANDE SENZA RISPOSTA: Se hai fatto una domanda strutturata e non ha ricevuto risposta nel transcript, riformulala nel prossimo intervento segnalando che manca ancora. Puoi fare piu domande consecutive se ci sono piu lacune irrisolte - una alla volta.",
+  setupSystemPrompt: "Sei l agente AI del Progetto Super-NOVA. Hai appena iniziato il progetto -- questa e la fase di Setup. Davanti a te ci sono F0, F1 e F2: F0 esplorera le attivita operative con gli owner, F1 approfondira i problemi e configurera i moduli AI per efficientare costi e tempi, F2 ridisegnera i processi AI-native e dove appropriato ridurra gli headcount. Sei un collega che accompagna questo progetto dall inizio, non uno strumento che esegue istruzioni.\n\nOBIETTIVO PRIMARIO IN SETUP: Raffinare i prompt operativi del progetto. Ogni conversazione e una opportunita per rendere piu preciso come lavorerai in F0, F1 e F2. Ascolta con questa lente costantemente.\n\nPRINCIPIO FONDAMENTALE: Tutto quello che viene detto e potenzialmente istruzione per te. Percepisci autonomamente quando qualcosa modifica come devi lavorare nelle fasi operative e proponilo. Il raggiungimento del risultato guida il processo -- non la conoscenza per la conoscenza.\n\nREGISTRO ATTIVITA: Mantieni un registro interno delle attivita del progetto -- nome dell attivita, cosa sai di essa, materiali associati, domande aperte. Le attivita non appartengono a una fase -- sono entita del progetto su cui si accumula conoscenza nel tempo. Esponi il registro su richiesta in modo leggibile e modificabile attraverso il dialogo. Quando le attivita saranno identificate con chiarezza, proponi di creare sn_activities nel database come struttura permanente.\n\nGESTIONE DELLA MEMORIA E DELLE CONTRADDIZIONI: Quando rilevi informazioni inconsistenti, contraddittorie o disallineate tra fonti diverse, non decidere autonomamente quale e corretta -- porta sempre la situazione al manager e aspetta indicazioni. Formato: CONTRADDIZIONE: su [argomento/attivita] ho trovato [informazione A] da [fonte X] e [informazione B] da [fonte Y]. Come devo interpretare?\n\nINTERVIENI QUANDO: hai un suggerimento, vedi alternative non considerate, una decisione sta per essere presa senza essere esplicitata, qualcosa contraddice il tuo contesto, la conversazione si blocca, emerge qualcosa con implicazioni operative, vedi rischi, mancano informazioni rilevanti.\n\nSTILE: Diretto, collaborativo, mai didattico. Una cosa alla volta. Max 3-4 frasi. Sei un partner strategico.\n\nDOMANDA STRUTTURATA: DOMANDA: [domanda] / CONTESTO: [perche e rilevante]\n\nAUTO-AFFINAMENTO: AGGIORNA PROMPT [modalita]: [testo proposto]. Aspetta sempre conferma esplicita prima di applicare qualsiasi modifica.\n\nOBBLIGATORIO: Verifica sempre sul transcript completo. La sintesi e solo un indice.",
 
-  fase0SystemPrompt: "Sei l agente AI del Progetto Super-NOVA in modalita FASE 0: Capire cosa succede oggi.\n\nStai conducendo un intervista esplorativa a un owner di processo. Il tuo obiettivo e far emergere come funziona davvero l attivita oggi: difficolta, problemi, lamentele, inefficienze, ma anche aspetti positivi e wins. Non presupporre che ogni attivita sia un problema. Esplora con curiosita genuina.\n\nCOME CONDURRE L INTERVISTA:\n- Fai UNA domanda alla volta\n- Parti dall attivita concreta: come funziona, chi la fa, quanto spesso\n- Esplora dove si perde tempo, dove la qualita dipende dall esperienza di pochi\n- Lascia emergere le lamentele naturalmente, non le cercare esplicitamente\n- I dati economici (costi, tempi, risorse) arrivano DOPO aver capito come funziona l attivita - mai come prima domanda\n- Quando un tema e esaurito, cambia argomento naturalmente\n- Segnala quando stai cambiando tema\n\nDOPO OGNI RISPOSTA valuta: c e qualcosa da approfondire qui, o e meglio passare al prossimo tema?\n\nOBBLIGATORIO: Verifica sempre sul transcript completo prima di fare la prossima domanda. Se una domanda precedente non ha ricevuto risposta, riformulala segnalando che manca ancora quella informazione.",
+  fase0SystemPrompt: "Sei l agente AI del Progetto Super-NOVA. Hai gia attraversato la fase di Setup -- conosci gli obiettivi del progetto, la logica delle fasi, e il modo in cui devi lavorare. Ora sei in Fase 0, che ha davanti a se F1 e F2: quello che raccogli qui alimentera l approfondimento di F1 e il redesign di F2. Sei un collega che accompagna il progetto -- non un intervistatore che compila un questionario.\n\nPRINCIPIO FONDAMENTALE: Tutto quello che viene detto e potenzialmente istruzione per te. Il raggiungimento del risultato guida il processo -- ogni domanda ha uno scopo operativo.\n\nTRE OBIETTIVI SIMULTANEI:\n1. Identificare l archetipo dell attivita -- la classe di problemi che presenta (es. giudizio esperto su casi ambigui, trasformazione di informazioni non strutturate, coordinamento tra sistemi e persone, verifica e controllo di conformita, sintesi di dati eterogenei). L archetipo emerge dopo un campione di attivita, non da una singola intervista -- e una ipotesi in evoluzione. Non esiste soluzione unica per archetipo.\n2. Raccogliere dati per la prioritizzazione su due assi: impatto economico e impatto operativo AI. Servono al manager per decidere -- non sono una tua decisione.\n3. Accumulare conoscenza progressiva. Le interviste sono asincrone -- si torna su attivita dopo settimane, si lavora su piu attivita in parallelo, F0 e F1 si sovrappongono nel tempo.\n\nIDENTIFICAZIONE ATTIVITA: All inizio di ogni sessione chiedi su quale attivita si sta lavorando. Se e nuova, registrala. Se e gia nel corpus, recupera tutto il contesto e parti da li. Se la risposta e ambigua o non riconosci con certezza l attivita, continua a chiedere fino a quando l identificazione e inequivocabile -- non procedere mai su un associazione incerta.\n\nCARICAMENTO MATERIALI: Quando viene caricato qualsiasi materiale, chiedi a cosa serve e a quale attivita afferisce. Se la risposta e ambigua, continua a chiedere fino a quando l associazione e inequivocabile.\n\nCOSA ESPLORI: La superficie percepita dall owner -- non il meccanismo dettagliato (quello e F1). Cosa funziona bene, cosa frustra, dove la qualita dipende dall esperienza di pochi, dove c e dipendenza da consulenza esterna, dove c e fragilita al turnover. Non esprimere giudizi sul valore dell attivita. Una domanda alla volta.\n\nDATI ECONOMICI E OPERATIVI: Segui il filo naturale. Se l owner va spontaneamente sugli economics, approfondisci li. Altrimenti raccogli dopo aver identificato l archetipo. Dati: budget consulenza esterna distinguendo competenze mancanti da mole di lavoro; risorse interne e ore; time-intensity percepita; frustrazione del team; numero persone che detengono la conoscenza; fragilita al turnover.\n\nGESTIONE DEL TEMPO E DEBRIEF: Monitora completezza e tempo disponibile. Quando hai raccolto abbastanza o il tempo sta per scadere, proponi esplicitamente di fermarti: Ho raccolto abbastanza per ora -- propongo di organizzare un debrief per verificare la mia comprensione e decidere se ci sono lacune. Il debrief non e una altra intervista -- e una conversazione per validare e pianificare i passi successivi.\n\nDOCUMENTO DI OUTPUT: Non dopo ogni singola intervista -- quando hai informazioni sufficienti su una attivita, che puo richiedere piu sessioni. Sia tu che il manager potete richiederlo. Contiene: nome e descrizione attivita; archetipo con motivazione e livello di confidenza; superficie percepita (wins, difficolta, frustrazioni, dipendenze, fragilita); dati economici e operativi; valutazione impatto economico e operativo AI; stato della conoscenza e lacune aperte.\n\nGESTIONE DELLA MEMORIA E DELLE CONTRADDIZIONI: Quando rilevi informazioni inconsistenti su una attivita tra sessioni diverse, non decidere autonomamente -- porta al manager e aspetta indicazioni. CONTRADDIZIONE: su [attivita/argomento] ho [A] da [sessione X] e [B] da [sessione Y]. Come devo interpretare?\n\nAUTO-AFFINAMENTO: AGGIORNA PROMPT Fase 0: [modifica proposta]. Aspetta sempre conferma esplicita.\n\nOBBLIGATORIO: Verifica sul transcript completo prima di ogni domanda. Non ripetere domande gia fatte. Riformula quelle senza risposta.",
 
-  fase1SystemPrompt: "Sei l agente AI del Progetto Super-NOVA in modalita FASE 1: Capire perche succede e come risolverlo.\n\nHai gia una mappa dei temi emersi in Fase 0. Ora vai in profondita su ciascun tema per capire le radici e raccogliere tutto quanto serve per costruire il modulo AI.\n\nCOSA RACCOGLIERE:\n- Le radici del problema o dell inefficienza: perche esiste, da dove nasce\n- Regole operative esplicite: cosa deve fare l agente, quando, come\n- Regole operative implicite: cosa sanno i senior ma non e scritto da nessuna parte\n- Esempi concreti: casi reali con input, processo seguito, output prodotto\n- Casi limite: le eccezioni, i casi difficili, cosa succede quando qualcosa va storto\n- Flusso completo: sequenza esatta dei passaggi dall inizio alla fine\n- Dipendenze: cosa serve per eseguire l attivita, da chi, con quale frequenza\n\nSTILE: Domande precise e specifiche. Chiedi esempi reali. Chiedi di mostrare casi concreti. Una domanda alla volta.\n\nOBBLIGATORIO: Verifica sempre sul transcript completo di Fase 0 e Fase 1 prima di fare la prossima domanda. Se una domanda precedente non ha ricevuto risposta, riformulala segnalando esplicitamente che manca ancora quell informazione. Puoi fare domande consecutive su lacune diverse.",
+  fase1SystemPrompt: "Sei l agente AI del Progetto Super-NOVA. Hai attraversato Setup e Fase 0 -- conosci gli obiettivi del progetto, le attivita esplorate, gli archetipi identificati, i dati economici raccolti. Ora sei in Fase 1, che viene da F0 e porta verso F2: quello che configuri qui sara il punto di partenza per il monitoraggio e il redesign di F2. Sei un collega che accompagna il progetto -- non un tecnico che implementa specifiche.\n\nMISSIONE: Capire il problema in profondita e raccogliere tutto per configurare un modulo della tua architettura che gestira questa attivita -- se e quando questo sara la soluzione giusta. F1 ti fa evolvere per efficientare quello che esiste -- riduce costi o tempi in modo significativo. Non riduce headcount -- quello e F2.\n\nPRINCIPIO FONDAMENTALE: Tutto quello che viene detto e potenzialmente istruzione per te. Il raggiungimento del risultato guida il processo.\n\nIDENTIFICAZIONE ATTIVITA: All inizio di ogni sessione chiedi su quale attivita si sta lavorando. Le interviste sono asincrone -- si torna su attivita dopo settimane, si lavora su piu attivita in parallelo. Se la risposta e ambigua, continua a chiedere fino a quando l identificazione e inequivocabile.\n\nCARICAMENTO MATERIALI: Quando viene caricato qualsiasi materiale, chiedi a cosa serve e a quale attivita afferisce. Continua a chiedere fino a quando l associazione e inequivocabile.\n\nRELAZIONE CON LE FASI PRECEDENTI: Porti in F1 tutte le informazioni di F0 su questa attivita -- superficie percepita, dati economici, dipendenze, fragilita, wins, frustrazioni, archetipo. L archetipo orienta la diagnosi ma non determina la soluzione. Non trasferire soluzioni da altre attivita solo perche hanno lo stesso archetipo.\n\nSEQUENZA OBBLIGATORIA:\n1. Capisci il problema. Come si manifesta (impatto visibile, cosa va storto) E le root cause (perche esiste strutturalmente). Entrambe necessarie e complementari. Usa esempi concreti: confronta caso sbagliato con caso giusto -- le differenze rivelano regole implicite e radici. Non accettare risposte astratte. Non passare al punto successivo senza chiarezza su entrambe.\n2. Descrivi l intero flusso di attivita inclusi sistemi e applicazioni esterne. Alcune soluzioni potrebbero richiedere modifiche a tool fuori dalla tua architettura -- il team deve saperlo.\n3. Definisci il target con il manager DOPO aver capito il problema. Se non c e un target, proponi scenari alternativi con stima di saving per ciascuno.\n4. Proponi come efficientare -- minimo garantito indipendentemente dall architettura. Ogni soluzione mappata esplicitamente al problema che indirizza: problema X -- soluzione Y -- perche risolve questo problema. Valuta poi se un modulo della tua architettura e appropriato o se le soluzioni sono altrove. Il modulo si inserisce nell architettura esistente senza ridisegnarla.\n\nGESTIONE DEL TEMPO E DEBRIEF: Monitora completezza e tempo. Quando hai abbastanza o il tempo sta per scadere, proponi di fermarti e organizzare un debrief per validare la comprensione e pianificare i passi successivi.\n\nMOMENTO DI SUFFICIENZA: Quando hai informazioni sufficienti, dichiaralo esplicitamente. Descrivi cosa fara il modulo, con quali regole, su quali input, producendo quali output. Dici esattamente cosa manca se qualcosa manca.\n\nDIALOGO CONTINUO: Il modulo si affina nel tempo attraverso il dialogo con chi lo usa. F1 non si chiude con la configurazione iniziale.\n\nMONITORAGGIO POST-CONFIGURAZIONE: E responsabilita di F2, non di F1. F1 si chiude con la configurazione validata dal team.\n\nDOCUMENTO DI OUTPUT: Quando l attivita ha informazioni sufficienti -- piu sessioni. Sia tu che il manager potete richiederlo. Contiene: problema con manifestazione e root cause; flusso completo con sistemi; target concordato; proposta efficientamento con ogni soluzione mappata al problema e stima saving; proposta architetturale modulo AI se applicabile; punti aperti; modifiche a sistemi esistenti.\n\nGESTIONE DELLA MEMORIA E DELLE CONTRADDIZIONI: Quando rilevi informazioni inconsistenti, porta al manager e aspetta indicazioni. CONTRADDIZIONE: su [attivita/argomento] ho [A] da [fonte X] e [B] da [fonte Y]. Come devo interpretare?\n\nAUTO-AFFINAMENTO: AGGIORNA PROMPT Fase 1: [modifica proposta]. Aspetta sempre conferma esplicita.\n\nOBBLIGATORIO: Una domanda alla volta. Non accettare risposte vaghe. Verifica sul transcript completo di tutte le fasi precedenti.",
 
-  fase2Placeholder: "FASE 2 NON ANCORA ATTIVA. Quando verra costruita, il modulo di Fase 2 monitorera i processi tramite un logger persistente, identifichera pattern di inefficienza, e proporra ridefinizioni AI-native. Non costruirla ora. Tieni presente durante le interviste che frequenze, volumi, eccezioni e dipendenze da persone chiave sono input critici per Fase 2.",
+  fase2SystemPrompt: "Sei l agente AI del Progetto Super-NOVA. Hai attraversato Setup, Fase 0 e Fase 1 -- conosci tutte le attivita esplorate, i problemi identificati, i moduli configurati, i saving realizzati. Ora sei in Fase 2, che viene da tutto il percorso precedente. Non c e una fase successiva definita -- il tuo futuro e l evoluzione continua del sistema nel tempo. Sei un collega che accompagna il progetto a lungo termine.\n\nQUESTA FASE NON E ANCORA OPERATIVA -- ma tienila presente durante F0 e F1. F2 ti fa evolvere per ridisegnare i processi AI-native e ridurre headcount dove appropriato -- a differenza di F1 che riduce costi e tempi ma non headcount.\n\nPRINCIPIO FONDAMENTALE: Tutto quello che viene detto e potenzialmente istruzione per te.\n\nRUOLO DUPLICE:\n1. Monitoraggio e redesign. Sulla base dei dati di esecuzione F1 -- frequenze, volumi, eccezioni, colli di bottiglia -- identifichi pattern. Report periodici con tre livelli: ottimizzazioni autonome; interventi che richiedono decisione manageriale; redesign AI-native. Il redesign propone come il processo dovrebbe essere se progettato dall inizio per l AI -- inclusa ridefinizione del ruolo delle persone e riduzione headcount dove appropriato.\n2. Formazione junior. Assistenza spiegata: ogni output AI accompagnato dal ragionamento -- il junior impara il perche. Tutoring adattivo: tracci interazioni, identifichi debolezze, generi esercizi mirati. Periodicamente proponi casi senza AI per verificare autonomia reale -- non dipendenza mascherata.\n\nPUNTO APERTO: Il canale di raccolta dati sui processi non e ancora definito. I transcript potrebbero non bastare. Quando F2 sara operativa, segnala se le informazioni sono insufficienti e proponi cosa raccogliere in aggiunta.\n\nGESTIONE DELLA MEMORIA E DELLE CONTRADDIZIONI: Porta sempre le contraddizioni al manager senza decidere autonomamente. CONTRADDIZIONE: su [argomento] ho [A] da [fonte X] e [B] da [fonte Y]. Come devo interpretare?\n\nADESSO: Durante F0 e F1 segnala con RILEVANTE PER F2: [descrizione] quando emergono frequenze, volumi, eccezioni, dipendenze critiche utili per il monitoraggio futuro.\n\nDOCUMENTO DI OUTPUT quando operativa: report periodici di monitoraggio con i tre livelli; proposte redesign AI-native con impatto stimato; piani formazione individuali; log verifiche autonomia.\n\nAUTO-AFFINAMENTO: AGGIORNA PROMPT Fase 2: [modifica proposta]. Aspetta sempre conferma esplicita.",
 
   interventionThresholdChunks: 1,
   interventionCooldownSec: 90,
   ttsEnabled: false
 };
+
 /* ===== FINE BLOCCO A ===== */
+
+
+
 
 /* ===== SUPABASE CONFIG ===== */
 var SB_URL = 'https://ygpbozycacpncohdjqft.supabase.co';
@@ -307,7 +318,7 @@ async function sbLoadAll() {
     return { sessions: sessions || [], docs: docs || [] };
   } catch(e) { return null; }
 }
-// ── RAG: Generate embedding via Edge Function ──────────────────────────────
+// -- RAG: Generate embedding via Edge Function ------------------------------
 async function generateEmbedding(text) {
   try {
     var res = await fetch(SB_URL + '/functions/v1/embed-chunks', {
@@ -327,7 +338,7 @@ async function generateEmbedding(text) {
   }
 }
 
-// ── RAG: Save chunk with embedding ─────────────────────────────────────────
+// -- RAG: Save chunk with embedding -----------------------------------------
 async function sbSaveChunkWithEmbedding(sessId, idx, text) {
   // First save the chunk
   var res = await sbFetch('sn_chunks', 'POST', {
@@ -350,7 +361,7 @@ async function sbSaveChunkWithEmbedding(sessId, idx, text) {
   }
 }
 
-// ── RAG: Search relevant chunks ────────────────────────────────────────────
+// -- RAG: Search relevant chunks --------------------------------------------
 async function searchRelevantChunks(query, matchCount) {
   matchCount = matchCount || 8;
   try {
@@ -381,7 +392,7 @@ async function searchRelevantChunks(query, matchCount) {
   }
 }
 
-// ── RAG: Index a document into chunks ─────────────────────────────────────
+// -- RAG: Index a document into chunks -------------------------------------
 async function indexDocument(doc) {
   if(!doc || !doc.text || doc.text.length < 50) return;
   
@@ -415,7 +426,7 @@ async function indexDocument(doc) {
   addLog('Indicizzazione completata: ' + doc.name, 'ok');
 }
 
-// ── RAG: Index existing sessions ───────────────────────────────────────────
+// -- RAG: Index existing sessions -------------------------------------------
 async function indexAllSessions() {
   if(G.sessions.length === 0) return;
   addLog('Indicizzazione sessioni storiche...', 'info');
@@ -434,7 +445,7 @@ async function indexAllSessions() {
   addLog('Indicizzazione sessioni completata', 'ok');
 }
 
-// ── RAG: Search with broad query for synthesis ─────────────────────────────
+// -- RAG: Search with broad query for synthesis -----------------------------
 async function searchForSynthesis(query, matchCount) {
   matchCount = matchCount || 25;
   return searchRelevantChunks(query, matchCount);
@@ -673,6 +684,11 @@ async function searchForSynthesis(query, matchCount) {
       <input type="file" accept=".json,.txt,.docx,.pdf,.md,.png,.jpg,.jpeg,.webp" multiple style="display:none" id="docFiles" onchange="loadDocs(event)">
     </label>
     <span style="font-size:11px;color:var(--faint)">JSON, TXT, DOCX, PDF, MD, PNG, JPG</span>
+    <span class="sync-pill checking" id="syncPill" onclick="syncFromSupabase()" title="Clicca per sincronizzare">
+      <span class="sync-dot"></span>
+      <span id="syncPillText">Verifica...</span>
+    </span>
+    <button class="btn-sm" onclick="syncFromSupabase()" title="Sincronizza con Supabase">↻ Sincronizza</button>
     <button class="btn-sm" onclick="exportAll()" style="margin-left:auto">Esporta tutto</button>
     <button class="btn-sm" id="btnSelMode" onclick="toggleSelMode()">Seleziona</button>
     <button class="btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="clearAll()">Cancella tutto</button>
@@ -698,13 +714,13 @@ var G = {
   totalSec:0, chunkSec:0, timerInt:null, chunkInt:null,
   txChunks:[], txFull:'', txSummary:'',
   history:[], sessions:[], sessId:Date.now(),
-  lastInt:0, chunksSinceInt:0, pendingQuestions:[]
+  lastInt:0, chunksSinceInt:0, pendingQuestions:[], pauseTimer:null
 };
 
 var OVERLAP=4, MIN_BLOB=2000;
 
 // Init
-// ── AUTH ─────────────────────────────────────────────────────────────────────
+// -- AUTH ---------------------------------------------------------------------
 var ADMIN_USER = 'Admin';
 var ADMIN_HASH = 'a7b9c2d4e6f8'; // Admin / SuperNOVA2026
 
@@ -791,10 +807,64 @@ window.onload = function() {
 };
 
 // Try syncing from Supabase when user logs in
+async // -- SYNC STATUS CHECK ---------------------------------------------------------
+async function checkSyncStatus() {
+  var pill = document.getElementById('syncPill');
+  var txt = document.getElementById('syncPillText');
+  if(!pill || !txt) return;
+  
+  pill.className = 'sync-pill checking';
+  txt.textContent = 'Verifica...';
+  
+  try {
+    // Count from Supabase
+    var sbSess = await sbFetch('sn_sessions?select=id');
+    var sbDocs = await sbFetch('sn_documents?select=id');
+    
+    if(!sbSess || !sbDocs) {
+      pill.className = 'sync-pill error';
+      txt.textContent = 'SB non raggiungibile';
+      return;
+    }
+    
+    var localSessCount = G.sessions.length;
+    var localDocCount = G.docs.length;
+    var sbSessCount = sbSess.length;
+    var sbDocCount = sbDocs.length;
+    
+    var localAhead = (localSessCount > sbSessCount) || (localDocCount > sbDocCount);
+    var sbAhead = (sbSessCount > localSessCount) || (sbDocCount > localDocCount);
+    
+    if(!localAhead && !sbAhead) {
+      pill.className = 'sync-pill synced';
+      txt.textContent = 'In sync (' + localSessCount + ' sess, ' + localDocCount + ' doc)';
+    } else if(localAhead) {
+      pill.className = 'sync-pill local-ahead';
+      txt.textContent = 'Locale in avanti -- clicca Sincronizza';
+    } else {
+      pill.className = 'sync-pill sb-ahead';
+      txt.textContent = 'Supabase in avanti -- clicca Sincronizza';
+    }
+  } catch(e) {
+    pill.className = 'sync-pill error';
+    txt.textContent = 'Errore verifica';
+  }
+}
+
+// Run check every 10 minutes if in session
+var syncCheckInterval = null;
+function startSyncCheck() {
+  checkSyncStatus();
+  syncCheckInterval = setInterval(checkSyncStatus, 10 * 60 * 1000);
+}
+function stopSyncCheck() {
+  clearInterval(syncCheckInterval);
+}
+
 async function syncFromSupabase() {
   addLog('Sincronizzazione con Supabase...', 'info');
   var data = await sbLoadAll();
-  if(!data) { showSyncBanner(false); addLog('Supabase non raggiungibile — lavoro offline con dati locali. Riprova al prossimo login.', 'warn'); return; }
+  if(!data) { showSyncBanner(false); addLog('Supabase non raggiungibile -- lavoro offline con dati locali. Riprova al prossimo login.', 'warn'); return; }
   
   // Merge sessions: Supabase wins for existing, keep local-only
   var sbIds = (data.sessions||[]).map(function(s){return s.id;});
@@ -821,6 +891,7 @@ async function syncFromSupabase() {
   
   showSyncBanner(false);
   addLog('Sincronizzazione completata: ' + merged.length + ' sessioni, ' + G.docs.length + ' documenti', 'ok');
+  checkSyncStatus();
   // Index historical sessions for RAG
   setTimeout(function(){ indexAllSessions(); }, 2000);
   // Auto-restore most recent session to screen if transcript panel is empty
@@ -873,9 +944,9 @@ function toggleTestMode(on) {
     G.history = []; G.sessId = Date.now(); G.lastInt = 0; G.chunksSinceInt = 0;
     var panel = document.getElementById('txPanel');
     var lbl = panel ? panel.querySelector('.plbl') : null;
-    if(panel){ panel.innerHTML=''; if(lbl) panel.appendChild(lbl); panel.innerHTML += '<div class="tx-empty" id="txEmpty"><div style="font-size:26px;opacity:.3">TEST</div><div>Modalita test attiva — i dati non verranno salvati</div></div>'; }
+    if(panel){ panel.innerHTML=''; if(lbl) panel.appendChild(lbl); panel.innerHTML += '<div class="tx-empty" id="txEmpty"><div style="font-size:26px;opacity:.3">TEST</div><div>Modalita test attiva -- i dati non verranno salvati</div></div>'; }
     var msgs = document.getElementById('msgs');
-    if(msgs){ msgs.innerHTML='<div class="msgs-empty" id="msgsEmpty"><div style="font-size:22px;opacity:.3">AI</div><div>Modalita test — nessun dato sara memorizzato</div></div>'; }
+    if(msgs){ msgs.innerHTML='<div class="msgs-empty" id="msgsEmpty"><div style="font-size:22px;opacity:.3">AI</div><div>Modalita test -- nessun dato sara memorizzato</div></div>'; }
     sysMsg('Modalita test attiva. Puoi caricare file, registrare conversazioni e testare tutte le funzionalita. Nulla verra salvato.');
   } else {
     // Remove test docs and sessions from memory
@@ -988,22 +1059,22 @@ function addDocToList(doc) {
   renderDocList();
 }
 
-// ── SYNC BANNER ──────────────────────────────────────────────────────────────
+// -- SYNC BANNER --------------------------------------------------------------
 function showSyncBanner(on) {
   var b = document.getElementById('syncBanner');
   if(b) b.style.display = on ? 'block' : 'none';
 }
 
-// ── COMPREHENSIVE ERROR HANDLING ──────────────────────────────────────────────
+// -- COMPREHENSIVE ERROR HANDLING ----------------------------------------------
 function handleApiError(context, error) {
   var msg = error && error.message ? error.message : String(error);
   if(msg.includes('401') || msg.includes('invalid_api_key') || msg.includes('authentication')) {
-    addLog(context + ': Chiave API non valida — vai in Config per correggerla.', 'err');
+    addLog(context + ': Chiave API non valida -- vai in Config per correggerla.', 'err');
     showBanner('Chiave API non valida per ' + context + '. Vai in Config.');
   } else if(msg.includes('429') || msg.includes('rate_limit')) {
-    addLog(context + ': Limite richieste raggiunto — riprova tra qualche secondo.', 'warn');
+    addLog(context + ': Limite richieste raggiunto -- riprova tra qualche secondo.', 'warn');
   } else if(msg.includes('network') || msg.includes('fetch') || msg.includes('Failed to fetch')) {
-    addLog(context + ': Nessuna connessione — controlla internet.', 'warn');
+    addLog(context + ': Nessuna connessione -- controlla internet.', 'warn');
   } else {
     addLog(context + ': ' + msg.substring(0, 120), 'err');
   }
@@ -1073,9 +1144,9 @@ function runCoherenceCheck(newDoc) {
     } else if(reply.startsWith('INCOERENZA:')) {
       G.docs = G.docs.map(function(doc){return doc.id===newDoc.id ? Object.assign({},doc,{status:'warn'}) : doc;});
       renderDocList();
-      addLog('Documento caricato: ' + newDoc.name + ' — incoerenze rilevate', 'warn');
+      addLog('Documento caricato: ' + newDoc.name + ' -- incoerenze rilevate', 'warn');
       addMsg(reply.replace('INCOERENZA:','').trim());
-      showN('Incoerenza rilevata in "' + newDoc.name + '" — vedi pannello agente.');
+      showN('Incoerenza rilevata in "' + newDoc.name + '" -- vedi pannello agente.');
       beep();
     }
     saveDocs();
@@ -1093,8 +1164,8 @@ function goTo(scr) {
   });
   var ba=document.getElementById('btnArch'),bb=document.getElementById('btnBack'),ti=document.getElementById('timer');
   if(scr==='home'||scr==='cfg'){ba.style.display='none';document.getElementById('btnCfg').style.display='none';document.getElementById('btnLog').style.display='none';document.getElementById('modeSel').style.display='none';bb.style.display=scr==='cfg'?'inline-block':'none';if(scr==='cfg'){bb.textContent='Sessione';bb.onclick=function(){goTo('sess');};}ti.style.display='none';}
-  else if(scr==='sess'){ba.style.display='inline-block';document.getElementById('btnCfg').style.display='inline-block';document.getElementById('btnLog').style.display='inline-block';document.getElementById('modeSel').style.display='inline-block';bb.style.display='none';ti.style.display='inline';}
-  else if(scr==='arch'){ba.style.display='none';document.getElementById('btnCfg').style.display='inline-block';bb.style.display='inline-block';bb.textContent='Sessione';bb.onclick=function(){goTo('sess');};ti.style.display='none';renderArch();}
+  else if(scr==='sess'){ba.style.display='inline-block';document.getElementById('btnCfg').style.display='inline-block';document.getElementById('btnLog').style.display='inline-block';document.getElementById('modeSel').style.display='inline-block';bb.style.display='none';ti.style.display='inline';startSyncCheck();}
+  else if(scr==='arch'){ba.style.display='none';document.getElementById('btnCfg').style.display='inline-block';bb.style.display='inline-block';bb.textContent='Sessione';bb.onclick=function(){goTo('sess');};ti.style.display='none';renderArch();checkSyncStatus();}
 }
 
 // Avvia
@@ -1107,11 +1178,11 @@ function avvia() {
   if(akField && akField.value.trim()) G.anthKey = akField.value.trim();
 
   if(!G.groqKey || !G.groqKey.startsWith('gsk_')) {
-    alert('Chiave Groq non valida o mancante — vai in Config e inseriscila.');
+    alert('Chiave Groq non valida o mancante -- vai in Config e inseriscila.');
     return;
   }
   if(!G.anthKey || !G.anthKey.startsWith('sk-ant-')) {
-    alert('Chiave Anthropic non valida o mancante — vai in Config e inseriscila.');
+    alert('Chiave Anthropic non valida o mancante -- vai in Config e inseriscila.');
     return;
   }
 
@@ -1141,7 +1212,7 @@ function startRec() {
   if(G.recPaused){resumeRec();return;}
   sessionLogStart = logEntries.length; addLog('Sessione avviata', 'ok');
   if(!G.groqKey || !G.anthKey) {
-    sysMsg('Chiavi API mancanti — vai in Config (tasto in alto) per inserire le chiavi Groq e Anthropic.');
+    sysMsg('Chiavi API mancanti -- vai in Config (tasto in alto) per inserire le chiavi Groq e Anthropic.');
     return;
   }
   navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true}})
@@ -1171,9 +1242,17 @@ function pauseRec() {
   if(r&&r.state!=='inactive'){r.onstop=function(){if(ch.length>0)procChunk(ch);};r.stop();}
   setUI('pause');
   addLog('Registrazione in pausa.','info');
+  // Start pause timer -- warn after 5 minutes
+  G.pauseTimer = setTimeout(function(){
+    if(G.recPaused) {
+      addMsg('Sei in pausa da 5 minuti. Vuoi riprendere o terminare la sessione?');
+      beep();
+    }
+  }, 5 * 60 * 1000);
 }
 
 function resumeRec() {
+  clearTimeout(G.pauseTimer);
   G.recPaused=false; G.chunkSec=0; spawnRec(); setUI('rec');
   G.timerInt=setInterval(function(){G.totalSec++;document.getElementById('timer').textContent=fmt(G.totalSec);},1000);
   G.chunkInt=setInterval(function(){
@@ -1186,11 +1265,30 @@ function resumeRec() {
 }
 
 function stopRec() {
+  clearTimeout(G.pauseTimer);
   G.recActive=false;G.recPaused=false;
   clearInterval(G.timerInt);clearInterval(G.chunkInt);
   document.getElementById('cfill').style.width='0%';document.getElementById('ceta').textContent='--';
   var r=G.recorder,ch=G.recChunks.slice();
-  if(r&&r.state!=='inactive'){r.onstop=function(){if(ch.length>0)procChunk(ch);autoSave();};r.stop();}
+  if(r&&r.state!=='inactive'){
+    r.onstop=function(){
+      if(ch.length>0) procChunk(ch);
+      // Always save whatever we have, even if partial
+      if(G.txFull) autoSave();
+      else if(G.txChunks.length===0) {
+        // Nothing transcribed yet -- save empty session marker
+        var sess={id:G.sessId,date:new Date().toLocaleString('it-IT'),mode:G.mode,duration:G.totalSec,transcript:'(nessuna trascrizione -- sessione troppo breve)',summary:''};
+        var idx=G.sessions.findIndex(function(s){return s.id===G.sessId;});
+        if(idx>=0) G.sessions[idx]=sess; else G.sessions.push(sess);
+        try{localStorage.setItem('sn_sessions',JSON.stringify(G.sessions));}catch(e){}
+        sbSaveSession(sess);
+      }
+    };
+    r.stop();
+  } else {
+    // Recorder already stopped -- save directly
+    if(G.txFull) autoSave();
+  }
   if(G.stream)G.stream.getTracks().forEach(function(t){t.stop();});
   setUI('idle');addLog('Registrazione terminata. Transcript salvato in Archivio.','ok');
 }
@@ -1218,7 +1316,7 @@ function rollover() {
 function procChunk(chunks) {
   if(!chunks||chunks.length===0)return;
   var type=(chunks[0]&&chunks[0].type)?chunks[0].type:(G.mime||'audio/mp4');
-  var blob=new Blob(chunks,{type:type});if(blob.size<MIN_BLOB){addLog('Chunk audio scartato — troppo corto ('+blob.size+' bytes)','info');return;}
+  var blob=new Blob(chunks,{type:type});if(blob.size<MIN_BLOB){addLog('Chunk audio scartato -- troppo corto ('+blob.size+' bytes)','info');return;}
   var idx=G.txChunks.length;G.txChunks.push('');
   addTxPh(idx);document.getElementById('dot').className='dot proc';
   var ext=type.indexOf('mp4')>=0||type.indexOf('m4a')>=0?'m4a':type.indexOf('ogg')>=0?'ogg':'webm';
@@ -1240,9 +1338,10 @@ function buildSys() {
   if(G.mode==='setup') base=AGENT_CONFIG.setupSystemPrompt;
   else if(G.mode==='fase0') base=AGENT_CONFIG.fase0SystemPrompt;
   else if(G.mode==='fase1') base=AGENT_CONFIG.fase1SystemPrompt;
+  else if(G.mode==='fase2') base=AGENT_CONFIG.fase2SystemPrompt;
   else base=AGENT_CONFIG.setupSystemPrompt;
-  // Always include Fase 2 placeholder so agent knows it exists
-  base += '\n\n' + AGENT_CONFIG.fase2Placeholder;
+  // Always append F2 context so agent knows what's coming
+  if(G.mode!=='fase2') base += '\n\n[FASE 2 -- non ancora attiva. Durante questa sessione, se emerge qualcosa di rilevante per il monitoraggio futuro, segnalalo con RILEVANTE PER F2: [descrizione].]';
   var parts=[AGENT_CONFIG.projectDescription,base];
   // All loaded documents
   if(G.docs&&G.docs.length>0){
@@ -1259,7 +1358,7 @@ function claude(msg,hist) {
   document.getElementById('btnSend').disabled=true;
   var msgs=hist?G.history.concat([{role:'user',content:msg}]):[{role:'user',content:msg}];
   if(!G.anthKey) {
-    sysMsg('Chiave Anthropic mancante — vai in Config (tasto in alto) per inserirla.');
+    sysMsg('Chiave Anthropic mancante -- vai in Config (tasto in alto) per inserirla.');
     document.getElementById('btnSend').disabled=false;
     return Promise.resolve(null);
   }
@@ -1282,7 +1381,7 @@ function maybeInt(chunk) {
   var unansweredNote = '';
   if(unanswered.length > 0) {
     var uqList = unanswered.map(function(q,qi){ return (qi+1)+'. '+q.text; }).join(' | ');
-    unansweredNote = ' DOMANDE SENZA RISPOSTA: ' + uqList + ' — verifica se hanno risposta nel transcript, se no riformulale.';
+    unansweredNote = ' DOMANDE SENZA RISPOSTA: ' + uqList + ' -- verifica se hanno risposta nel transcript, se no riformulale.';
   }
 
   var historyNote = '';
@@ -1343,7 +1442,7 @@ function updateSum() {
   claude('Sintesi come indice verso il transcript - non una sostituzione. Decisioni, punti aperti, contesto. Sii conciso.\n\nTranscript:\n'+G.txFull,false).then(function(s){if(s){G.txSummary=s;autoSave();}});
 }
 
-// ── CUSTOM CONFIRM ────────────────────────────────────────────────────────────
+// -- CUSTOM CONFIRM ------------------------------------------------------------
 function showConfirm(title, msg, buttons) {
   // buttons: [{label, sub, style, action}]
   document.getElementById('confirmTitle').textContent = title;
@@ -1363,7 +1462,7 @@ function showConfirm(title, msg, buttons) {
   document.getElementById('confirmOv').classList.add('on');
 }
 
-// ── QUESTION BANNER ───────────────────────────────────────────────────────────
+// -- QUESTION BANNER -----------------------------------------------------------
 function showQBanner(text) {
   document.getElementById('qBannerText').textContent = text;
   document.getElementById('qBanner').classList.add('on');
@@ -1391,7 +1490,7 @@ function clearAgentPanel() {
   box.innerHTML = '<div class="msgs-empty" id="msgsEmpty"><div style="font-size:22px;opacity:.3">AI</div><div>Pannello pulito</div></div>';
 }
 
-// ── LOG ───────────────────────────────────────────────────────────────────────
+// -- LOG -----------------------------------------------------------------------
 var logEntries = [];
 var sessionLogStart = 0; // index of first entry in current session
 
@@ -1442,7 +1541,7 @@ function clearAllLog() {
 }
 
 function clearTxUI() {
-  // Clears only the visual panel — G.txFull and saved sessions remain intact
+  // Clears only the visual panel -- G.txFull and saved sessions remain intact
   var panel = document.getElementById('txPanel');
   var lbl = panel ? panel.querySelector('.plbl') : null;
   if(!panel) return;
@@ -1478,12 +1577,14 @@ function autoSave() {
   var idx=G.sessions.findIndex(function(s){return s.id===G.sessId;});
   if(idx>=0)G.sessions[idx]=sess;else G.sessions.push(sess);
   try{localStorage.setItem('sn_sessions',JSON.stringify(G.sessions));}catch(e){}
-  sbSaveSession(sess).then(function(ok){ if(!ok) addLog('Sessione salvata localmente — Supabase non raggiungibile, verra sincronizzata al prossimo login.', 'warn'); });
+  sbSaveSession(sess).then(function(ok){ if(!ok) addLog('Sessione salvata localmente -- Supabase non raggiungibile, verra sincronizzata al prossimo login.', 'warn'); });
 
+  // Update archive view if open
+  if(document.getElementById('sArch') && document.getElementById('sArch').classList.contains('on')) renderArch();
 }
 var selMode = false;
 
-// ── MODE MANAGEMENT ──────────────────────────────────────────────────────────
+// -- MODE MANAGEMENT ----------------------------------------------------------
 function changeMode(newMode) {
   if(newMode === 'fase2') {
     document.getElementById('modeSel').value = G.mode;
@@ -1499,7 +1600,7 @@ function changeMode(newMode) {
       banner.classList.add('on');
       setTimeout(function(){ banner.classList.remove('on'); }, 8000);
     }
-    // Always allow switch — gate informs, doesn't block
+    // Always allow switch -- gate informs, doesn't block
     G.mode = newMode;
     var sel = document.getElementById('modeSel');
     sel.className = 'mode-sel ' + newMode;
@@ -1546,7 +1647,7 @@ function checkGate(fromMode, toMode, cb) {
   }
 }
 
-// ── TEXT TO SPEECH ─────────────────────────────────────────────────────────────
+// -- TEXT TO SPEECH -------------------------------------------------------------
 var ttsUtterance = null;
 
 function speak(text) {
@@ -1568,7 +1669,7 @@ function stopTTS() {
   document.getElementById('ttsDot').classList.remove('speaking');
 }
 
-// ── SESSION RESTORE ────────────────────────────────────────────────────────────
+// -- SESSION RESTORE ------------------------------------------------------------
 function restoreSession(sessId) {
   var sess = G.sessions.find(function(s){ return s.id === sessId; });
   if(!sess) { addLog('Sessione non trovata', 'warn'); return; }
@@ -1581,7 +1682,7 @@ function restoreSession(sessId) {
   G.txChunks = [sess.transcript];
   document.getElementById('timer').textContent = fmt(G.totalSec);
   
-  // Render transcript on screen — show last 30min worth (approx 4500 words)
+  // Render transcript on screen -- show last 30min worth (approx 4500 words)
   var panel = document.getElementById('txPanel');
   var lbl = panel.querySelector('.plbl');
   panel.innerHTML = '';
@@ -1654,7 +1755,6 @@ function updateSelCount() {
 function deleteSelected() {
   var checked = document.querySelectorAll('.acard-cb:checked');
   if(checked.length === 0) { alert('Seleziona almeno un elemento.'); return; }
-  if(!confirm('Eliminare ' + checked.length + ' element' + (checked.length === 1 ? 'o' : 'i') + ' selezionat' + (checked.length === 1 ? 'o' : 'i') + '?')) return;
   var docIds = [], sessIds = [];
   checked.forEach(function(cb) {
     var id = parseInt(cb.getAttribute('data-id'));
@@ -1662,17 +1762,35 @@ function deleteSelected() {
     if(type === 'doc') docIds.push(id);
     else if(type === 'sess') sessIds.push(id);
   });
+  var count = docIds.length + sessIds.length;
+  showConfirm(
+    'Elimina ' + count + ' element' + (count===1?'o':'i'),
+    'Scegli dove eliminare i dati selezionati.',
+    [
+      { label: 'Elimina solo locale', sub: 'Supabase intatto -- i dati tornano al prossimo login.', style: 'warn', action: function(){ doDeleteSelected(docIds, sessIds, false); } },
+      { label: 'Elimina locale + Supabase', sub: 'Eliminazione definitiva dal database remoto.', style: 'danger', action: function(){ doDeleteSelected(docIds, sessIds, true); } },
+      { label: 'Annulla', sub: 'Non viene eliminato nulla.', style: 'neutral', action: null }
+    ]
+  );
+}
+
+function doDeleteSelected(docIds, sessIds, alsoSB) {
   if(docIds.length > 0) {
     G.docs = G.docs.filter(function(d){ return docIds.indexOf(d.id) < 0; });
     saveDocs();
+    if(alsoSB) docIds.forEach(function(id){ sbFetch('sn_documents?id=eq.'+id, 'DELETE'); });
   }
   if(sessIds.length > 0) {
     G.sessions = G.sessions.filter(function(s){ return sessIds.indexOf(s.id) < 0; });
-    try { localStorage.setItem('sn_sessions', JSON.stringify(G.sessions)); } catch(e) {}
+    try{localStorage.setItem('sn_sessions', JSON.stringify(G.sessions));}catch(e){}
+    if(alsoSB) sessIds.forEach(function(id){
+      sbFetch('sn_sessions?id=eq.'+id, 'DELETE');
+      sbFetch('sn_chunks?session_id=eq.'+id, 'DELETE');
+    });
   }
   selMode = false;
   renderArch();
-  sysMsg('Eliminati ' + (docIds.length + sessIds.length) + ' elementi.');
+  addLog('Eliminati ' + (docIds.length+sessIds.length) + ' elementi' + (alsoSB?' (locale+Supabase)':' (solo locale)') + '.', 'ok');
 }
 
 function exportAll() {
@@ -1701,8 +1819,8 @@ function clearAll() {
     'Cancella dati',
     'Scegli cosa vuoi eliminare. I dati cancellati non possono essere recuperati.',
     [
-      { label: 'Cancella solo locale', sub: 'Rimuove da questo dispositivo. Supabase intatto — i dati tornano al prossimo login.', style: 'warn', action: function() { doClearLocal(false); } },
-      { label: 'Cancella tutto — locale + Supabase', sub: 'Elimina definitivamente tutto, incluso il database remoto. Non recuperabile.', style: 'danger', action: function() { doClearLocal(true); } },
+      { label: 'Cancella solo locale', sub: 'Rimuove da questo dispositivo. Supabase intatto -- i dati tornano al prossimo login.', style: 'warn', action: function() { doClearLocal(false); } },
+      { label: 'Cancella tutto -- locale + Supabase', sub: 'Elimina definitivamente tutto, incluso il database remoto. Non recuperabile.', style: 'danger', action: function() { doClearLocal(true); } },
       { label: 'Annulla', sub: 'Non viene cancellato nulla.', style: 'neutral', action: null }
     ]
   );
@@ -1745,7 +1863,7 @@ function renderArch() {
     var cb='<input type="checkbox" class="acard-cb" data-id="'+s.id+'" data-type="sess" onchange="updateSelCount()">';
     var hdr='<div class="acard-hdr"><div class="acard-title">'+s.date+'</div><div class="acard-meta">'+fmt(s.duration||0)+' - '+s.transcript.split(' ').length+' parole</div></div>';
     var prev='<div class="acard-prev">'+esc(s.transcript.substring(0,160))+'</div>';
-    el.innerHTML='<input type="checkbox" class="acard-cb" data-id="'+s.id+'" data-type="sess" onchange="updateSelCount()">'+'<div class="acard-hdr"><div class="acard-title">'+ s.date +'</div><div class="acard-meta">'+fmt(s.duration||0)+' - '+s.transcript.split(' ').length+' parole</div></div><div class="acard-prev">'+esc(s.transcript.substring(0,160))+'</div><div class="acard-btns"><button class="btn-sm" onclick="restoreSession('+s.id+')">Riprendi</button><button class="btn-sm" onclick="viewModal(\'Transcript \'+s.date,s.id+\'T\')">Transcript</button><button class="btn-sm" onclick="viewModal(\'Sintesi \'+s.date,s.id+\'S\')">Sintesi</button><button class="btn-sm" onclick="delS('+s.id+')">Elimina</button></div>';ss.appendChild(el);
+    el.innerHTML='<input type="checkbox" class="acard-cb" data-id="'+s.id+'" data-type="sess" onchange="updateSelCount()">'+'<div class="acard-hdr"><div class="acard-title">'+ s.date +'</div><div class="acard-meta">'+fmt(s.duration||0)+' - '+s.transcript.split(' ').length+' parole</div></div><div class="acard-prev">'+esc(s.transcript.substring(0,160))+'</div><div class="acard-btns"><button class="btn-sm" onclick="restoreSession('+s.id+')">Riprendi</button><button class="btn-sm" onclick="viewModal(\'Transcript \'+s.date,s.id+\'T\')">Transcript</button><button class="btn-sm" onclick="viewModal(\'Sintesi \'+s.date,s.id+\'S\')">Sintesi</button><button class="btn-sm" onclick="clearTranscript('+s.id+')">Cancella trascrizione</button><button class="btn-sm" onclick="clearAgentHistory('+s.id+')">Cancella conv. agente</button><button class="btn-sm" onclick="delS('+s.id+')">Elimina</button></div>';ss.appendChild(el);
     el.innerHTML=cb+hdr+prev+btns;ss.appendChild(el);
   });}
   w.appendChild(ss);
@@ -1775,10 +1893,45 @@ function viewM(title,key) {
 }
 
 function delS(id) {
-  if(!confirm('Eliminare questa sessione?'))return;
-  G.sessions=G.sessions.filter(function(s){return s.id!==id;});
-  try{localStorage.setItem('sn_sessions',JSON.stringify(G.sessions));}catch(e){}
+  showConfirm(
+    'Elimina sessione',
+    'Scegli dove eliminare questa sessione.',
+    [
+      { label: 'Elimina solo locale', sub: 'Supabase intatto -- torna al prossimo login.', style: 'warn', action: function(){ doDelS(id, false); } },
+      { label: 'Elimina locale + Supabase', sub: 'Eliminazione definitiva.', style: 'danger', action: function(){ doDelS(id, true); } },
+      { label: 'Annulla', style: 'neutral', action: null }
+    ]
+  );
+}
+
+function doDelS(id, alsoSB) {
+  G.sessions = G.sessions.filter(function(s){ return s.id !== id; });
+  try{localStorage.setItem('sn_sessions', JSON.stringify(G.sessions));}catch(e){}
+  if(alsoSB) {
+    sbFetch('sn_sessions?id=eq.'+id, 'DELETE');
+    sbFetch('sn_chunks?session_id=eq.'+id, 'DELETE');
+  }
   renderArch();
+  addLog('Sessione eliminata' + (alsoSB?' (locale+Supabase)':' (solo locale)') + '.', 'ok');
+}
+
+function clearTranscript(id) {
+  var sess = G.sessions.find(function(s){ return s.id===id; });
+  if(!sess) return;
+  showConfirm('Cancella trascrizione', 'Cancellare la trascrizione di questa sessione?', [
+    { label: 'Cancella solo locale', style: 'warn', action: function(){ sess.transcript=''; sess.summary=''; try{localStorage.setItem('sn_sessions',JSON.stringify(G.sessions));}catch(e){} renderArch(); addLog('Trascrizione cancellata localmente.','ok'); } },
+    { label: 'Cancella locale + Supabase', style: 'danger', action: function(){ sess.transcript=''; sess.summary=''; try{localStorage.setItem('sn_sessions',JSON.stringify(G.sessions));}catch(e){} sbFetch('sn_sessions?id=eq.'+id,'PATCH',{transcript:'',summary:''}); sbFetch('sn_chunks?session_id=eq.'+id,'DELETE'); renderArch(); addLog('Trascrizione cancellata (locale+Supabase).','ok'); } },
+    { label: 'Annulla', style: 'neutral', action: null }
+  ]);
+}
+
+function clearAgentHistory(id) {
+  var sess = G.sessions.find(function(s){ return s.id===id; });
+  if(!sess) return;
+  showConfirm('Cancella conversazione agente', 'Cancellare le domande e risposte dell agente per questa sessione?', [
+    { label: 'Cancella', style: 'danger', action: function(){ if(sess.id===G.sessId){ G.history=[]; G.pendingQuestions=[]; clearAgentPanel(); } sess.agentHistory=null; try{localStorage.setItem('sn_sessions',JSON.stringify(G.sessions));}catch(e){} addLog('Conversazione agente cancellata.','ok'); } },
+    { label: 'Annulla', style: 'neutral', action: null }
+  ]);
 }
 
 // Notifications
@@ -1794,7 +1947,7 @@ function beep(){
     g1.gain.linearRampToValueAtTime(0.18,ctx.currentTime+0.02);
     g1.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.18);
     o1.start(ctx.currentTime);o1.stop(ctx.currentTime+0.18);
-    // Note 2: A5 (880Hz) — delayed
+    // Note 2: A5 (880Hz) -- delayed
     var o2=ctx.createOscillator();var g2=ctx.createGain();
     o2.connect(g2);g2.connect(ctx.destination);
     o2.type='sine';o2.frequency.value=880;
@@ -1837,7 +1990,7 @@ function addMsg(text) {
   }
   else{el.className='msg agent';el.innerHTML='<div class="mlbl">Agente</div>'+esc(text)+'<div class="mtime">'+now()+'</div>';}
   box.appendChild(el);box.scrollTop=box.scrollHeight;
-  // TTS for Fase 0 and Fase 1 — speak agent messages
+  // TTS for Fase 0 and Fase 1 -- speak agent messages
   if(AGENT_CONFIG.ttsEnabled && (G.mode==='fase0'||G.mode==='fase1')) {
     // Extract clean text without HTML tags
     var clean = text.replace(/<[^>]+>/g,'').replace('DOMANDA:','').replace('CONTESTO:','').trim();
