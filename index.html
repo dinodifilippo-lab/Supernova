@@ -517,8 +517,6 @@ async function searchForSynthesis(query, matchCount) {
 <!-- SYNC BANNER -->
 
   <div id="syncBanner" style="display:none;padding:12px 20px;font-size:12px;font-family:var(--fm);letter-spacing:.04em;text-align:center;flex-shrink:0;background:rgba(61,122,181,.12);border-bottom:1px solid rgba(61,122,181,.3);color:var(--a2)">
-  Sincronizzazione con Supabase in corso — attendi prima di iniziare...
-  <span id="syncSpinner" style="display:inline-block;animation:spin 1s linear infinite;margin-left:8px">↻</span>
   <span id="syncBannerMsg">Connessione a Supabase in corso -- attendi prima di iniziare...</span>
   <span id="syncSpinner" style="display:inline-block;animation:spin 1s linear infinite;margin-left:8px">&#8635;</span>
   <button id="syncRetryBtn" onclick="syncFromSupabase()" style="display:none;margin-left:12px;padding:3px 10px;border-radius:5px;border:1px solid currentColor;background:none;color:inherit;font-family:var(--fm);font-size:11px;cursor:pointer">Riprova</button>
