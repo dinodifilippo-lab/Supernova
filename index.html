@@ -560,7 +560,13 @@ async function searchForSynthesis(query, matchCount) {
         <input class="home-inp" type="text" id="loginUser" placeholder="Username" autocomplete="off" autocorrect="off" autocapitalize="none" onkeydown="if(event.key==='Enter')document.getElementById('loginPwd').focus()">
         <input class="home-inp" type="password" id="loginPwd" placeholder="Password" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
         <div class="home-err" id="loginErr"></div>
-        <button class="home-btn" onclick="doLogin()">Accedi</button>
+
+<div id="syncBanner" style="display:none;padding:10px 20px;font-size:12px;font-family:var(--fm);text-align:center;background:rgba(61,122,181,.15);border-bottom:1px solid rgba(61,122,181,.3);color:var(--a2)">
+  <span id="syncBannerMsg">Connessione a Supabase in corso -- attendi prima di iniziare...</span>
+  <span id="syncSpinner" style="display:inline-block;animation:spin 1s linear infinite;margin-left:8px">&#8635;</span>
+  <button id="syncRetryBtn" onclick="syncFromSupabase()" style="display:none;margin-left:12px;padding:3px 10px;border-radius:5px;border:1px solid currentColor;background:none;color:inherit;font-family:var(--fm);font-size:11px;cursor:pointer">Riprova</button>
+</div>
+     <button class="home-btn" onclick="doLogin()">Accedi</button>
       </div>
       <div class="home-version">v2026.03 · Progetto Super-NOVA</div>
     </div>
@@ -625,7 +631,6 @@ async function searchForSynthesis(query, matchCount) {
   <div class="chk-row" style="margin-top:8px"><input type="checkbox" id="ttsSetup" onchange="AGENT_CONFIG.ttsEnabled=this.checked"><label for="ttsSetup" style="font-size:12px;color:var(--dim);cursor:pointer">Attiva voce agente in Setup</label></div>
 </div>
 
-</div>
 
 <div id="cfgKeysNote" style="display:none;background:rgba(232,168,74,.1);border:1px solid rgba(232,168,74,.3);border-radius:8px;padding:12px;font-size:12px;color:var(--warn);text-align:center">Inserisci le chiavi API sopra per continuare</div>
 <button class="btn-primary" onclick="avvia()" id="btnAvviaConfig" style="display:none">Vai in Sessione</button>
@@ -637,11 +642,6 @@ async function searchForSynthesis(query, matchCount) {
 <!-- SESSIONE -->
 
 <div class="screen" id="sSess">
-  <div id="syncBanner" style="display:none;padding:10px 20px;font-size:12px;font-family:var(--fm);text-align:center;flex-shrink:0;background:rgba(61,122,181,.15);border-bottom:1px solid rgba(61,122,181,.3);color:var(--a2)">
-    <span id="syncBannerMsg">Connessione a Supabase in corso -- attendi prima di iniziare...</span>
-    <span id="syncSpinner" style="display:inline-block;animation:spin 1s linear infinite;margin-left:8px">&#8635;</span>
-    <button id="syncRetryBtn" onclick="syncFromSupabase()" style="display:none;margin-left:12px;padding:3px 10px;border-radius:5px;border:1px solid currentColor;background:none;color:inherit;font-family:var(--fm);font-size:11px;cursor:pointer">Riprova</button>
-  </div>
   <div class="sess-grid">
     <div class="tx-panel" id="txPanel">
       <div class="plbl">Trascrizione</div>
@@ -1915,11 +1915,7 @@ function renderArch() {
   if(G.sessions.length===0){ss.innerHTML+='<p class="arch-note">Nessuna sessione ancora.</p>';}
   else{G.sessions.slice().reverse().forEach(function(s){
     var el=document.createElement('div');el.className='acard';
-    var cb='<input type="checkbox" class="acard-cb" data-id="'+s.id+'" data-type="sess" onchange="updateSelCount()">';
-    var hdr='<div class="acard-hdr"><div class="acard-title">'+s.date+'</div><div class="acard-meta">'+fmt(s.duration||0)+' - '+s.transcript.split(' ').length+' parole</div></div>';
-    var prev='<div class="acard-prev">'+esc(s.transcript.substring(0,160))+'</div>';
     el.innerHTML='<input type="checkbox" class="acard-cb" data-id="'+s.id+'" data-type="sess" onchange="updateSelCount()">'+'<div class="acard-hdr"><div class="acard-title">'+ s.date +'</div><div class="acard-meta">'+fmt(s.duration||0)+' - '+s.transcript.split(' ').length+' parole</div></div><div class="acard-prev">'+esc(s.transcript.substring(0,160))+'</div><div class="acard-btns"><button class="btn-sm" onclick="restoreSession('+s.id+')">Riprendi</button><button class="btn-sm" onclick="viewModal(\'Transcript \'+s.date,s.id+\'T\')">Transcript</button><button class="btn-sm" onclick="viewModal(\'Sintesi \'+s.date,s.id+\'S\')">Sintesi</button><button class="btn-sm" onclick="clearTranscript('+s.id+')">Cancella trascrizione</button><button class="btn-sm" onclick="clearAgentHistory('+s.id+')">Cancella conv. agente</button><button class="btn-sm" onclick="delS('+s.id+')">Elimina</button></div>';ss.appendChild(el);
-    el.innerHTML=cb+hdr+prev+btns;ss.appendChild(el);
   });}
   w.appendChild(ss);
 }
