@@ -516,7 +516,7 @@ async function searchForSynthesis(query, matchCount) {
 
 <!-- SYNC BANNER -->
 
-  <div id="syncBanner" style="display:none;padding:12px 20px;font-size:12px;font-family:var(--fm);letter-spacing:.04em;text-align:center;flex-shrink:0;background:rgba(61,122,181,.12);border-bottom:1px solid rgba(61,122,181,.3);color:var(--a2)">
+  <div id="syncBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:500;padding:12px 20px;font-size:12px;font-family:var(--fm);letter-spacing:.04em;text-align:center;background:rgba(61,122,181,.95);border-bottom:1px solid rgba(61,122,181,.6);color:#fff;backdrop-filter:blur(4px)">
   <span id="syncBannerMsg">Connessione a Supabase in corso -- attendi prima di iniziare...</span>
   <span id="syncSpinner" style="display:inline-block;animation:spin 1s linear infinite;margin-left:8px">&#8635;</span>
   <button id="syncRetryBtn" onclick="syncFromSupabase()" style="display:none;margin-left:12px;padding:3px 10px;border-radius:5px;border:1px solid currentColor;background:none;color:inherit;font-family:var(--fm);font-size:11px;cursor:pointer">Riprova</button>
@@ -871,21 +871,21 @@ function setSyncBannerState(state, msg) {
   banner.style.display = 'block';
   if(msgEl) msgEl.textContent = msg || '';
   if(state === 'loading') {
-    banner.style.background = 'rgba(61,122,181,.12)';
-    banner.style.borderBottomColor = 'rgba(61,122,181,.3)';
-    banner.style.color = 'var(--a2)';
+    banner.style.background = 'rgba(61,122,181,.95)';
+    banner.style.borderBottomColor = 'rgba(61,122,181,.6)';
+    banner.style.color = '#fff';
     if(spinner) spinner.style.display = 'inline-block';
     if(retry) retry.style.display = 'none';
   } else if(state === 'slow') {
-    banner.style.background = 'rgba(232,168,74,.12)';
-    banner.style.borderBottomColor = 'rgba(232,168,74,.3)';
-    banner.style.color = 'var(--warn)';
+    banner.style.background = 'rgba(180,120,20,.95)';
+    banner.style.borderBottomColor = 'rgba(180,120,20,.6)';
+    banner.style.color = '#fff';
     if(spinner) spinner.style.display = 'inline-block';
     if(retry) retry.style.display = 'none';
   } else if(state === 'error') {
-    banner.style.background = 'rgba(217,95,95,.12)';
-    banner.style.borderBottomColor = 'rgba(217,95,95,.3)';
-    banner.style.color = 'var(--danger)';
+    banner.style.background = 'rgba(180,40,40,.95)';
+    banner.style.borderBottomColor = 'rgba(180,40,40,.6)';
+    banner.style.color = '#fff';
     if(spinner) spinner.style.display = 'none';
     if(retry) retry.style.display = 'inline-block';
   } else if(state === 'hidden') {
