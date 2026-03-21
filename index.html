@@ -492,6 +492,13 @@ async function searchForSynthesis(query, matchCount) {
   <button class="argo-speak-btn" onclick="argoSpeakNow()">Parla adesso</button>
 </div>
 
+<!-- GROQ ERROR BANNER -->
+
+<div id="groqErrBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:600;padding:12px 20px;font-size:13px;font-family:var(--fm);text-align:center;background:rgba(180,40,40,.97);color:#fff;font-weight:600">
+  <span id="groqErrMsg">Errore Groq -- chunk non trascritto</span>
+  <button onclick="document.getElementById('groqErrBanner').style.display='none'" style="margin-left:14px;padding:3px 10px;border-radius:5px;border:1px solid rgba(255,255,255,.5);background:none;color:#fff;font-family:var(--fm);font-size:12px;cursor:pointer">Chiudi</button>
+</div>
+
 <!-- QUESTION BANNER -->
 
 <div class="q-banner" id="qBanner">
@@ -547,6 +554,7 @@ async function searchForSynthesis(query, matchCount) {
 
 <div class="hdr">
   <div class="logo">Super<span>-NOVA</span></div>
+  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.43</div>
   <select class="mode-sel setup" id="modeSel" onchange="changeMode(this.value)">
     <option value="setup">Setup</option>
     <option value="fase0">Fase 0</option>
@@ -557,6 +565,7 @@ async function searchForSynthesis(query, matchCount) {
   <div class="hdr-r">
     <div class="dot" id="dot"></div>
     <div class="timer" id="timer">00:00</div>
+    <span id="chunkCounter" style="display:none;font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.04em">0 chunk</span>
     <button class="btn-h" id="btnArch" onclick="goTo('arch')">Archivio</button>
     <button class="btn-h" id="btnLog" onclick="openLog()" style="display:none">Log</button>
     <button class="btn-h" id="btnCfg" onclick="goTo('cfg')" style="display:none">Config</button>
@@ -709,32 +718,35 @@ async function searchForSynthesis(query, matchCount) {
         <div class="agent-lbl">Zed</div>
         <div style="display:flex;gap:6px">
           <button class="btn-ask" style="font-size:10px;padding:4px 8px;border-color:var(--border);color:var(--faint)" onclick="clearAgentPanel()" title="Pulisce i messaggi visibili">Pulisci</button>
-          <button class="btn-ask" onclick="ask('')">Chiedi ora</button>
-        </div>
-      </div>
-      <div class="msgs" id="msgs">
-        <div class="msgs-empty" id="msgsEmpty">
-          <div style="font-size:22px;opacity:.3">AI</div>
-          <div>L'agente interviene durante<br>la conversazione</div>
-        </div>
-      </div>
-      <div class="inp-row">
-        <input class="agent-inp" id="agentInp" placeholder="Fai una domanda..." onkeydown="if(event.key==='Enter'){ask(this.value);this.value=''}">
-        <button class="btn-send" id="btnSend" onclick="var v=document.getElementById('agentInp').value;ask(v);document.getElementById('agentInp').value=''">→</button>
-      </div>
+
+```
     </div>
-    <div class="gate-banner" id="gateBanner"></div>
-    <div class="ctrl-bar">
-      <button class="btn-c start" id="btnStart" onclick="startRec()">Avvia</button>
-      <button class="btn-c pause" id="btnPause" style="display:none">Pausa</button>
-      <button class="btn-c stop"  id="btnStop"  style="display:none" onclick="stopRec()">Stop</button>
-      <div class="cbar"><div class="cfill" id="cfill"></div></div>
-      <div class="ceta" id="ceta">--</div>
-      <button class="btn-sm" onclick="anon()">Anonimizza</button>
-      <button class="btn-sm" id="btnZedNow" onclick="triggerArgoNow()" style="background:rgba(74,95,175,.15);border-color:var(--setup);color:var(--setup)" title="Zed interviene subito">Zed, ora</button>
-      <button class="btn-sm" id="btnStopTTS" onclick="stopTTS()" style="display:none" title="Interrompi voce">Stop voce</button>
-      <button class="btn-sm" onclick="clearTxUI()" title="Pulisce lo schermo senza cancellare la trascrizione salvata">Pulisci schermo</button>
+  </div>
+  <div class="msgs" id="msgs">
+    <div class="msgs-empty" id="msgsEmpty">
+      <div style="font-size:22px;opacity:.3">AI</div>
+      <div>L'agente interviene durante<br>la conversazione</div>
     </div>
+  </div>
+  <div class="inp-row">
+    <input class="agent-inp" id="agentInp" placeholder="Fai una domanda..." onkeydown="if(event.key==='Enter'){ask(this.value);this.value=''}">
+    
+  </div>
+</div>
+<div class="gate-banner" id="gateBanner"></div>
+<div class="ctrl-bar">
+  <button class="btn-c start" id="btnStart" onclick="startRec()">Avvia</button>
+  <button class="btn-c pause" id="btnPause" style="display:none">Pausa</button>
+  <button class="btn-c stop"  id="btnStop"  style="display:none" onclick="stopRec()">Stop</button>
+  <div class="cbar"><div class="cfill" id="cfill"></div></div>
+  <div class="ceta" id="ceta">--</div>
+  <button class="btn-sm" onclick="anon()">Anonimizza</button>
+  <button class="btn-sm" id="btnZedNow" onclick="triggerArgoNow()" style="background:rgba(74,95,175,.15);border-color:var(--setup);color:var(--setup)" title="Zed parla adesso">Zed parla</button>
+  <button class="btn-sm" id="btnStopTTS" onclick="stopTTS()" style="display:none" title="Interrompi voce">Stop voce</button>
+  <button class="btn-sm" onclick="clearTxUI()" title="Pulisce lo schermo senza cancellare la trascrizione salvata">Pulisci schermo</button>
+</div>
+```
+
   </div>
 </div>
 
@@ -780,7 +792,8 @@ var G = {
   history:[], sessions:[], sessId:Date.now(),
   lastInt:0, chunksSinceInt:0, pendingQuestions:[], pauseTimer:null,
   argoWantsToSpeak:false, autoSaveTimer:null, checkpointData:null,
-  silentChunks:[], silentTxBuffer:''
+  silentChunks:[], silentTxBuffer:'',
+  chunkCount:0, chunkErrors:0, consecutiveErrors:0
 };
 
 var OVERLAP=4, MIN_BLOB=2000;
@@ -1354,6 +1367,10 @@ function startRec() {
       G.silentChunks = [];
       G.silentTxBuffer = '';
       G.argoWantsToSpeak = false;
+      G.chunkCount = 0;
+      G.chunkErrors = 0;
+      G.consecutiveErrors = 0;
+      updateChunkCounter();
       spawnRec();
       setUI('rec');
       // Main timer
@@ -1370,7 +1387,8 @@ function startRec() {
         if(G.chunkSec >= G.chunkDur) {
           G.chunkSec = 0;
           document.getElementById('cfill').style.width = '0%';
-          rolloverSilent(); // silent transcription for Argo
+          addLog('[Timer] Chunk ' + (G.chunkCount+1) + ' -- invio a Groq', 'info');
+          rolloverSilent();
         }
       }, 1000);
       // Auto-save checkpoint timer
@@ -1421,6 +1439,7 @@ function stopRec() {
   document.getElementById('cfill').style.width = '0%';
   document.getElementById('ceta').textContent = '--';
   hideArgoWants();
+  updateChunkCounter();
   var r = G.recorder, ch = G.recChunks.slice();
   addLog('Elaborazione finale in corso...', 'info');
   if(r && r.state !== 'inactive') {
@@ -1491,7 +1510,7 @@ function resetAutoSaveTimer() {
       if(existing >= 0) G.sessions[existing] = checkpointSess; else G.sessions.push(checkpointSess);
       try{localStorage.setItem('sn_sessions', JSON.stringify(G.sessions));}catch(e){}
       sbSaveSession(checkpointSess);
-      addLog('Checkpoint automatico (' + fmt(G.totalSec) + ')', 'ok');
+      addLog('[Checkpoint] Salvato automaticamente (' + fmt(G.totalSec) + ') -- ' + G.chunkCount + ' chunk processati', 'ok');
       resetAutoSaveTimer();
     }
   }, ms);
@@ -1528,7 +1547,6 @@ function rolloverSilent() {
 }
 
 async function procChunkSilent(chunks) {
-  addLog('Zed: chunk silente ricevuto (' + (chunks?chunks.length:0) + ' pezzi)', 'info');
   if(!chunks || chunks.length === 0) return;
   var type = (chunks[0] && chunks[0].type) ? chunks[0].type : (G.mime || 'audio/mp4');
   var blob = new Blob(chunks, {type: type});
@@ -1549,33 +1567,51 @@ async function procChunkSilent(chunks) {
     var raw = await res.text();
     var clean = (raw || '').trim();
     if(!clean) return;
+    // Success: update counter, reset error streak
+    G.chunkCount++;
+    G.consecutiveErrors = 0;
+    G.chunkErrors = 0;
+    updateChunkCounter();
+    addLog('[Chunk ' + G.chunkCount + '] Trascritto: "' + clean.substring(0,60) + (clean.length>60?'...':'"'), 'info');
     // Add to silent buffer
     G.silentTxBuffer += (G.silentTxBuffer ? ' ' : '') + clean;
     // Check for trigger phrase
     if(G.triggerPhrase && clean.toLowerCase().indexOf(G.triggerPhrase.toLowerCase()) >= 0) {
-      addLog('Trigger Zed rilevato: "' + G.triggerPhrase + '"', 'ok');
-      triggerArgoNow(); // Always ask fresh, not from pending buffer
+      addLog('[Chunk ' + G.chunkCount + '] Trigger "' + G.triggerPhrase + '" rilevato -- Zed interviene', 'ok');
+      triggerArgoNow();
       return;
     }
+    addLog('[Chunk ' + G.chunkCount + '] Valutazione Zed in corso...', 'info');
     // Let Argo evaluate silently
     argoEvaluateSilent(clean);
   } catch(e) {
-    // Silent fail - don't interrupt the session
+    G.chunkErrors++;
+    G.consecutiveErrors++;
+    showGroqError(e.message || 'Errore sconosciuto');
   }
 }
 
 function argoEvaluateSilent(newText) {
   if(!G.recActive || G.recPaused) return;
   var now = Date.now();
-  if(now - G.lastInt < AGENT_CONFIG.interventionCooldownSec * 1000) return;
+  var cooldownLeft = Math.round((AGENT_CONFIG.interventionCooldownSec * 1000 - (now - G.lastInt)) / 1000);
+  if(now - G.lastInt < AGENT_CONFIG.interventionCooldownSec * 1000) {
+    addLog('[Zed] In cooldown ancora ' + cooldownLeft + 's -- nessuna valutazione', 'info');
+    return;
+  }
   
   // Build context for evaluation
   var context = G.silentTxBuffer;
   var prompt = 'Nuovo testo ascoltato: "' + newText + '" | Buffer: ' + context.substring(0,800) + ' | Transcript: ' + (G.txFull||'(nessuno)').substring(0,1000) + ' | Hai un intervento utile? Rispondi SILENZIO se no, altrimenti max 3 frasi.';
   
+  addLog('[Zed] Chiedo a Claude se intervenire...', 'info');
   claude(prompt, false).then(function(r) {
-    if(!r || r.trim().toUpperCase() === 'SILENZIO') return;
-    // Argo wants to speak -- signal but don't speak yet
+    if(!r) { addLog('[Zed] Nessuna risposta da Claude', 'warn'); return; }
+    if(r.trim().toUpperCase() === 'SILENZIO') {
+      addLog('[Zed] Valutazione: niente da dire', 'info');
+      return;
+    }
+    addLog('[Zed] Vuole intervenire: "' + r.substring(0,80) + (r.length>80?'...':'"'), 'ok');
     G.argoWantsToSpeak = true;
     G.argoPendingResponse = r;
     showArgoWants();
@@ -1598,7 +1634,7 @@ function hideArgoWants() {
 }
 
 window.argoSpeakNow = function argoSpeakNow() {
-  addLog('Zed: argoSpeakNow chiamato', 'info');
+  addLog('[Zed] argoSpeakNow -- risposta pendente: ' + (G.argoPendingResponse ? 'si' : 'no'), 'info');
   hideArgoWants();
   if(G.argoPendingResponse) {
     var response = G.argoPendingResponse;
@@ -1618,7 +1654,7 @@ window.argoSpeakNow = function argoSpeakNow() {
 }
 
 window.triggerArgoNow = function triggerArgoNow() {
-  addLog('Zed: trigger manuale ricevuto', 'info');
+  addLog('[Zed] Trigger manuale -- chiedo a Claude di intervenire', 'info');
   var unanswered = G.pendingQuestions.filter(function(q){ return !q.answered; });
   var unansweredNote = unanswered.length > 0 ?
     ' DOMANDE SENZA RISPOSTA: ' + unanswered.map(function(q,i){ return (i+1)+'. '+q.text; }).join(' | ') : '';
@@ -1628,7 +1664,8 @@ window.triggerArgoNow = function triggerArgoNow() {
     '"' + unansweredNote + 
     '. Intervieni con un contributo utile. Max 3-4 frasi. Se non hai nulla di rilevante, dillo brevemente.';
   claude(p, false).then(function(r) {
-    if(!r) return;
+    if(!r) { addLog('[Zed] Nessuna risposta da Claude su trigger manuale', 'err'); return; }
+    addLog('[Zed] Risposta: "' + r.substring(0,80) + (r.length>80?'...':'"'), 'ok');
     G.lastInt = Date.now();
     G.chunksSinceInt = 0;
     hideArgoWants();
@@ -1909,6 +1946,53 @@ function autoSave() {
 }
 var selMode = false;
 
+// -- GROQ ERROR HANDLING & CHUNK COUNTER ------------------------------------------
+function showGroqError(msg) {
+  beepError();
+  var banner = document.getElementById('groqErrBanner');
+  var msgEl = document.getElementById('groqErrMsg');
+  if(msgEl) msgEl.textContent = 'Errore Groq: ' + msg;
+  if(banner) banner.style.display = 'block';
+  addLog('Errore chunk Groq: ' + msg, 'err');
+  // Auto-hide after 8s if not consecutive
+  if(G.consecutiveErrors < 3) {
+    setTimeout(function(){
+      if(banner) banner.style.display = 'none';
+    }, 8000);
+  }
+  // 3+ consecutive errors: pause recording
+  if(G.consecutiveErrors >= 3 && G.recActive && !G.recPaused) {
+    if(msgEl) msgEl.textContent = 'Groq non raggiungibile (3 errori consecutivi) -- registrazione in pausa. Verifica connessione.';
+    pauseRec();
+    addLog('Registrazione messa in pausa per errori Groq consecutivi.', 'err');
+  }
+}
+
+function beepError() {
+  try {
+    var ctx = new (window.AudioContext||window.webkitAudioContext)();
+    var o = ctx.createOscillator();
+    var g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value = 220;
+    g.gain.setValueAtTime(0.4, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+    o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.8);
+  } catch(e) {}
+}
+
+function updateChunkCounter() {
+  var el = document.getElementById('chunkCounter');
+  if(!el) return;
+  if(G.recActive) {
+    el.style.display = 'inline';
+    el.textContent = G.chunkCount + ' chunk';
+    el.style.color = G.chunkErrors > 0 ? 'var(--danger)' : 'var(--faint)';
+  } else {
+    el.style.display = 'none';
+  }
+}
+
 // -- CONFIG SECTIONS ----------------------------------------------------------
 function toggleSection(id) {
   var body = document.getElementById('body-' + id);
@@ -2004,6 +2088,7 @@ var ttsUtterance = null;
 
 function speak(text) {
   if(!AGENT_CONFIG.ttsEnabled) return;
+  addLog('[TTS] Avvio sintesi vocale: "' + text.substring(0,50) + (text.length>50?'...':'"'), 'info');
   if(!window.speechSynthesis) { addLog('Text-to-Speech non disponibile in questo browser.', 'warn'); return; }
   window.speechSynthesis.cancel();
   ttsUtterance = new SpeechSynthesisUtterance(text);
