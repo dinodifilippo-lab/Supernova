@@ -564,7 +564,7 @@ async function searchForSynthesis(query, matchCount) {
 
 <div class="hdr">
   <div class="logo">Super<span>-NOVA</span></div>
-  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.47</div>
+  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.48</div>
   <select class="mode-sel setup" id="modeSel" onchange="changeMode(this.value)">
     <option value="setup">Setup</option>
     <option value="fase0">Fase 0</option>
@@ -976,7 +976,9 @@ function setSyncBannerState(state, msg) {
 }
 
 async function syncFromSupabase() {
-  addLog('Sincronizzazione con Supabase...', 'info');
+  if(G._syncing) { addLog('[Sync] Gia in corso -- chiamata ignorata', 'warn'); return; }
+  G._syncing = true;
+  addLog('[Sync] Avvio sincronizzazione...', 'info');
   setSyncBannerState('loading', 'Connessione a Supabase in corso -- attendi prima di iniziare...');
   
   // After 8 seconds, update message to indicate slow connection (SB waking up)
@@ -992,14 +994,16 @@ async function syncFromSupabase() {
     ]);
   } catch(e) {
     clearTimeout(slowTimer);
+    G._syncing = false;
     setSyncBannerState('error', 'Supabase non raggiungibile -- ' + e.message + '. Riprova quando la connessione e disponibile.');
-    addLog('Sync fallita: ' + e.message, 'err');
+    addLog('[Sync] Fallita: ' + e.message, 'err');
     return;
   }
   clearTimeout(slowTimer);
   if(!data) {
+    G._syncing = false;
     setSyncBannerState('error', 'Supabase non ha risposto. Riprova.');
-    addLog('Sync fallita: nessun dato ricevuto.', 'err');
+    addLog('[Sync] Fallita: nessun dato ricevuto.', 'err');
     return;
   }
   
@@ -1027,7 +1031,8 @@ async function syncFromSupabase() {
   }
   
   setSyncBannerState('hidden');
-  addLog('Sincronizzazione completata: ' + merged.length + ' sessioni, ' + G.docs.length + ' documenti', 'ok');
+  G._syncing = false;
+  addLog('[Sync] Completata: ' + merged.length + ' sessioni, ' + G.docs.length + ' documenti', 'ok');
   checkSyncStatus();
   // Index historical sessions for RAG
   setTimeout(function(){ indexAllSessions(); }, 2000);
@@ -1378,6 +1383,8 @@ function startRec() {
       G._finalizing = false;
       G._triggerBusy = false;
       G._ttsActive = false;
+      G._syncing = false;
+      addLog('[Start] Nuova sessione ID: ' + G.sessId + ' | Sessioni totali: ' + G.sessions.length, 'info');
       // Sync ttsEnabled from checkbox state
       var ttsEl = document.getElementById('ttsSetup');
       if(ttsEl) AGENT_CONFIG.ttsEnabled = ttsEl.checked;
@@ -1434,10 +1441,11 @@ function pauseRec() {
   var r=G.recorder,ch=G.recChunks.slice();
   if(r&&r.state!=='inactive'){r.onstop=function(){if(ch.length>0)procChunk(ch);};r.stop();}
   setUI('pause');
-  addLog('Registrazione in pausa.','info');
+  addLog('[Pausa] Registrazione in pausa -- trascritto finora: ' + G.txFull.length + ' chars, ' + G.chunkCount + ' chunk', 'info');
   clearTimeout(G.autoSaveTimer);
   // Start pause timer -- warn after 5 minutes
   G.pauseTimer = setTimeout(function(){
+    addLog('[Pausa] Superati 5 minuti di pausa -- Zed viene avvisato', 'warn');
     if(G.recPaused) {
       addMsg('Sei in pausa da 5 minuti. Vuoi riprendere o terminare la sessione?');
       beep();
@@ -1502,7 +1510,8 @@ function finalizeSession() {
   if(G.txFull) {
     autoSave(); // autoSave resets _finalizing via sbSaveSession callback
   } else {
-    var sess = {id:G.sessId, date:new Date().toLocaleString('it-IT'), mode:G.mode,
+    addLog('[Stop] Nessun transcript -- sessione troppo breve (' + G.totalSec + 's)', 'warn');
+  var sess = {id:G.sessId, date:new Date().toLocaleString('it-IT'), mode:G.mode,
       duration:G.totalSec, transcript:'(sessione troppo breve)', summary:''};
     var idx = G.sessions.findIndex(function(s){ return s.id === G.sessId; });
     if(idx >= 0) G.sessions[idx] = sess; else G.sessions.push(sess);
@@ -1676,13 +1685,14 @@ window.argoSpeakNow = function argoSpeakNow() {
 }
 
 window.triggerArgoNow = function triggerArgoNow() {
-  if(G._triggerBusy) { addLog('[Zed] Trigger ignorato -- gia in esecuzione', 'info'); return; }
+  if(G._triggerBusy) { addLog('[Zed] Trigger ignorato -- risposta ancora in attesa da Claude', 'warn'); return; }
   G._triggerBusy = true;
   addLog('[Zed] Trigger manuale -- chiedo a Claude di intervenire', 'info');
   var unanswered = G.pendingQuestions.filter(function(q){ return !q.answered; });
   var unansweredNote = unanswered.length > 0 ?
     ' DOMANDE SENZA RISPOSTA: ' + unanswered.map(function(q,i){ return (i+1)+'. '+q.text; }).join(' | ') : '';
   var txContext = G.txFull || G.silentTxBuffer || '(nessun contenuto ancora)';
+  addLog('[Zed] Contesto disponibile: txFull=' + G.txFull.length + 'chars, silentBuf=' + G.silentTxBuffer.length + 'chars', 'info');
   var p = 'Sei invitato a intervenire adesso. Contesto recente: "' + 
     txContext.substring(Math.max(0, txContext.length - 800)) + 
     '"' + unansweredNote + 
@@ -1962,7 +1972,7 @@ function autoSave() {
   var idx=G.sessions.findIndex(function(s){return s.id===G.sessId;});
   if(idx>=0)G.sessions[idx]=sess;else G.sessions.push(sess);
   try{localStorage.setItem('sn_sessions',JSON.stringify(G.sessions));}catch(e){}
-  sbSaveSession(sess).then(function(ok){ if(!ok) addLog('Sessione salvata localmente -- Supabase non raggiungibile, verra sincronizzata al prossimo login.', 'warn'); });
+  sbSaveSession(sess).then(function(ok){ if(!ok) addLog('[AutoSave] Supabase non raggiungibile -- salvato solo in locale', 'warn'); else addLog('[AutoSave] Sessione ' + G.sessId + ' salvata (' + fmt(G.totalSec) + ', ' + G.txFull.length + ' chars)', 'ok'); });
 
   // Update archive view if open
   if(document.getElementById('sArch') && document.getElementById('sArch').classList.contains('on')) renderArch();
@@ -2061,10 +2071,11 @@ function changeMode(newMode) {
     G.mode = newMode;
     var sel = document.getElementById('modeSel');
     sel.className = 'mode-sel ' + newMode;
-    addLog('Modalita cambiata: ' + newMode.toUpperCase(), 'ok');
+    addLog('[Modalita] ' + G.mode.toUpperCase() + ' --> ' + newMode.toUpperCase() + ' | TTS era: ' + AGENT_CONFIG.ttsEnabled, 'ok');
     if(newMode !== 'setup') {
       // TTS active in Fase 0 and Fase 1
       AGENT_CONFIG.ttsEnabled = true;
+      addLog('[TTS] Attivato automaticamente per ' + newMode.toUpperCase(), 'ok');
       document.getElementById('ttsDot').style.display = 'inline-block';
       document.getElementById('btnStopTTS').style.display = 'inline-block';
     } else {
@@ -2319,6 +2330,7 @@ function clearAll() {
 }
 
 function doClearLocal(alsoSB) {
+  addLog('[Cancella] Avvio -- recActive=' + G.recActive + ', sessioni=' + G.sessions.length + ', alsoSB=' + alsoSB, 'warn');
   G.docs=[]; G.sessions=[]; G.txChunks=[]; G.txFull=''; G.txSummary=''; G.history=[]; G.pendingQuestions=[];
   G.sessId=Date.now(); G.lastInt=0; G.chunksSinceInt=0;
   try{ localStorage.removeItem('sn_docs'); localStorage.removeItem('sn_sessions'); localStorage.removeItem('sn_ctx'); }catch(e){}
@@ -2339,6 +2351,7 @@ function doClearLocal(alsoSB) {
 }
 
 function renderArch() {
+  addLog('[Archivio] Render: ' + G.sessions.length + ' sessioni, ' + G.docs.length + ' documenti', 'info');
   var w=document.getElementById('archContent');w.innerHTML='';
   // Documents section
   var cs=document.createElement('div');cs.innerHTML='<div class="sec-lbl">Documenti di contesto</div>';
