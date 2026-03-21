@@ -554,7 +554,7 @@ async function searchForSynthesis(query, matchCount) {
 
 <div class="hdr">
   <div class="logo">Super<span>-NOVA</span></div>
-  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.43</div>
+  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.44</div>
   <select class="mode-sel setup" id="modeSel" onchange="changeMode(this.value)">
     <option value="setup">Setup</option>
     <option value="fase0">Fase 0</option>
@@ -1364,6 +1364,12 @@ function startRec() {
       G.recActive = true;
       G.recPaused = false;
       G.chunkSec = 0;
+      G.sessId = Date.now(); // New session ID for each recording
+      G._finalizing = false;
+      G.txChunks = []; G.txFull = ''; G.txSummary = '';
+      G.history = []; G.pendingQuestions = [];
+      G.totalSec = 0; G.chunkSec = 0;
+      G.lastInt = 0; G.chunksSinceInt = 0;
       G.silentChunks = [];
       G.silentTxBuffer = '';
       G.argoWantsToSpeak = false;
@@ -1371,6 +1377,11 @@ function startRec() {
       G.chunkErrors = 0;
       G.consecutiveErrors = 0;
       updateChunkCounter();
+      // Clear transcript panel for new session
+      var txBox = document.getElementById('txBox');
+      if(txBox) txBox.innerHTML = '';
+      var dot = document.getElementById('dot');
+      if(dot) dot.className = 'dot';
       spawnRec();
       setUI('rec');
       // Main timer
@@ -1476,6 +1487,9 @@ function stopRec() {
 }
 
 function finalizeSession() {
+  if(G._finalizing) return; // Guard against double call
+  G._finalizing = true;
+  setTimeout(function(){ G._finalizing = false; }, 3000); // Reset after 3s
   if(G.txFull) {
     autoSave();
   } else {
@@ -1721,11 +1735,10 @@ function buildSys() {
 }
 
 function claude(msg,hist) {
-  document.getElementById('btnSend').disabled=true;
   var msgs=hist?G.history.concat([{role:'user',content:msg}]):[{role:'user',content:msg}];
   if(!G.anthKey) {
     sysMsg('Chiave Anthropic mancante -- vai in Config (tasto in alto) per inserirla.');
-    document.getElementById('btnSend').disabled=false;
+    
     return Promise.resolve(null);
   }
   return fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':G.anthKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:buildSys(),messages:msgs})})
@@ -1733,9 +1746,9 @@ function claude(msg,hist) {
     .then(function(data){
       var reply=(data.content&&data.content[0])?data.content[0].text:'';
       if(hist&&reply){G.history.push({role:'user',content:msg});G.history.push({role:'assistant',content:reply});if(G.history.length>40)G.history=G.history.slice(-40);}
-      document.getElementById('btnSend').disabled=false;return reply;
+      return reply;
     })
-    .catch(function(e){sysMsg('Errore agente: '+e.message);document.getElementById('btnSend').disabled=false;return null;});
+    .catch(function(e){sysMsg('Errore agente: '+e.message);return null;});
 }
 
 function maybeInt(chunk) {
