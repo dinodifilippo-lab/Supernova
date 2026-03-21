@@ -1426,7 +1426,24 @@ function stopRec() {
   if(r && r.state !== 'inactive') {
     r.onstop = function(){
       if(ch.length > 0) {
-        procChunk(ch);
+        var fallbackTimer = setTimeout(function(){
+          addLog('Timeout trascrizione finale -- salvataggio diretto', 'warn');
+          finalizeSession();
+        }, 15000);
+        var p = procChunk(ch);
+        if(p && p.then) {
+          p.then(function(){
+            clearTimeout(fallbackTimer);
+            finalizeSession();
+          }).catch(function(e){
+            clearTimeout(fallbackTimer);
+            addLog('Errore trascrizione finale: ' + (e && e.message ? e.message : e), 'warn');
+            finalizeSession();
+          });
+        } else {
+          clearTimeout(fallbackTimer);
+          finalizeSession();
+        }
       } else {
         finalizeSession();
       }
@@ -1455,6 +1472,11 @@ function finalizeSession() {
   G.argoWantsToSpeak = false;
   G.argoPendingResponse = null;
   addLog('Sessione salvata in Archivio.', 'ok');
+  renderArch();
+  if(document.getElementById('sArch') && !document.getElementById('sArch').classList.contains('on')) {
+    // If not in Archive, show notification
+    sysMsg('Sessione salvata in Archivio.');
+  }
 }
 
 function resetAutoSaveTimer() {
@@ -1506,6 +1528,7 @@ function rolloverSilent() {
 }
 
 async function procChunkSilent(chunks) {
+  addLog('Zed: chunk silente ricevuto (' + (chunks?chunks.length:0) + ' pezzi)', 'info');
   if(!chunks || chunks.length === 0) return;
   var type = (chunks[0] && chunks[0].type) ? chunks[0].type : (G.mime || 'audio/mp4');
   var blob = new Blob(chunks, {type: type});
@@ -1531,7 +1554,7 @@ async function procChunkSilent(chunks) {
     // Check for trigger phrase
     if(G.triggerPhrase && clean.toLowerCase().indexOf(G.triggerPhrase.toLowerCase()) >= 0) {
       addLog('Trigger Zed rilevato: "' + G.triggerPhrase + '"', 'ok');
-      argoSpeakNow();
+      triggerArgoNow(); // Always ask fresh, not from pending buffer
       return;
     }
     // Let Argo evaluate silently
@@ -1574,7 +1597,8 @@ function hideArgoWants() {
   G.argoWantsToSpeak = false;
 }
 
-function argoSpeakNow() {
+window.argoSpeakNow = function argoSpeakNow() {
+  addLog('Zed: argoSpeakNow chiamato', 'info');
   hideArgoWants();
   if(G.argoPendingResponse) {
     var response = G.argoPendingResponse;
@@ -1593,8 +1617,8 @@ function argoSpeakNow() {
   }
 }
 
-function triggerArgoNow() {
-  // Manual trigger: evaluate and speak immediately regardless of cooldown
+window.triggerArgoNow = function triggerArgoNow() {
+  addLog('Zed: trigger manuale ricevuto', 'info');
   var unanswered = G.pendingQuestions.filter(function(q){ return !q.answered; });
   var unansweredNote = unanswered.length > 0 ?
     ' DOMANDE SENZA RISPOSTA: ' + unanswered.map(function(q,i){ return (i+1)+'. '+q.text; }).join(' | ') : '';
@@ -1626,7 +1650,7 @@ function procChunk(chunks) {
   addTxPh(idx);document.getElementById('dot').className='dot proc';
   var ext=type.indexOf('mp4')>=0||type.indexOf('m4a')>=0?'m4a':type.indexOf('ogg')>=0?'ogg':'webm';
   var fd=new FormData();fd.append('file',blob,'a'+idx+'.'+ext);fd.append('model','whisper-large-v3-turbo');if(G.lang)fd.append('language',G.lang);fd.append('response_format','text');
-  fetch('https://api.groq.com/openai/v1/audio/transcriptions',{method:'POST',headers:{'Authorization':'Bearer '+G.groqKey},body:fd})
+  return fetch('https://api.groq.com/openai/v1/audio/transcriptions',{method:'POST',headers:{'Authorization':'Bearer '+G.groqKey},body:fd})
     .then(function(res){if(!res.ok)return res.json().then(function(e){throw new Error((e.error&&e.error.message)||('HTTP '+res.status));});return res.text();})
     .then(function(raw){
       var clean=(raw||'').trim();
