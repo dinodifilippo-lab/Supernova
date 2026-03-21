@@ -731,7 +731,7 @@ async function searchForSynthesis(query, matchCount) {
       <div class="cbar"><div class="cfill" id="cfill"></div></div>
       <div class="ceta" id="ceta">--</div>
       <button class="btn-sm" onclick="anon()">Anonimizza</button>
-      <button class="btn-sm" id="btnArgoNow" onclick="triggerArgoNow()" style="background:rgba(74,95,175,.15);border-color:var(--setup);color:var(--setup)" title="Zed interviene subito">Zed, ora</button>
+      <button class="btn-sm" id="btnZedNow" onclick="triggerArgoNow()" style="background:rgba(74,95,175,.15);border-color:var(--setup);color:var(--setup)" title="Zed interviene subito">Zed, ora</button>
       <button class="btn-sm" id="btnStopTTS" onclick="stopTTS()" style="display:none" title="Interrompi voce">Stop voce</button>
       <button class="btn-sm" onclick="clearTxUI()" title="Pulisce lo schermo senza cancellare la trascrizione salvata">Pulisci schermo</button>
     </div>
@@ -1598,7 +1598,11 @@ function triggerArgoNow() {
   var unanswered = G.pendingQuestions.filter(function(q){ return !q.answered; });
   var unansweredNote = unanswered.length > 0 ?
     ' DOMANDE SENZA RISPOSTA: ' + unanswered.map(function(q,i){ return (i+1)+'. '+q.text; }).join(' | ') : '';
-  var p = 'Buffer: "' + G.silentTxBuffer.substring(0,600) + '" | Transcript: ' + (G.txFull||'(nessuno)').substring(0,1000) + unansweredNote + ' | Intervieni adesso. Max 3-4 frasi.';
+  var txContext = G.txFull || G.silentTxBuffer || '(nessun contenuto ancora)';
+  var p = 'Sei invitato a intervenire adesso. Contesto recente: "' + 
+    txContext.substring(Math.max(0, txContext.length - 800)) + 
+    '"' + unansweredNote + 
+    '. Intervieni con un contributo utile. Max 3-4 frasi. Se non hai nulla di rilevante, dillo brevemente.';
   claude(p, false).then(function(r) {
     if(!r) return;
     G.lastInt = Date.now();
@@ -1606,7 +1610,7 @@ function triggerArgoNow() {
     hideArgoWants();
     addMsg(r);
     showN(r);
-    if(AGENT_CONFIG.ttsEnabled || G.mode !== 'setup') speak(r);
+    if(AGENT_CONFIG.ttsEnabled) speak(r);
     beep();
     G.history.push({role: 'user', content: '[Trigger manuale]'});
     G.history.push({role: 'assistant', content: r});
@@ -1933,9 +1937,11 @@ function changeMode(newMode) {
       document.getElementById('ttsDot').style.display = 'inline-block';
       document.getElementById('btnStopTTS').style.display = 'inline-block';
     } else {
-      AGENT_CONFIG.ttsEnabled = false;
-      document.getElementById('ttsDot').style.display = 'none';
-      document.getElementById('btnStopTTS').style.display = 'none';
+      // In Setup: respect the ttsSetup toggle in Config
+      var ttsSetupEl = document.getElementById('ttsSetup');
+      AGENT_CONFIG.ttsEnabled = ttsSetupEl ? ttsSetupEl.checked : false;
+      document.getElementById('ttsDot').style.display = AGENT_CONFIG.ttsEnabled ? 'inline-block' : 'none';
+      document.getElementById('btnStopTTS').style.display = AGENT_CONFIG.ttsEnabled ? 'inline-block' : 'none';
     }
   });
 }
@@ -2316,8 +2322,8 @@ function addMsg(text) {
   else{el.className='msg agent';el.innerHTML='<div class="mlbl">Agente</div>'+esc(text)+'<div class="mtime">'+now()+'</div>';}
   box.appendChild(el);box.scrollTop=box.scrollHeight;
   // TTS for Fase 0 and Fase 1 -- speak agent messages
-  if(AGENT_CONFIG.ttsEnabled && (G.mode==='fase0'||G.mode==='fase1')) {
-    // Extract clean text without HTML tags
+  // TTS: speak if enabled (ttsSetup toggle in Config controls this for Setup mode)
+  if(AGENT_CONFIG.ttsEnabled) {
     var clean = text.replace(/<[^>]+>/g,'').replace('DOMANDA:','').replace('CONTESTO:','').trim();
     speak(clean);
   // Add Zed intervention to transcript (so it's in the corpus for RAG)
