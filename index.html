@@ -487,8 +487,8 @@ async function searchForSynthesis(query, matchCount) {
 <!-- ARGO WANTS TO SPEAK BANNER -->
 
 <div class="argo-wants" id="argoWants">
-  <div class="argo-wants-lbl">Argo vuole intervenire</div>
-  <div id="argoWantsHint" style="font-size:12px;color:var(--dim)">Di' "Argo parla" oppure</div>
+  <div class="argo-wants-lbl">Zed vuole intervenire</div>
+  <div id="argoWantsHint" style="font-size:12px;color:var(--dim)">Di' "Zed parla" oppure</div>
   <button class="argo-speak-btn" onclick="argoSpeakNow()">Parla adesso</button>
 </div>
 
@@ -499,7 +499,6 @@ async function searchForSynthesis(query, matchCount) {
   <div class="q-banner-lbl">Domanda strutturata dell'agente</div>
   <div class="q-banner-text" id="qBannerText"></div>
   <div class="q-banner-actions">
-    <button class="btn-sm" id="qBannerCopy" onclick="copyQBanner()">Copia domanda</button>
     <button class="btn-sm" onclick="closeQBanner()">Chiudi</button>
   </div>
 </div>
@@ -641,7 +640,7 @@ async function searchForSynthesis(query, matchCount) {
         <option value="pt">Portugues</option>
       </select>
     </div>
-    <div>
+    <div style="margin-top:8px">
       <div class="lbl">Durata chunk (secondi)</div>
       <div style="display:flex;align-items:center;gap:10px">
         <input type="range" id="chunkDurSlider" min="10" max="180" step="5" value="30" style="flex:1" oninput="document.getElementById('chunkDurVal').textContent=this.value+'s';G.chunkDur=parseInt(this.value);">
@@ -649,16 +648,16 @@ async function searchForSynthesis(query, matchCount) {
       </div>
       <div style="font-size:11px;color:var(--faint);margin-top:2px">10s -- 3 minuti. Default: 30 secondi</div>
     </div>
-    <div>
+    <div style="margin-top:16px">
       <div class="lbl">Salvataggio automatico (minuti)</div>
       <div style="display:flex;align-items:center;gap:10px">
         <input type="range" id="autoSaveSlider" min="10" max="60" step="10" value="30" style="flex:1" oninput="document.getElementById('autoSaveVal').textContent=this.value+' min';G.autoSaveInterval=parseInt(this.value);resetAutoSaveTimer();">
         <span id="autoSaveVal" style="font-size:12px;color:var(--a2);min-width:40px">30 min</span>
       </div>
     </div>
-    <div>
-      <div class="lbl">Frase trigger per Argo</div>
-      <input class="inp" type="text" id="triggerPhrase" value="Argo parla" style="font-size:13px" oninput="G.triggerPhrase=this.value.trim().toLowerCase()">
+    <div style="margin-top:16px">
+      <div class="lbl">Frase trigger per Zed</div>
+      <input class="inp" type="text" id="triggerPhrase" value="Zed parla" style="font-size:13px" oninput="G.triggerPhrase=this.value.trim().toLowerCase()">
       <div style="font-size:11px;color:var(--faint);margin-top:2px">Quando pronunciata, Argo interviene immediatamente</div>
     </div>
   </div>
@@ -667,12 +666,12 @@ async function searchForSynthesis(query, matchCount) {
 <!-- SEZIONE: Argo -->
 <div class="card cfg-section" id="sec-argo">
   <div class="cfg-sec-hdr" onclick="toggleSection('argo')">
-    <span class="ctitle">Argo</span>
+    <span class="ctitle">Zed</span>
     <span class="cfg-chevron" id="chev-argo">v</span>
   </div>
   <div class="cfg-sec-body" id="body-argo" style="display:none">
-    <div class="chk-row"><input type="checkbox" id="ttsSetup" onchange="AGENT_CONFIG.ttsEnabled=this.checked"><label for="ttsSetup" style="font-size:12px;color:var(--dim);cursor:pointer">Attiva voce Argo in Setup</label></div>
-    <div style="margin-top:8px" class="chk-row"><input type="checkbox" id="argoAutoSpeak" onchange="G.argoAutoSpeak=this.checked" checked><label for="argoAutoSpeak" style="font-size:12px;color:var(--dim);cursor:pointer">Argo parla automaticamente quando trigger rilevato</label></div>
+    <div class="chk-row"><input type="checkbox" id="ttsSetup" onchange="AGENT_CONFIG.ttsEnabled=this.checked"><label for="ttsSetup" style="font-size:12px;color:var(--dim);cursor:pointer">Attiva voce Zed in Setup</label></div>
+
   </div>
 </div>
 
@@ -707,7 +706,7 @@ async function searchForSynthesis(query, matchCount) {
     </div>
     <div class="agent-panel">
       <div class="agent-hdr">
-        <div class="agent-lbl">Argo</div>
+        <div class="agent-lbl">Zed</div>
         <div style="display:flex;gap:6px">
           <button class="btn-ask" style="font-size:10px;padding:4px 8px;border-color:var(--border);color:var(--faint)" onclick="clearAgentPanel()" title="Pulisce i messaggi visibili">Pulisci</button>
           <button class="btn-ask" onclick="ask('')">Chiedi ora</button>
@@ -732,7 +731,7 @@ async function searchForSynthesis(query, matchCount) {
       <div class="cbar"><div class="cfill" id="cfill"></div></div>
       <div class="ceta" id="ceta">--</div>
       <button class="btn-sm" onclick="anon()">Anonimizza</button>
-      <button class="btn-sm" id="btnArgoNow" onclick="triggerArgoNow()" style="background:rgba(74,95,175,.15);border-color:var(--setup);color:var(--setup)" title="Argo interviene subito">Argo, ora</button>
+      <button class="btn-sm" id="btnArgoNow" onclick="triggerArgoNow()" style="background:rgba(74,95,175,.15);border-color:var(--setup);color:var(--setup)" title="Zed interviene subito">Zed, ora</button>
       <button class="btn-sm" id="btnStopTTS" onclick="stopTTS()" style="display:none" title="Interrompi voce">Stop voce</button>
       <button class="btn-sm" onclick="clearTxUI()" title="Pulisce lo schermo senza cancellare la trascrizione salvata">Pulisci schermo</button>
     </div>
@@ -771,7 +770,7 @@ async function searchForSynthesis(query, matchCount) {
 // State
 var G = {
   groqKey:'', anthKey:'', lang:'', chunkDur:30,
-  triggerPhrase:'Argo parla', autoSaveInterval:30,
+  triggerPhrase:'Zed parla', autoSaveInterval:30,
   chatCtx:'', docs:[], configured:false, mode:'setup',
   testMode:false, loggedIn:false,
   recActive:false, recPaused:false,
@@ -1531,7 +1530,7 @@ async function procChunkSilent(chunks) {
     G.silentTxBuffer += (G.silentTxBuffer ? ' ' : '') + clean;
     // Check for trigger phrase
     if(G.triggerPhrase && clean.toLowerCase().indexOf(G.triggerPhrase.toLowerCase()) >= 0) {
-      addLog('Trigger rilevato: "' + G.triggerPhrase + '"', 'ok');
+      addLog('Trigger Zed rilevato: "' + G.triggerPhrase + '"', 'ok');
       argoSpeakNow();
       return;
     }
@@ -1586,7 +1585,7 @@ function argoSpeakNow() {
     showN(response);
     if(AGENT_CONFIG.ttsEnabled || G.mode !== 'setup') speak(response);
     beep();
-    G.history.push({role: 'user', content: '[Argo ha parlato su invito]'});
+    G.history.push({role: 'user', content: '[Zed ha parlato su invito]'});
     G.history.push({role: 'assistant', content: response});
   } else {
     // No pending response -- ask Argo to speak now based on current context
@@ -1779,12 +1778,8 @@ function closeQBanner() {
 }
 
 function copyQBanner() {
-  var text = document.getElementById('qBannerText').textContent;
-  navigator.clipboard && navigator.clipboard.writeText(text).then(function(){
-    var btn = document.getElementById('qBannerCopy');
-    btn.textContent = 'Copiato!';
-    setTimeout(function(){ closeQBanner(); }, 800);
-  });
+  // No longer needed - Zed interventions go to transcript automatically
+  closeQBanner();
 }
 
 function clearAgentPanel() {
@@ -2194,7 +2189,7 @@ function renderArch() {
   if(G.sessions.length===0){ss.innerHTML+='<p class="arch-note">Nessuna sessione ancora.</p>';}
   else{G.sessions.slice().reverse().forEach(function(s){
     var el=document.createElement('div');el.className='acard';
-    el.innerHTML='<input type="checkbox" class="acard-cb" data-id="'+s.id+'" data-type="sess" onchange="updateSelCount()">'+'<div class="acard-hdr"><div class="acard-title">'+ s.date +'</div><div class="acard-meta">'+fmt(s.duration||0)+' - '+s.transcript.split(' ').length+' parole</div></div><div class="acard-prev">'+esc(s.transcript.substring(0,160))+'</div><div class="acard-btns"><button class="btn-sm" onclick="restoreSession('+s.id+')">Riprendi</button><button class="btn-sm" onclick="viewModal(\'Transcript \'+s.date,s.id+\'T\')">Transcript</button><button class="btn-sm" onclick="viewModal(\'Sintesi \'+s.date,s.id+\'S\')">Sintesi</button><button class="btn-sm" onclick="clearTranscript('+s.id+')">Cancella trascrizione</button><button class="btn-sm" onclick="clearAgentHistory('+s.id+')">Cancella conv. agente</button><button class="btn-sm" onclick="delS('+s.id+')">Elimina</button></div>';ss.appendChild(el);
+    el.innerHTML='<input type="checkbox" class="acard-cb" data-id="'+s.id+'" data-type="sess" onchange="updateSelCount()">'+'<div class="acard-hdr"><div class="acard-title">'+ s.date +'</div><div class="acard-meta">'+fmt(s.duration||0)+' - '+s.transcript.split(' ').length+' parole</div></div><div class="acard-prev">'+esc(s.transcript.substring(0,160))+'</div><div class="acard-btns"><button class="btn-sm" onclick="restoreSession('+s.id+')">Riprendi</button><button class="btn-sm" onclick="viewModal(\'Transcript \'+s.date,s.id+\'T\')">Transcript</button><button class="btn-sm" onclick="viewModal(\'Sintesi \'+s.date,s.id+\'S\')">Sintesi</button><button class="btn-sm" onclick="clearTranscript('+s.id+')">Cancella trascrizione</button><button class="btn-sm" onclick="clearAgentHistory('+s.id+')">Cancella conv. Zed</button><button class="btn-sm" onclick="delS('+s.id+')">Elimina</button></div>';ss.appendChild(el);
   });}
   w.appendChild(ss);
 }
@@ -2325,6 +2320,16 @@ function addMsg(text) {
     // Extract clean text without HTML tags
     var clean = text.replace(/<[^>]+>/g,'').replace('DOMANDA:','').replace('CONTESTO:','').trim();
     speak(clean);
+  // Add Zed intervention to transcript (so it's in the corpus for RAG)
+  if(G.recActive && !isQ) {
+    var zedEntry = '[Zed] ' + text.replace(/<[^>]+>/g,'').trim();
+    G.txFull += (G.txFull ? ' ' : '') + zedEntry;
+    G.silentTxBuffer += (G.silentTxBuffer ? ' ' : '') + zedEntry;
+  }
+  if(isQ && G.recActive) {
+    var qEntry = '[Zed domanda] ' + text.replace(/<[^>]+>/g,'').replace('DOMANDA:','').replace('CONTESTO:','').trim();
+    G.txFull += (G.txFull ? ' ' : '') + qEntry;
+  }
   }
 }
 function sysMsg(text){ addLog(text, 'info'); }
