@@ -564,7 +564,7 @@ async function searchForSynthesis(query, matchCount) {
 
 <div class="hdr">
   <div class="logo">Super<span>-NOVA</span></div>
-  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.45</div>
+  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.47</div>
   <select class="mode-sel setup" id="modeSel" onchange="changeMode(this.value)">
     <option value="setup">Setup</option>
     <option value="fase0">Fase 0</option>
@@ -662,8 +662,8 @@ async function searchForSynthesis(query, matchCount) {
     <div style="margin-top:8px">
       <div class="lbl">Durata chunk (secondi)</div>
       <div style="display:flex;align-items:center;gap:10px">
-        <input type="range" id="chunkDurSlider" min="10" max="180" step="5" value="30" style="flex:1" oninput="document.getElementById('chunkDurVal').textContent=this.value+'s';G.chunkDur=parseInt(this.value);">
-        <span id="chunkDurVal" style="font-size:12px;color:var(--a2);min-width:30px">30s</span>
+        <input type="range" id="chunkDurSlider" min="10" max="180" step="5" value="10" style="flex:1" oninput="document.getElementById('chunkDurVal').textContent=this.value+'s';G.chunkDur=parseInt(this.value);">
+        <span id="chunkDurVal" style="font-size:12px;color:var(--a2);min-width:30px">10s</span>
       </div>
       <div style="font-size:11px;color:var(--faint);margin-top:2px">10s -- 3 minuti. Default: 30 secondi</div>
     </div>
@@ -791,7 +791,7 @@ async function searchForSynthesis(query, matchCount) {
 
 // State
 var G = {
-  groqKey:'', anthKey:'', lang:'', chunkDur:30,
+  groqKey:'', anthKey:'', lang:'', chunkDur:10,
   triggerPhrase:'Zed parla', autoSaveInterval:30,
   chatCtx:'', docs:[], configured:false, mode:'setup',
   testMode:false, loggedIn:false,
@@ -1377,6 +1377,12 @@ function startRec() {
       G.sessId = Date.now(); // New session ID for each recording
       G._finalizing = false;
       G._triggerBusy = false;
+      G._ttsActive = false;
+      // Sync ttsEnabled from checkbox state
+      var ttsEl = document.getElementById('ttsSetup');
+      if(ttsEl) AGENT_CONFIG.ttsEnabled = ttsEl.checked;
+      addLog('[TTS] Stato vocale: ' + (AGENT_CONFIG.ttsEnabled ? 'attivo' : 'disattivo'), 'info');
+      G._triggerBusy = false;
       G.txChunks = []; G.txFull = ''; G.txSummary = '';
       G.history = []; G.pendingQuestions = [];
       G.totalSec = 0; G.chunkSec = 0;
@@ -1467,22 +1473,15 @@ function stopRec() {
   if(r && r.state !== 'inactive') {
     r.onstop = function(){
       if(ch.length > 0) {
-        var fallbackTimer = setTimeout(function(){
-          addLog('Timeout trascrizione finale -- salvataggio diretto', 'warn');
-          finalizeSession();
-        }, 15000);
         var p = procChunk(ch);
         if(p && p.then) {
           p.then(function(){
-            clearTimeout(fallbackTimer);
             finalizeSession();
           }).catch(function(e){
-            clearTimeout(fallbackTimer);
             addLog('Errore trascrizione finale: ' + (e && e.message ? e.message : e), 'warn');
             finalizeSession();
           });
         } else {
-          clearTimeout(fallbackTimer);
           finalizeSession();
         }
       } else {
@@ -1501,7 +1500,7 @@ function finalizeSession() {
   if(G._finalizing) { addLog('[Guard] finalizeSession ignorata -- gia in esecuzione', 'info'); return; }
   G._finalizing = true;
   if(G.txFull) {
-    autoSave();
+    autoSave(); // autoSave resets _finalizing via sbSaveSession callback
   } else {
     var sess = {id:G.sessId, date:new Date().toLocaleString('it-IT'), mode:G.mode,
       duration:G.totalSec, transcript:'(sessione troppo breve)', summary:''};
@@ -1716,7 +1715,7 @@ function procChunk(chunks) {
     .then(function(res){if(!res.ok)return res.json().then(function(e){throw new Error((e.error&&e.error.message)||('HTTP '+res.status));});return res.text();})
     .then(function(raw){
       var clean=(raw||'').trim();
-      if(clean){clean=dedup(G.txChunks[idx-1]||'',clean);G.txChunks[idx]=clean;G.txFull+=(G.txFull?' ':'')+clean;updTx(idx,clean);G.chunksSinceInt++;sbSaveChunkWithEmbedding(G.sessId,idx,clean);autoSave();maybeInt(clean);}
+      if(clean){clean=dedup(G.txChunks[idx-1]||'',clean);G.txChunks[idx]=clean;G.txFull+=(G.txFull?' ':'')+clean;updTx(idx,clean);G.chunksSinceInt++;autoSave();sbSaveChunkWithEmbedding(G.sessId,idx,clean);maybeInt(clean);}
       else{updTx(idx,null);}
       document.getElementById('dot').className=G.recActive&&!G.recPaused?'dot rec':'dot';
     })
@@ -2111,18 +2110,50 @@ function checkGate(fromMode, toMode, cb) {
 var ttsUtterance = null;
 
 function speak(text) {
-  if(!AGENT_CONFIG.ttsEnabled) return;
-  addLog('[TTS] Avvio sintesi vocale: "' + text.substring(0,50) + (text.length>50?'...':'"'), 'info');
-  if(!window.speechSynthesis) { addLog('Text-to-Speech non disponibile in questo browser.', 'warn'); return; }
+  if(!AGENT_CONFIG.ttsEnabled) { addLog('[TTS] Disattivo -- skip', 'info'); return; }
+  if(G._ttsActive) {
+    addLog('[TTS] Gia in corso -- reset e riprovo', 'info');
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    G._ttsActive = false;
+    clearTimeout(G._ttsTimeout);
+  }
+  if(!window.speechSynthesis) { addLog('[TTS] Non disponibile in questo browser', 'warn'); return; }
+  addLog('[TTS] Avvio: "' + text.substring(0,60) + (text.length>60?'...':'"')+' | ttsEnabled:'+AGENT_CONFIG.ttsEnabled, 'info');
   window.speechSynthesis.cancel();
+  G._ttsActive = true;
+  // Safety timeout: if TTS hasn't finished in 60s, reset flag
+  G._ttsTimeout = setTimeout(function(){
+    addLog('[TTS] Timeout sicurezza -- reset flag', 'warn');
+    G._ttsActive = false;
+  }, 60000);
   ttsUtterance = new SpeechSynthesisUtterance(text);
   ttsUtterance.lang = 'it-IT';
   ttsUtterance.rate = 0.95;
   ttsUtterance.pitch = 1;
   var dot = document.getElementById('ttsDot');
-  ttsUtterance.onstart = function(){ dot.classList.add('speaking'); };
-  ttsUtterance.onend = function(){ dot.classList.remove('speaking'); };
-  window.speechSynthesis.speak(ttsUtterance);
+  ttsUtterance.onstart = function(){
+    addLog('[TTS] Sintesi avviata', 'ok');
+    if(dot) dot.classList.add('speaking');
+  };
+  ttsUtterance.onend = function(){
+    addLog('[TTS] Completato', 'ok');
+    clearTimeout(G._ttsTimeout);
+    G._ttsActive = false;
+    if(dot) dot.classList.remove('speaking');
+  };
+  ttsUtterance.onerror = function(e){
+    addLog('[TTS] Errore: ' + (e.error||'sconosciuto'), 'err');
+    clearTimeout(G._ttsTimeout);
+    G._ttsActive = false;
+    if(dot) dot.classList.remove('speaking');
+  };
+  try {
+    window.speechSynthesis.speak(ttsUtterance);
+    addLog('[TTS] speak() chiamato', 'info');
+  } catch(e) {
+    addLog('[TTS] Eccezione: ' + e.message, 'err');
+    G._ttsActive = false;
+  }
 }
 
 function stopTTS() {
@@ -2445,8 +2476,7 @@ function addMsg(text) {
   var isQ=text.indexOf('DOMANDA:')>=0&&text.indexOf('CONTESTO:')>=0;
   if(isQ){
     el.className='msg quest';
-    el.innerHTML='<div class="mlbl q">Domanda strutturata</div>'+esc(text).replace('DOMANDA:','<strong>DOMANDA:</strong>').replace('CONTESTO:','<strong>CONTESTO:</strong>')+'<div class="mtime">'+now()+'</div><button class="btn-copy" onclick="var t=this.parentElement.textContent.replace(\'Copia\',\'\').trim();navigator.clipboard&&navigator.clipboard.writeText(t).then(function(){});">Copia</button>';
-    // Show prominent banner + sound
+    el.innerHTML='<div class="mlbl q">Domanda strutturata</div>'+esc(text).replace('DOMANDA:','<strong>DOMANDA:</strong>').replace('CONTESTO:','<strong>CONTESTO:</strong>')+'<div class="mtime">'+now()+'</div>';
     showQBanner(text);
     beep();
     // Track as pending question
