@@ -360,6 +360,16 @@ async function generateEmbedding(text) {
 
 // -- RAG: Save chunk with embedding -----------------------------------------
 async function sbSaveChunkWithEmbedding(sessId, idx, text) {
+  // Ensure session exists in SB before saving chunk (avoids FK violation)
+  if(idx === 0 || idx === 1) {
+    var sess = G.sessions.find(function(s){ return s.id === sessId; });
+    if(sess) await sbFetchSafe('sn_sessions?on_conflict=id', 'POST', {
+      id: sess.id, updated_at: new Date().toISOString(),
+      mode: sess.mode || G.mode, duration_sec: sess.duration || G.totalSec,
+      transcript: sess.transcript || '', summary: sess.summary || '',
+      word_count: (sess.transcript || '').split(' ').length
+    });
+  }
   // First save the chunk
   var res = await sbFetchSafe('sn_chunks', 'POST', {
     session_id: sessId,
@@ -554,7 +564,7 @@ async function searchForSynthesis(query, matchCount) {
 
 <div class="hdr">
   <div class="logo">Super<span>-NOVA</span></div>
-  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.44</div>
+  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.45</div>
   <select class="mode-sel setup" id="modeSel" onchange="changeMode(this.value)">
     <option value="setup">Setup</option>
     <option value="fase0">Fase 0</option>
@@ -1366,6 +1376,7 @@ function startRec() {
       G.chunkSec = 0;
       G.sessId = Date.now(); // New session ID for each recording
       G._finalizing = false;
+      G._triggerBusy = false;
       G.txChunks = []; G.txFull = ''; G.txSummary = '';
       G.history = []; G.pendingQuestions = [];
       G.totalSec = 0; G.chunkSec = 0;
@@ -1487,9 +1498,8 @@ function stopRec() {
 }
 
 function finalizeSession() {
-  if(G._finalizing) return; // Guard against double call
+  if(G._finalizing) { addLog('[Guard] finalizeSession ignorata -- gia in esecuzione', 'info'); return; }
   G._finalizing = true;
-  setTimeout(function(){ G._finalizing = false; }, 3000); // Reset after 3s
   if(G.txFull) {
     autoSave();
   } else {
@@ -1505,9 +1515,9 @@ function finalizeSession() {
   G.argoWantsToSpeak = false;
   G.argoPendingResponse = null;
   addLog('Sessione salvata in Archivio.', 'ok');
+  G._finalizing = false;
   renderArch();
   if(document.getElementById('sArch') && !document.getElementById('sArch').classList.contains('on')) {
-    // If not in Archive, show notification
     sysMsg('Sessione salvata in Archivio.');
   }
 }
@@ -1655,9 +1665,8 @@ window.argoSpeakNow = function argoSpeakNow() {
     G.argoPendingResponse = null;
     G.lastInt = Date.now();
     G.chunksSinceInt = 0;
-    addMsg(response);
+    addMsg(response); // addMsg handles TTS internally
     showN(response);
-    if(AGENT_CONFIG.ttsEnabled || G.mode !== 'setup') speak(response);
     beep();
     G.history.push({role: 'user', content: '[Zed ha parlato su invito]'});
     G.history.push({role: 'assistant', content: response});
@@ -1668,6 +1677,8 @@ window.argoSpeakNow = function argoSpeakNow() {
 }
 
 window.triggerArgoNow = function triggerArgoNow() {
+  if(G._triggerBusy) { addLog('[Zed] Trigger ignorato -- gia in esecuzione', 'info'); return; }
+  G._triggerBusy = true;
   addLog('[Zed] Trigger manuale -- chiedo a Claude di intervenire', 'info');
   var unanswered = G.pendingQuestions.filter(function(q){ return !q.answered; });
   var unansweredNote = unanswered.length > 0 ?
@@ -1678,17 +1689,17 @@ window.triggerArgoNow = function triggerArgoNow() {
     '"' + unansweredNote + 
     '. Intervieni con un contributo utile. Max 3-4 frasi. Se non hai nulla di rilevante, dillo brevemente.';
   claude(p, false).then(function(r) {
-    if(!r) { addLog('[Zed] Nessuna risposta da Claude su trigger manuale', 'err'); return; }
+    if(!r) { addLog('[Zed] Nessuna risposta da Claude su trigger manuale', 'err'); G._triggerBusy = false; return; }
     addLog('[Zed] Risposta: "' + r.substring(0,80) + (r.length>80?'...':'"'), 'ok');
     G.lastInt = Date.now();
     G.chunksSinceInt = 0;
     hideArgoWants();
-    addMsg(r);
+    addMsg(r); // addMsg handles TTS internally
     showN(r);
-    if(AGENT_CONFIG.ttsEnabled) speak(r);
     beep();
     G.history.push({role: 'user', content: '[Trigger manuale]'});
     G.history.push({role: 'assistant', content: r});
+    G._triggerBusy = false;
   });
 }
 
