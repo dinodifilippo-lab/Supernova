@@ -52,6 +52,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--ff);font-weight:30
 .btn-primary{width:100%;background:var(--a1);border:none;border-radius:8px;padding:14px;color:white;font-family:var(--ff);font-size:15px;font-weight:500;cursor:pointer;transition:background .2s}
 .btn-primary:hover{background:var(--a2)}
 .cfg-note{font-size:11px;color:var(--faint);text-align:center;max-width:460px;line-height:1.6}
+.cfg-sec-hdr{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:2px 0;user-select:none}
+.cfg-sec-hdr:hover .ctitle{color:var(--a1)}
+.cfg-chevron{font-size:14px;color:var(--faint);transition:transform .2s}
+.cfg-sec-body{padding-top:12px;display:flex;flex-direction:column;gap:12px}
+.argo-wants{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:300;background:var(--s1);border:2px solid var(--setup);border-radius:12px;padding:14px 20px;font-size:14px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.5);min-width:260px}
+.argo-wants.on{display:block;animation:sd .3s ease}
+.argo-wants-lbl{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--setup);margin-bottom:6px;font-family:var(--fm)}
+.argo-speak-btn{margin-top:10px;padding:8px 16px;background:var(--setup);color:#fff;border:none;border-radius:6px;font-family:var(--ff);font-size:13px;cursor:pointer;width:100%}
+.argo-speak-btn:active{opacity:.8}
 /* HOME */
 .home-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;min-height:0}
 .home-bg{position:absolute;inset:0;z-index:0;background:
@@ -475,6 +484,14 @@ async function searchForSynthesis(query, matchCount) {
   </div>
 </div>
 
+<!-- ARGO WANTS TO SPEAK BANNER -->
+
+<div class="argo-wants" id="argoWants">
+  <div class="argo-wants-lbl">Argo vuole intervenire</div>
+  <div id="argoWantsHint" style="font-size:12px;color:var(--dim)">Di' "Argo parla" oppure</div>
+  <button class="argo-speak-btn" onclick="argoSpeakNow()">Parla adesso</button>
+</div>
+
 <!-- QUESTION BANNER -->
 
 <div class="q-banner" id="qBanner">
@@ -579,60 +596,96 @@ async function searchForSynthesis(query, matchCount) {
 
 <div class="screen" id="sCfg">
   <div class="cfg-s">
-    <div class="card">
-      <div class="ctitle">Chiavi API</div>
-      <div class="csub">Le chiavi vengono salvate nel browser se spunti Ricorda.</div>
-      <div>
-        <div class="lbl">Groq (trascrizione audio)</div>
-        <input class="inp" type="password" id="groqKey" placeholder="gsk_..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-      </div>
-      <div>
-        <div class="lbl">Anthropic (agente AI)</div>
-        <input class="inp" type="password" id="anthKey" placeholder="sk-ant-..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-      </div>
-      <div class="chk">
-        <input type="checkbox" id="remKeys">
-        <label for="remKeys">Ricorda su questo dispositivo</label>
-        <button class="btn-forget" id="btnForget" onclick="forgetKeys()">Dimentica</button>
-      </div>
-      <button class="btn-sm" onclick="resetCredentials()" style="font-size:11px;color:var(--faint);align-self:flex-start;margin-top:4px">Reimposta credenziali di accesso</button>
-    </div>
 
 ```
-<div class="card">
-  <div class="ctitle">Impostazioni sessione</div>
-  <div>
-    <div class="lbl">Lingua trascrizione</div>
-    <select class="sel" id="langSel">
-      <option value="">Rileva automaticamente</option>
-      <option value="it">Italiano</option>
-      <option value="en">English</option>
-      <option value="fr">Francais</option>
-      <option value="de">Deutsch</option>
-      <option value="es">Espanol</option>
-      <option value="pt">Portugues</option>
-    </select>
+<!-- SEZIONE: Chiavi API -->
+<div class="card cfg-section" id="sec-api">
+  <div class="cfg-sec-hdr" onclick="toggleSection('api')">
+    <span class="ctitle">Chiavi API</span>
+    <span class="cfg-chevron" id="chev-api">v</span>
   </div>
-  <div>
-    <div class="lbl">Durata chunk audio</div>
-    <select class="sel" id="chunkDur">
-      <option value="60">1 minuto</option>
-      <option value="120" selected>2 minuti (raccomandato)</option>
-      <option value="180">3 minuti</option>
-    </select>
+  <div class="cfg-sec-body" id="body-api" style="display:none">
+    <div class="csub">Le chiavi vengono salvate nel browser se spunti Ricorda.</div>
+    <div>
+      <div class="lbl">Groq (trascrizione audio)</div>
+      <input class="inp" type="password" id="groqKey" placeholder="gsk_..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+    </div>
+    <div>
+      <div class="lbl">Anthropic (Argo AI)</div>
+      <input class="inp" type="password" id="anthKey" placeholder="sk-ant-..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+    </div>
+    <div class="chk">
+      <input type="checkbox" id="remKeys">
+      <label for="remKeys">Ricorda su questo dispositivo</label>
+      <button class="btn-forget" id="btnForget" onclick="forgetKeys()">Dimentica</button>
+    </div>
   </div>
-  <div>
-    <div class="lbl">Frequenza interventi agente</div>
-    <select class="sel" id="cooldownSel">
-      <option value="60">Alta — ogni ~1 minuto (riunioni brevi e dense)</option>
-      <option value="90" selected>Media — ogni ~90 secondi (default)</option>
-      <option value="180">Bassa — ogni ~3 minuti (riunioni lunghe)</option>
-      <option value="300">Minima — ogni ~5 minuti (solo punti critici)</option>
-    </select>
-  </div>
-  <div class="chk-row" style="margin-top:8px"><input type="checkbox" id="ttsSetup" onchange="AGENT_CONFIG.ttsEnabled=this.checked"><label for="ttsSetup" style="font-size:12px;color:var(--dim);cursor:pointer">Attiva voce agente in Setup</label></div>
 </div>
 
+<!-- SEZIONE: Registrazione -->
+<div class="card cfg-section" id="sec-rec">
+  <div class="cfg-sec-hdr" onclick="toggleSection('rec')">
+    <span class="ctitle">Registrazione</span>
+    <span class="cfg-chevron" id="chev-rec">v</span>
+  </div>
+  <div class="cfg-sec-body" id="body-rec" style="display:none">
+    <div>
+      <div class="lbl">Lingua trascrizione</div>
+      <select class="sel" id="langSel">
+        <option value="">Rileva automaticamente</option>
+        <option value="it">Italiano</option>
+        <option value="en">English</option>
+        <option value="fr">Francais</option>
+        <option value="de">Deutsch</option>
+        <option value="es">Espanol</option>
+        <option value="pt">Portugues</option>
+      </select>
+    </div>
+    <div>
+      <div class="lbl">Durata chunk (secondi)</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="range" id="chunkDurSlider" min="10" max="180" step="5" value="30" style="flex:1" oninput="document.getElementById('chunkDurVal').textContent=this.value+'s';G.chunkDur=parseInt(this.value);">
+        <span id="chunkDurVal" style="font-size:12px;color:var(--a2);min-width:30px">30s</span>
+      </div>
+      <div style="font-size:11px;color:var(--faint);margin-top:2px">10s -- 3 minuti. Default: 30 secondi</div>
+    </div>
+    <div>
+      <div class="lbl">Salvataggio automatico (minuti)</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="range" id="autoSaveSlider" min="10" max="60" step="10" value="30" style="flex:1" oninput="document.getElementById('autoSaveVal').textContent=this.value+' min';G.autoSaveInterval=parseInt(this.value);resetAutoSaveTimer();">
+        <span id="autoSaveVal" style="font-size:12px;color:var(--a2);min-width:40px">30 min</span>
+      </div>
+    </div>
+    <div>
+      <div class="lbl">Frase trigger per Argo</div>
+      <input class="inp" type="text" id="triggerPhrase" value="Argo parla" style="font-size:13px" oninput="G.triggerPhrase=this.value.trim().toLowerCase()">
+      <div style="font-size:11px;color:var(--faint);margin-top:2px">Quando pronunciata, Argo interviene immediatamente</div>
+    </div>
+  </div>
+</div>
+
+<!-- SEZIONE: Argo -->
+<div class="card cfg-section" id="sec-argo">
+  <div class="cfg-sec-hdr" onclick="toggleSection('argo')">
+    <span class="ctitle">Argo</span>
+    <span class="cfg-chevron" id="chev-argo">v</span>
+  </div>
+  <div class="cfg-sec-body" id="body-argo" style="display:none">
+    <div class="chk-row"><input type="checkbox" id="ttsSetup" onchange="AGENT_CONFIG.ttsEnabled=this.checked"><label for="ttsSetup" style="font-size:12px;color:var(--dim);cursor:pointer">Attiva voce Argo in Setup</label></div>
+    <div style="margin-top:8px" class="chk-row"><input type="checkbox" id="argoAutoSpeak" onchange="G.argoAutoSpeak=this.checked" checked><label for="argoAutoSpeak" style="font-size:12px;color:var(--dim);cursor:pointer">Argo parla automaticamente quando trigger rilevato</label></div>
+  </div>
+</div>
+
+<!-- SEZIONE: Account -->
+<div class="card cfg-section" id="sec-account">
+  <div class="cfg-sec-hdr" onclick="toggleSection('account')">
+    <span class="ctitle">Account</span>
+    <span class="cfg-chevron" id="chev-account">v</span>
+  </div>
+  <div class="cfg-sec-body" id="body-account" style="display:none">
+    <button class="btn-sm" onclick="resetCredentials()" style="font-size:11px;color:var(--faint)">Reimposta credenziali di accesso</button>
+  </div>
+</div>
 
 <div id="cfgKeysNote" style="display:none;background:rgba(232,168,74,.1);border:1px solid rgba(232,168,74,.3);border-radius:8px;padding:12px;font-size:12px;color:var(--warn);text-align:center">Inserisci le chiavi API sopra per continuare</div>
 <button class="btn-primary" onclick="avvia()" id="btnAvviaConfig" style="display:none">Vai in Sessione</button>
@@ -654,7 +707,7 @@ async function searchForSynthesis(query, matchCount) {
     </div>
     <div class="agent-panel">
       <div class="agent-hdr">
-        <div class="agent-lbl">Agente</div>
+        <div class="agent-lbl">Argo</div>
         <div style="display:flex;gap:6px">
           <button class="btn-ask" style="font-size:10px;padding:4px 8px;border-color:var(--border);color:var(--faint)" onclick="clearAgentPanel()" title="Pulisce i messaggi visibili">Pulisci</button>
           <button class="btn-ask" onclick="ask('')">Chiedi ora</button>
@@ -679,6 +732,7 @@ async function searchForSynthesis(query, matchCount) {
       <div class="cbar"><div class="cfill" id="cfill"></div></div>
       <div class="ceta" id="ceta">--</div>
       <button class="btn-sm" onclick="anon()">Anonimizza</button>
+      <button class="btn-sm" id="btnArgoNow" onclick="triggerArgoNow()" style="background:rgba(74,95,175,.15);border-color:var(--setup);color:var(--setup)" title="Argo interviene subito">Argo, ora</button>
       <button class="btn-sm" id="btnStopTTS" onclick="stopTTS()" style="display:none" title="Interrompi voce">Stop voce</button>
       <button class="btn-sm" onclick="clearTxUI()" title="Pulisce lo schermo senza cancellare la trascrizione salvata">Pulisci schermo</button>
     </div>
@@ -716,7 +770,8 @@ async function searchForSynthesis(query, matchCount) {
 
 // State
 var G = {
-  groqKey:'', anthKey:'', lang:'', chunkDur:120,
+  groqKey:'', anthKey:'', lang:'', chunkDur:30,
+  triggerPhrase:'Argo parla', autoSaveInterval:30,
   chatCtx:'', docs:[], configured:false, mode:'setup',
   testMode:false, loggedIn:false,
   recActive:false, recPaused:false,
@@ -724,7 +779,9 @@ var G = {
   totalSec:0, chunkSec:0, timerInt:null, chunkInt:null,
   txChunks:[], txFull:'', txSummary:'',
   history:[], sessions:[], sessId:Date.now(),
-  lastInt:0, chunksSinceInt:0, pendingQuestions:[], pauseTimer:null
+  lastInt:0, chunksSinceInt:0, pendingQuestions:[], pauseTimer:null,
+  argoWantsToSpeak:false, autoSaveTimer:null, checkpointData:null,
+  silentChunks:[], silentTxBuffer:''
 };
 
 var OVERLAP=4, MIN_BLOB=2000;
@@ -789,6 +846,7 @@ function loginSuccess() {
     goTo('sess');
     setSyncBannerState('loading', 'Connessione a Supabase in corso -- attendi prima di iniziare...');
     setTimeout(function(){ syncFromSupabase(); }, 300);
+    setTimeout(restoreSections, 100);
   } else {
     goTo('cfg');
     setTimeout(function(){ var n=document.getElementById('cfgKeysNote'); var b=document.getElementById('btnAvviaConfig'); if(n) n.style.display='block'; if(b) b.style.display='block'; }, 150);
@@ -980,6 +1038,12 @@ function loadSaved() {
     if(cd){G.chunkDur=parseInt(cd);try{document.getElementById('chunkDur').value=cd;}catch(e2){}}
     var ds=localStorage.getItem('sn_docs');
     if(ds){G.docs=JSON.parse(ds);}
+    var tp=localStorage.getItem('sn_trigger');
+    if(tp){G.triggerPhrase=tp;try{document.getElementById('triggerPhrase').value=tp;}catch(e2){}}
+    var asi=localStorage.getItem('sn_autosave');
+    if(asi){G.autoSaveInterval=parseInt(asi);try{document.getElementById('autoSaveSlider').value=asi;document.getElementById('autoSaveVal').textContent=asi+' min';}catch(e2){}}
+    var cds=localStorage.getItem('sn_cds');
+    if(cds){G.chunkDur=parseInt(cds);try{document.getElementById('chunkDurSlider').value=cds;document.getElementById('chunkDurVal').textContent=cds+'s';}catch(e2){}}
   } catch(e){}
 }
 
@@ -1251,9 +1315,15 @@ function avvia() {
   if(chunkDurSel) G.chunkDur = parseInt(chunkDurSel.value);
   if(cooldownSel) AGENT_CONFIG.interventionCooldownSec = parseInt(cooldownSel.value);
 
+  // Save trigger phrase and autosave settings always
+  try {
+    localStorage.setItem('sn_trigger', G.triggerPhrase);
+    localStorage.setItem('sn_autosave', G.autoSaveInterval);
+    localStorage.setItem('sn_cds', G.chunkDur);
+  } catch(e) {}
   var remKeys = document.getElementById('remKeys');
   if(remKeys && remKeys.checked) {
-    try { localStorage.setItem('sn_g', G.groqKey); localStorage.setItem('sn_a', G.anthKey); localStorage.setItem('sn_lang', G.lang); localStorage.setItem('sn_cd', G.chunkDur); } catch(e) {}
+    try { localStorage.setItem('sn_g', G.groqKey); localStorage.setItem('sn_a', G.anthKey); localStorage.setItem('sn_lang', G.lang); } catch(e) {}
   }
 
   var firstStart = !G.configured;
@@ -1267,26 +1337,47 @@ function avvia() {
 // Recording
 function startRec() {
   if(G.recPaused){resumeRec();return;}
-  sessionLogStart = logEntries.length; addLog('Sessione avviata', 'ok');
+  clearTimeout(G.pauseTimer);
+  sessionLogStart = logEntries.length;
+  G.pendingQuestions = [];
+  addLog('Sessione avviata', 'ok');
   if(!G.groqKey || !G.anthKey) {
-    sysMsg('Chiavi API mancanti -- vai in Config (tasto in alto) per inserire le chiavi Groq e Anthropic.');
+    sysMsg('Chiavi API mancanti -- vai in Config per inserire le chiavi Groq e Anthropic.');
     return;
   }
   navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true}})
     .then(function(stream){
-      G.stream=stream; G.mime=getMime(); G.recActive=true; G.recPaused=false; G.chunkSec=0;
+      G.stream = stream;
+      G.mime = getMime();
+      G.recActive = true;
+      G.recPaused = false;
+      G.chunkSec = 0;
+      G.silentChunks = [];
+      G.silentTxBuffer = '';
+      G.argoWantsToSpeak = false;
       spawnRec();
       setUI('rec');
-      G.timerInt=setInterval(function(){G.totalSec++;document.getElementById('timer').textContent=fmt(G.totalSec);},1000);
-      G.chunkInt=setInterval(function(){
+      // Main timer
+      G.timerInt = setInterval(function(){
+        G.totalSec++;
+        document.getElementById('timer').textContent = fmt(G.totalSec);
+      }, 1000);
+      // Silent chunk timer -- every G.chunkDur seconds, send to Groq silently
+      G.chunkInt = setInterval(function(){
         G.chunkSec++;
-        var pct=(G.chunkSec/G.chunkDur)*100;
-        document.getElementById('cfill').style.width=pct+'%';
-        document.getElementById('ceta').textContent=fmt(G.chunkDur-G.chunkSec);
-        if(G.chunkSec>=G.chunkDur){G.chunkSec=0;document.getElementById('cfill').style.width='0%';rollover();}
-      },1000);
+        var pct = (G.chunkSec / G.chunkDur) * 100;
+        document.getElementById('cfill').style.width = pct + '%';
+        document.getElementById('ceta').textContent = fmt(G.chunkDur - G.chunkSec);
+        if(G.chunkSec >= G.chunkDur) {
+          G.chunkSec = 0;
+          document.getElementById('cfill').style.width = '0%';
+          rolloverSilent(); // silent transcription for Argo
+        }
+      }, 1000);
+      // Auto-save checkpoint timer
+      resetAutoSaveTimer();
     })
-    .catch(function(e){sysMsg('Errore microfono: '+e.message);});
+    .catch(function(e){ handleApiError('Microfono', e); });
 }
 
 function pauseRec() {
@@ -1299,6 +1390,7 @@ function pauseRec() {
   if(r&&r.state!=='inactive'){r.onstop=function(){if(ch.length>0)procChunk(ch);};r.stop();}
   setUI('pause');
   addLog('Registrazione in pausa.','info');
+  clearTimeout(G.autoSaveTimer);
   // Start pause timer -- warn after 5 minutes
   G.pauseTimer = setTimeout(function(){
     if(G.recPaused) {
@@ -1310,6 +1402,7 @@ function pauseRec() {
 
 function resumeRec() {
   clearTimeout(G.pauseTimer);
+  resetAutoSaveTimer();
   G.recPaused=false; G.chunkSec=0; spawnRec(); setUI('rec');
   G.timerInt=setInterval(function(){G.totalSec++;document.getElementById('timer').textContent=fmt(G.totalSec);},1000);
   G.chunkInt=setInterval(function(){
@@ -1323,33 +1416,65 @@ function resumeRec() {
 
 function stopRec() {
   clearTimeout(G.pauseTimer);
-  G.recActive=false;G.recPaused=false;
-  clearInterval(G.timerInt);clearInterval(G.chunkInt);
-  document.getElementById('cfill').style.width='0%';document.getElementById('ceta').textContent='--';
-  var r=G.recorder,ch=G.recChunks.slice();
-  if(r&&r.state!=='inactive'){
-    r.onstop=function(){
-      if(ch.length>0) procChunk(ch);
-      // Always save whatever we have, even if partial
-      if(G.txFull) autoSave();
-      else if(G.txChunks.length===0) {
-        // Nothing transcribed yet -- save empty session marker
-        var sess={id:G.sessId,date:new Date().toLocaleString('it-IT'),mode:G.mode,duration:G.totalSec,transcript:'(nessuna trascrizione -- sessione troppo breve)',summary:''};
-        var idx=G.sessions.findIndex(function(s){return s.id===G.sessId;});
-        if(idx>=0) G.sessions[idx]=sess; else G.sessions.push(sess);
-        try{localStorage.setItem('sn_sessions',JSON.stringify(G.sessions));}catch(e){}
-        sbSaveSession(sess);
+  clearTimeout(G.autoSaveTimer);
+  G.recActive = false; G.recPaused = false;
+  clearInterval(G.timerInt); clearInterval(G.chunkInt);
+  document.getElementById('cfill').style.width = '0%';
+  document.getElementById('ceta').textContent = '--';
+  hideArgoWants();
+  var r = G.recorder, ch = G.recChunks.slice();
+  addLog('Elaborazione finale in corso...', 'info');
+  if(r && r.state !== 'inactive') {
+    r.onstop = function(){
+      if(ch.length > 0) {
+        procChunk(ch);
+      } else {
+        finalizeSession();
       }
     };
     r.stop();
   } else {
-    // Recorder already stopped -- save directly
-    if(G.txFull) autoSave();
+    finalizeSession();
   }
-  if(G.stream)G.stream.getTracks().forEach(function(t){t.stop();});
-  setUI('idle');addLog('Registrazione terminata. Transcript salvato in Archivio.','ok');
+  if(G.stream) G.stream.getTracks().forEach(function(t){ t.stop(); });
+  setUI('idle');
 }
 
+function finalizeSession() {
+  if(G.txFull) {
+    autoSave();
+  } else {
+    var sess = {id:G.sessId, date:new Date().toLocaleString('it-IT'), mode:G.mode,
+      duration:G.totalSec, transcript:'(sessione troppo breve)', summary:''};
+    var idx = G.sessions.findIndex(function(s){ return s.id === G.sessId; });
+    if(idx >= 0) G.sessions[idx] = sess; else G.sessions.push(sess);
+    try{localStorage.setItem('sn_sessions', JSON.stringify(G.sessions));}catch(e){}
+    sbSaveSession(sess);
+  }
+  G.silentTxBuffer = '';
+  G.silentChunks = [];
+  G.argoWantsToSpeak = false;
+  G.argoPendingResponse = null;
+  addLog('Sessione salvata in Archivio.', 'ok');
+}
+
+function resetAutoSaveTimer() {
+  clearTimeout(G.autoSaveTimer);
+  if(!G.recActive || G.recPaused) return;
+  var ms = (G.autoSaveInterval || 30) * 60 * 1000;
+  G.autoSaveTimer = setTimeout(function(){
+    if(G.recActive && !G.recPaused && G.txFull) {
+      var checkpointSess = {id:G.sessId, date:new Date().toLocaleString('it-IT'), mode:G.mode,
+        duration:G.totalSec, transcript:G.txFull, summary:G.txSummary||'', isCheckpoint:true};
+      var existing = G.sessions.findIndex(function(s){ return s.id === G.sessId; });
+      if(existing >= 0) G.sessions[existing] = checkpointSess; else G.sessions.push(checkpointSess);
+      try{localStorage.setItem('sn_sessions', JSON.stringify(G.sessions));}catch(e){}
+      sbSaveSession(checkpointSess);
+      addLog('Checkpoint automatico (' + fmt(G.totalSec) + ')', 'ok');
+      resetAutoSaveTimer();
+    }
+  }, ms);
+}
 function setUI(state) {
   var s=document.getElementById('btnStart'),p=document.getElementById('btnPause'),st=document.getElementById('btnStop'),d=document.getElementById('dot');
   if(state==='idle'){s.style.display='inline-block';s.textContent='Avvia';p.style.display='none';st.style.display='none';d.className='dot';}
@@ -1367,6 +1492,126 @@ function spawnRec() {
 function rollover() {
   var or=G.recorder,oc=G.recChunks.slice();spawnRec();
   setTimeout(function(){if(or.state!=='inactive'){or.onstop=function(){procChunk(oc);};or.stop();}},OVERLAP*1000);
+}
+
+// Silent rollover: send to Groq for Argo only, don't show transcript
+function rolloverSilent() {
+  var or = G.recorder, oc = G.recChunks.slice();
+  spawnRec();
+  setTimeout(function(){
+    if(or && or.state !== 'inactive') {
+      or.onstop = function(){ procChunkSilent(oc); };
+      or.stop();
+    }
+  }, OVERLAP * 1000);
+}
+
+async function procChunkSilent(chunks) {
+  if(!chunks || chunks.length === 0) return;
+  var type = (chunks[0] && chunks[0].type) ? chunks[0].type : (G.mime || 'audio/mp4');
+  var blob = new Blob(chunks, {type: type});
+  if(blob.size < MIN_BLOB) return;
+  var ext = type.indexOf('mp4') >= 0 ? 'm4a' : type.indexOf('ogg') >= 0 ? 'ogg' : 'webm';
+  var fd = new FormData();
+  fd.append('file', blob, 'silent.' + ext);
+  fd.append('model', 'whisper-large-v3-turbo');
+  if(G.lang) fd.append('language', G.lang);
+  fd.append('response_format', 'text');
+  try {
+    var res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {'Authorization': 'Bearer ' + G.groqKey},
+      body: fd
+    });
+    if(!res.ok) return;
+    var raw = await res.text();
+    var clean = (raw || '').trim();
+    if(!clean) return;
+    // Add to silent buffer
+    G.silentTxBuffer += (G.silentTxBuffer ? ' ' : '') + clean;
+    // Check for trigger phrase
+    if(G.triggerPhrase && clean.toLowerCase().indexOf(G.triggerPhrase.toLowerCase()) >= 0) {
+      addLog('Trigger rilevato: "' + G.triggerPhrase + '"', 'ok');
+      argoSpeakNow();
+      return;
+    }
+    // Let Argo evaluate silently
+    argoEvaluateSilent(clean);
+  } catch(e) {
+    // Silent fail - don't interrupt the session
+  }
+}
+
+function argoEvaluateSilent(newText) {
+  if(!G.recActive || G.recPaused) return;
+  var now = Date.now();
+  if(now - G.lastInt < AGENT_CONFIG.interventionCooldownSec * 1000) return;
+  
+  // Build context for evaluation
+  var context = G.silentTxBuffer;
+  var prompt = 'Nuovo testo ascoltato: "' + newText + '" | Buffer: ' + context.substring(0,800) + ' | Transcript: ' + (G.txFull||'(nessuno)').substring(0,1000) + ' | Hai un intervento utile? Rispondi SILENZIO se no, altrimenti max 3 frasi.';
+  
+  claude(prompt, false).then(function(r) {
+    if(!r || r.trim().toUpperCase() === 'SILENZIO') return;
+    // Argo wants to speak -- signal but don't speak yet
+    G.argoWantsToSpeak = true;
+    G.argoPendingResponse = r;
+    showArgoWants();
+    beep();
+  });
+}
+
+function showArgoWants() {
+  var el = document.getElementById('argoWants');
+  if(el) el.classList.add('on');
+  // Auto-dismiss after 60 seconds if not triggered
+  clearTimeout(G.argoWantsTimer);
+  G.argoWantsTimer = setTimeout(hideArgoWants, 60000);
+}
+
+function hideArgoWants() {
+  var el = document.getElementById('argoWants');
+  if(el) el.classList.remove('on');
+  G.argoWantsToSpeak = false;
+}
+
+function argoSpeakNow() {
+  hideArgoWants();
+  if(G.argoPendingResponse) {
+    var response = G.argoPendingResponse;
+    G.argoPendingResponse = null;
+    G.lastInt = Date.now();
+    G.chunksSinceInt = 0;
+    addMsg(response);
+    showN(response);
+    if(AGENT_CONFIG.ttsEnabled || G.mode !== 'setup') speak(response);
+    beep();
+    G.history.push({role: 'user', content: '[Argo ha parlato su invito]'});
+    G.history.push({role: 'assistant', content: response});
+  } else {
+    // No pending response -- ask Argo to speak now based on current context
+    triggerArgoNow();
+  }
+}
+
+function triggerArgoNow() {
+  // Manual trigger: evaluate and speak immediately regardless of cooldown
+  var unanswered = G.pendingQuestions.filter(function(q){ return !q.answered; });
+  var unansweredNote = unanswered.length > 0 ?
+    ' DOMANDE SENZA RISPOSTA: ' + unanswered.map(function(q,i){ return (i+1)+'. '+q.text; }).join(' | ') : '';
+  var p = 'Buffer: "' + G.silentTxBuffer.substring(0,600) + '" | Transcript: ' + (G.txFull||'(nessuno)').substring(0,1000) + unansweredNote + ' | Intervieni adesso. Max 3-4 frasi.';
+  claude(p, false).then(function(r) {
+    if(!r) return;
+    G.lastInt = Date.now();
+    G.chunksSinceInt = 0;
+    hideArgoWants();
+    addMsg(r);
+    showN(r);
+    if(AGENT_CONFIG.ttsEnabled || G.mode !== 'setup') speak(r);
+    beep();
+    G.history.push({role: 'user', content: '[Trigger manuale]'});
+    G.history.push({role: 'assistant', content: r});
+  });
 }
 
 // Transcription
@@ -1640,6 +1885,31 @@ function autoSave() {
   if(document.getElementById('sArch') && document.getElementById('sArch').classList.contains('on')) renderArch();
 }
 var selMode = false;
+
+// -- CONFIG SECTIONS ----------------------------------------------------------
+function toggleSection(id) {
+  var body = document.getElementById('body-' + id);
+  var chev = document.getElementById('chev-' + id);
+  if(!body) return;
+  var isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if(chev) chev.textContent = isOpen ? '>' : 'v';
+  // Save state
+  try { localStorage.setItem('sn_sec_' + id, isOpen ? '0' : '1'); } catch(e) {}
+}
+
+function restoreSections() {
+  ['api', 'rec', 'argo', 'account'].forEach(function(id) {
+    var val = null;
+    try { val = localStorage.getItem('sn_sec_' + id); } catch(e) {}
+    // Default: all closed
+    var shouldOpen = val === '1';
+    var body = document.getElementById('body-' + id);
+    var chev = document.getElementById('chev-' + id);
+    if(body) body.style.display = shouldOpen ? 'block' : 'none';
+    if(chev) chev.textContent = shouldOpen ? 'v' : '>';
+  });
+}
 
 // -- MODE MANAGEMENT ----------------------------------------------------------
 function changeMode(newMode) {
