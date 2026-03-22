@@ -1185,7 +1185,7 @@ async function searchForSynthesis(query, matchCount) {
 
 <div class="hdr">
   <div class="logo">Super<span>-NOVA</span></div>
-  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.60</div>
+  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.61</div>
   <select class="mode-sel setup" id="modeSel" onchange="changeMode(this.value)">
     <option value="setup">Setup</option>
     <option value="fase0">Fase 0</option>
@@ -1351,7 +1351,7 @@ async function searchForSynthesis(query, matchCount) {
   <div class="o-core">
     <div class="o-bg"></div>
     <div class="o-inner">
-      <span class="o-glyph"></span>
+      <span class="o-glyph">&#937;</span>
     </div>
     <div class="o-glow-ring"></div>
     <div class="o-badge idle" id="oBadge">Inattivo</div>
@@ -1368,7 +1368,7 @@ async function searchForSynthesis(query, matchCount) {
 <!-- Message area -->
 <div class="o-msg-area" id="oMsgArea">
   <div class="msgs-empty" id="msgsEmpty">
-    <div style="font-size:18px;opacity:.2"></div>
+    <div style="font-size:18px;opacity:.2">&#937;</div>
     <div style="font-size:12px;color:var(--dim);margin-top:6px">Avvia la sessione per iniziare</div>
   </div>
 </div>
@@ -2290,7 +2290,7 @@ function finalizeSession() {
   addLog('Sessione salvata in Archivio.', 'ok');
   renderArch();
   if(!document.getElementById('sArch').classList.contains('on')) {
-    sysMsg('Sessione salvata in Archivio.');
+    showBanner('Sessione salvata in Archivio.');
   }
 }
 
@@ -2615,10 +2615,9 @@ function procChunk(chunks) {
       if(clean) {
         addLog('[procChunk] Audio residuo trascritto: "' + clean.substring(0,60) + (clean.length>60?'...':'"'), 'ok');
         G.txFull += (G.txFull ? ' ' : '') + clean;
-        // Also save as chunk with embedding
+        // Save to txChunks (embedding saved after session is confirmed in Supabase)
         var idx = G.txChunks.length;
         G.txChunks.push(clean);
-        sbSaveChunkWithEmbedding(G.sessId, idx, clean);
       } else {
         addLog('[procChunk] Audio residuo: nessun testo rilevato', 'info');
       }
@@ -2913,26 +2912,39 @@ function showOmegaTranscript() {
   var body = document.getElementById('oTxBody');
   var title = document.getElementById('oTxTitle');
   if(!overlay) return;
-  var tx = G.txFull || G.silentTxBuffer || '';
-  if(!tx) tx = 'Nessuna trascrizione disponibile ancora.\n\nAvvia la sessione e parla per qualche secondo prima di aprire il transcript.';
-  if(body) body.textContent = tx;
-  addLog('[Transcript] Aperto: ' + tx.length + ' chars', 'info');
-  if(title) title.textContent = 'Transcript . ' + fmt(G.totalSec);
-  // Pause first so procChunk flushes current audio to G.txFull
+
+  function refreshTxOverlay() {
+    var tx = G.txFull || G.silentTxBuffer || '';
+    if(!tx) tx = 'Nessuna trascrizione disponibile ancora.\n\nParla durante la sessione per generare il transcript.';
+    if(body) body.textContent = tx;
+    if(title) title.textContent = 'Transcript - ' + fmt(G.totalSec);
+    addLog('[Transcript] Aperto: ' + tx.length + ' chars', 'info');
+  }
+
+  // Show overlay immediately with current content
+  refreshTxOverlay();
+  overlay.classList.add('on');
+  overlay.style.display = 'flex';
+  G._txOverlayOpen = true;
+
+  // If recording, pause to flush audio then refresh after Groq responds
   if(G.recActive && !G.recPaused) {
     pauseRec();
-    // Small delay to let procChunk finish before showing transcript
-    setTimeout(function(){
-      var tx2 = G.txFull || G.silentTxBuffer || 'Nessuna trascrizione disponibile ancora.';
-      if(body) body.textContent = tx2;
-      if(title) title.textContent = 'Transcript . ' + fmt(G.totalSec);
-      overlay.classList.add('on');
-      overlay.style.display = 'flex';
-    }, 1200);
-  } else {
-    overlay.classList.add('on');
-    overlay.style.display = 'flex';
+    // Poll for new content for up to 6 seconds
+    var polls = 0;
+    var poll = setInterval(function(){
+      polls++;
+      var newTx = G.txFull || G.silentTxBuffer || '';
+      if(body) body.textContent = newTx || 'Nessuna trascrizione disponibile ancora.';
+      if(polls >= 12) clearInterval(poll); // stop after 6s
+    }, 500);
   }
+}
+
+function closeOmegaTranscript() {
+  var el = document.getElementById('oTxOverlay');
+  if(el) { el.classList.remove('on'); el.style.display = ''; }
+  G._txOverlayOpen = false;
 }
 
 function closeOmegaTranscript() {
@@ -2979,7 +2991,7 @@ function clearOmegaMessages() {
   // Clear current bubble
   var area = document.getElementById('oMsgArea');
   if(area) {
-    area.innerHTML = '<div class="msgs-empty" id="msgsEmpty" style="text-align:center;padding:12px"><div style="font-size:18px;opacity:.2">O</div><div style="font-size:12px;color:var(--dim);margin-top:6px">Nessun messaggio</div></div>';
+    area.innerHTML = '<div class="msgs-empty" id="msgsEmpty" style="text-align:center;padding:12px"><div style="font-size:18px;opacity:.2">&#937;</div><div style="font-size:12px;color:var(--dim);margin-top:6px">Nessun messaggio</div></div>';
   }
   // Clear history
   G.omegaHistory = [];
