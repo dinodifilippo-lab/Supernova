@@ -783,6 +783,35 @@ pointer-events: none;
 .omega-state-speaking .o-ripple-3 { animation: rippleOut 1.1s ease-out infinite 0.44s; }
 .omega-state-speaking .o-ripple-4 { animation: rippleOut 1.1s ease-out infinite 0.66s; }
 
+/* Organic waves with variable thickness and speed */
+.o-ripple { border-width: 2px; }
+.o-ripple-1 { border-width: 3px; border-color: rgba(74,158,114,.25); }
+.o-ripple-2 { border-width: 2px; border-color: rgba(74,158,114,.18); }
+.o-ripple-3 { border-width: 1.5px; border-color: rgba(74,158,114,.12); }
+.o-ripple-4 { border-width: 1px; border-color: rgba(74,158,114,.07); }
+
+.omega-state-speaking .o-ripple-1 { border-color: rgba(232,168,74,.35); border-width: 3px; }
+.omega-state-speaking .o-ripple-2 { border-color: rgba(232,168,74,.25); border-width: 2.5px; }
+.omega-state-speaking .o-ripple-3 { border-color: rgba(232,168,74,.15); border-width: 2px; }
+.omega-state-speaking .o-ripple-4 { border-color: rgba(232,168,74,.08); border-width: 1.5px; }
+
+@keyframes rippleFull {
+0%   { opacity: 1;   transform: translate(-50%,-50%) scale(.7); }
+30%  { opacity: .6; }
+70%  { opacity: .15; }
+100% { opacity: 0;   transform: translate(-50%,-50%) scale(7); }
+}
+
+/* Stagger durations for organic feel */
+.omega-state-listening .o-ripple-1 { animation-duration: 3.7s; }
+.omega-state-listening .o-ripple-2 { animation-duration: 4.1s; }
+.omega-state-listening .o-ripple-3 { animation-duration: 3.4s; }
+.omega-state-listening .o-ripple-4 { animation-duration: 4.8s; }
+
+.omega-state-speaking .o-ripple-1 { animation-duration: 1.3s; }
+.omega-state-speaking .o-ripple-2 { animation-duration: 1.1s; }
+.omega-state-speaking .o-ripple-3 { animation-duration: 1.5s; }
+.omega-state-speaking .o-ripple-4 { animation-duration: 0.9s; }
 @keyframes rippleOut {
 0%   { opacity: .5; transform: translate(-50%,-50%) scale(.8); }
 80%  { opacity: .05; }
@@ -1156,7 +1185,7 @@ async function searchForSynthesis(query, matchCount) {
 
 <div class="hdr">
   <div class="logo">Super<span>-NOVA</span></div>
-  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.58</div>
+  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.59</div>
   <select class="mode-sel setup" id="modeSel" onchange="changeMode(this.value)">
     <option value="setup">Setup</option>
     <option value="fase0">Fase 0</option>
@@ -2258,7 +2287,6 @@ function finalizeSession() {
   G._finalizing = false;
   
   // Update UI
-  renderFullTranscript();
   addLog('Sessione salvata in Archivio.', 'ok');
   renderArch();
   if(!document.getElementById('sArch').classList.contains('on')) {
@@ -2508,7 +2536,6 @@ window.argoSpeakNow = function argoSpeakNow() {
     G.lastInt = Date.now();
     G.chunksSinceInt = 0;
     addMsg(response); // addMsg handles TTS internally
-    showN(response);
     beep();
     G.history.push({role: 'user', content: '[Omega ha parlato su invito]'});
     G.history.push({role: 'assistant', content: response});
@@ -2546,7 +2573,6 @@ window.triggerArgoNow = function triggerArgoNow() {
     G.chunksSinceInt = 0;
     hideArgoWants();
     addMsg(r); // addMsg handles TTS internally
-    showN(r);
     beep();
     G.history.push({role: 'user', content: '[Trigger manuale]'});
     G.history.push({role: 'assistant', content: r});
@@ -2682,7 +2708,7 @@ function maybeInt(chunk) {
       if(unanswered.length>0){ G.pendingQuestions.forEach(function(q){ q.answered=true; }); }
       G.history.push({role:'user', content:'[chunk: '+chunk.substring(0,100)+']'});
       G.history.push({role:'assistant', content:r});
-      addMsg(r); showN(r); beep();
+      addMsg(r); beep();
       if(G.history.length%6===0) updateSum();
     });
   });
@@ -2734,13 +2760,7 @@ function showConfirm(title, msg, buttons) {
 }
 
 // -- QUESTION BANNER -----------------------------------------------------------
-function showQBanner(text) {
-  document.getElementById('qBannerText').textContent = text;
-  document.getElementById('qBanner').classList.add('on');
-  // Auto-close after 30s
-  clearTimeout(window._qTimer);
-  window._qTimer = setTimeout(closeQBanner, 30000);
-}
+function showQBanner(text) { /* disabled in new Omega UI */ }
 
 function closeQBanner() {
   document.getElementById('qBanner').classList.remove('on');
@@ -3462,7 +3482,7 @@ function renderArch() {
   if(G.sessions.length===0){ss.innerHTML+='<p class="arch-note">Nessuna sessione ancora.</p>';}
   else{G.sessions.slice().reverse().forEach(function(s){
     var el=document.createElement('div');el.className='acard';
-    el.innerHTML='<input type="checkbox" class="acard-cb" data-id="'+s.id+'" data-type="sess" onchange="updateSelCount()">'+'<div class="acard-hdr"><div class="acard-title">'+ s.date +'</div><div class="acard-meta">'+fmt(s.duration||0)+' - '+s.transcript.split(' ').length+' parole</div></div><div class="acard-prev">'+esc(s.transcript.substring(0,160))+'</div><div class="acard-btns"><button class="btn-sm" onclick="viewModal(\'Transcript \'+s.date,s.id+\'T\')">Mostra trascrizione</button><button class="btn-sm" onclick="viewModal(\'Sintesi \'+s.date,s.id+\'S\')">Sintesi</button><button class="btn-sm" onclick="delS('+s.id+')">Elimina</button></div>';ss.appendChild(el);
+    el.innerHTML='<input type="checkbox" class="acard-cb" data-id="'+s.id+'" data-type="sess" onchange="updateSelCount()">'+'<div class="acard-hdr"><div class="acard-title">'+ s.date +'</div><div class="acard-meta">'+fmt(s.duration||0)+' - '+s.transcript.split(' ').length+' parole</div></div><div class="acard-prev">'+esc(s.transcript.substring(0,160))+'</div><div class="acard-btns"><button class="btn-sm" onclick="viewM(\'Transcript \'+s.date,s.id+\'T\')">Mostra trascrizione</button><button class="btn-sm" onclick="viewM(\'Sintesi \'+s.date,s.id+\'S\')">Sintesi</button><button class="btn-sm" onclick="delS('+s.id+')">Elimina</button></div>';ss.appendChild(el);
   });}
   w.appendChild(ss);
 }
