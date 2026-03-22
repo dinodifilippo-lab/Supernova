@@ -564,7 +564,7 @@ async function searchForSynthesis(query, matchCount) {
 
 <div class="hdr">
   <div class="logo">Super<span>-NOVA</span></div>
-  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.49</div>
+  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.50</div>
   <select class="mode-sel setup" id="modeSel" onchange="changeMode(this.value)">
     <option value="setup">Setup</option>
     <option value="fase0">Fase 0</option>
@@ -1618,8 +1618,11 @@ async function procChunkSilent(chunks) {
     G.chunkErrors = 0;
     updateChunkCounter();
     addLog('[Chunk ' + G.chunkCount + '] Trascritto: "' + clean.substring(0,60) + (clean.length>60?'...':'"'), 'info');
-    // Add to silent buffer
+    // Add to BOTH silent buffer (for Zed context) AND txFull (for final transcript)
     G.silentTxBuffer += (G.silentTxBuffer ? ' ' : '') + clean;
+    G.txFull += (G.txFull ? ' ' : '') + clean;
+    // Update visible transcript panel
+    updTxSilent(clean);
     // Check for trigger phrase
     if(G.triggerPhrase && clean.toLowerCase().indexOf(G.triggerPhrase.toLowerCase()) >= 0) {
       addLog('[Chunk ' + G.chunkCount + '] Trigger "' + G.triggerPhrase + '" rilevato -- Zed interviene', 'ok');
@@ -1991,6 +1994,23 @@ function autoSave() {
   if(document.getElementById('sArch') && document.getElementById('sArch').classList.contains('on')) renderArch();
 }
 var selMode = false;
+
+// -- TRANSCRIPT SILENT UPDATE ---------------------------------------------------
+function updTxSilent(text) {
+  // Accumulate silently -- txBox shows nothing during recording
+  // but G.txFull is updated for save and for Zed context
+  // If txBox is visible (e.g. after Stop), update it
+  if(!G.recActive) {
+    var box = document.getElementById('txBox');
+    if(box) {
+      var el = document.createElement('div');
+      el.className = 'tx-chunk';
+      el.textContent = text;
+      box.appendChild(el);
+      box.scrollTop = box.scrollHeight;
+    }
+  }
+}
 
 // -- GROQ ERROR HANDLING & CHUNK COUNTER ------------------------------------------
 function showGroqError(msg) {
