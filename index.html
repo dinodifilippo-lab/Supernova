@@ -1185,7 +1185,7 @@ async function searchForSynthesis(query, matchCount) {
 
 <div class="hdr">
   <div class="logo">Super<span>-NOVA</span></div>
-  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.61</div>
+  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.62</div>
   <select class="mode-sel setup" id="modeSel" onchange="changeMode(this.value)">
     <option value="setup">Setup</option>
     <option value="fase0">Fase 0</option>
@@ -1471,6 +1471,7 @@ async function searchForSynthesis(query, matchCount) {
     <div class="o-sheet-hdr">
       <div class="o-sheet-title">Messaggi precedenti</div>
       <div class="o-sheet-acts">
+        <button class="o-copy-btn" onclick="clearOmegaMessages();document.getElementById('oHistoryOverlay').classList.remove('on')" style="font-size:10px">Cancella tutti</button>
         <button class="o-close-btn" onclick="document.getElementById('oHistoryOverlay').classList.remove('on')">x</button>
       </div>
     </div>
@@ -2117,9 +2118,17 @@ function startRec() {
       G.silentChunks = [];
       G.silentTxBuffer = '';
       G.argoWantsToSpeak = false;
+      G.argoPendingResponse = null;
       G.chunkCount = 0;
       G.chunkErrors = 0;
       G.consecutiveErrors = 0;
+      G._evalChunkCount = 0;
+      G._triggerBusy = false;
+      G._ttsActive = false;
+      // Abort any in-flight Claude request from previous session
+      if(G._claudeAbort) { try { G._claudeAbort.abort(); } catch(e) {} G._claudeAbort = null; }
+      // Cancel any pending TTS from previous session
+      if(window.speechSynthesis) window.speechSynthesis.cancel();
       updateChunkCounter();
       // Clear transcript panel for new session
       var txBox = document.getElementById('txBox');
@@ -2483,21 +2492,35 @@ async function procChunkSilent(chunks) {
 
 function argoEvaluateSilent(newText) {
   if(!G.recActive || G.recPaused) return;
+  if(G._triggerBusy) return; // Claude already working
+
   var now = Date.now();
+
+  // Check cooldown
   var cooldownLeft = Math.round((AGENT_CONFIG.interventionCooldownSec * 1000 - (now - G.lastInt)) / 1000);
   if(now - G.lastInt < AGENT_CONFIG.interventionCooldownSec * 1000) {
     addLog('[Omega] In cooldown ancora ' + cooldownLeft + 's -- nessuna valutazione', 'info');
     return;
   }
-  
-  // Build context for evaluation
-  var context = G.silentTxBuffer;
-  var prompt = 'Nuovo testo ascoltato: "' + newText + '" | Buffer: ' + context.substring(0,800) + ' | Transcript: ' + (G.txFull||'(nessuno)').substring(0,1000) + ' | Hai un intervento utile? Rispondi SILENZIO se no, altrimenti max 3 frasi.';
-  
+
+  // Only evaluate every 3 chunks (30s) -- avoids too-frequent interruptions
+  G._evalChunkCount = (G._evalChunkCount || 0) + 1;
+  if(G._evalChunkCount < 3) {
+    addLog('[Omega] Accumulo (' + G._evalChunkCount + '/3 chunk) prima di valutare', 'info');
+    return;
+  }
+  G._evalChunkCount = 0; // reset counter
+
+  // Build context
+  var context = G.txFull || G.silentTxBuffer || '';
+  var prompt = 'Testo conversazione (ultimi 30 secondi): "' + context.substring(0,1200) + '" | Hai un intervento utile, una domanda o un osservazione? Rispondi SILENZIO se no. Se si, max 3 frasi dirette.';
+
   addLog('[Omega] Chiedo a Claude se intervenire...', 'info');
+  G._triggerBusy = true;
   claude(prompt, false).then(function(r) {
-    if(!r) { addLog('[Omega] Nessuna risposta da Claude', 'warn'); return; }
-    if(r.trim().toUpperCase() === 'SILENZIO') {
+    G._triggerBusy = false;
+    if(!r || !G.recActive) return;
+    if(r.trim().toUpperCase().startsWith('SILENZIO')) {
       addLog('[Omega] Valutazione: niente da dire', 'info');
       return;
     }
@@ -2506,7 +2529,7 @@ function argoEvaluateSilent(newText) {
     G.argoPendingResponse = r;
     showArgoWants();
     beep();
-  });
+  }).catch(function(){ G._triggerBusy = false; });
 }
 
 function showArgoWants() {
@@ -2651,21 +2674,57 @@ function buildSys() {
   return parts.join('\n\n');
 }
 
-function claude(msg,hist) {
-  var msgs=hist?G.history.concat([{role:'user',content:msg}]):[{role:'user',content:msg}];
+function claude(msg, hist) {
+  // Cancel any previous in-flight request
+  if(G._claudeAbort) { try { G._claudeAbort.abort(); } catch(e) {} }
+  G._claudeAbort = new AbortController();
+  var myAbort = G._claudeAbort;
+  var mySession = G.sessId;
+
+  var msgs = hist ? G.history.concat([{role:'user',content:msg}]) : [{role:'user',content:msg}];
   if(!G.anthKey) {
-    sysMsg('Chiave Anthropic mancante -- vai in Config (tasto in alto) per inserirla.');
-    
+    sysMsg('Chiave Anthropic mancante -- vai in Config.');
     return Promise.resolve(null);
   }
-  return fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':G.anthKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:buildSys(),messages:msgs})})
-    .then(function(res){if(!res.ok)return res.json().then(function(e){throw new Error((e.error&&e.error.message)||('HTTP '+res.status));});return res.json();})
-    .then(function(data){
-      var reply=(data.content&&data.content[0])?data.content[0].text:'';
-      if(hist&&reply){G.history.push({role:'user',content:msg});G.history.push({role:'assistant',content:reply});if(G.history.length>40)G.history=G.history.slice(-40);}
+  return fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    signal: myAbort.signal,
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': G.anthKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: buildSys(),
+      messages: msgs
+    })
+  })
+    .then(function(res) {
+      // Discard if session changed
+      if(G.sessId !== mySession) return null;
+      if(!res.ok) return res.json().then(function(e){ throw new Error((e.error&&e.error.message)||('HTTP '+res.status)); });
+      return res.json();
+    })
+    .then(function(data) {
+      if(!data) return null;
+      if(G.sessId !== mySession) return null;
+      var reply = (data.content && data.content[0]) ? data.content[0].text : '';
+      if(hist && reply) {
+        G.history.push({role:'user', content:msg});
+        G.history.push({role:'assistant', content:reply});
+        if(G.history.length > 40) G.history = G.history.slice(-40);
+      }
       return reply;
     })
-    .catch(function(e){sysMsg('Errore agente: '+e.message);return null;});
+    .catch(function(e) {
+      if(e.name === 'AbortError') return null; // cancelled -- silent
+      if(G.sessId !== mySession) return null;
+      sysMsg('Errore agente: ' + e.message);
+      return null;
+    });
 }
 
 function maybeInt(chunk) {
@@ -2915,7 +2974,7 @@ function showOmegaTranscript() {
 
   function refreshTxOverlay() {
     var tx = G.txFull || G.silentTxBuffer || '';
-    if(!tx) tx = 'Nessuna trascrizione disponibile ancora.\n\nParla durante la sessione per generare il transcript.';
+    if(!tx) tx = G.recActive ? 'Registrazione in corso...\n\nIl transcript apparira qui dopo il primo chunk (circa 10 secondi di audio).' : 'Nessuna trascrizione in questa sessione.';
     if(body) body.textContent = tx;
     if(title) title.textContent = 'Transcript - ' + fmt(G.totalSec);
     addLog('[Transcript] Aperto: ' + tx.length + ' chars', 'info');
@@ -2935,7 +2994,7 @@ function showOmegaTranscript() {
     var poll = setInterval(function(){
       polls++;
       var newTx = G.txFull || G.silentTxBuffer || '';
-      if(body) body.textContent = newTx || 'Nessuna trascrizione disponibile ancora.';
+      if(body) body.textContent = newTx || (G.recActive ? 'Registrazione in corso...' : 'Nessuna trascrizione.');
       if(polls >= 12) clearInterval(poll); // stop after 6s
     }, 500);
   }
@@ -3302,7 +3361,14 @@ function speak(text) {
 
 function stopTTS() {
   if(window.speechSynthesis) window.speechSynthesis.cancel();
-  document.getElementById('ttsDot').classList.remove('speaking');
+  G._ttsActive = false;
+  clearTimeout(G._ttsTimeout);
+  var dot = document.getElementById('ttsDot');
+  if(dot) dot.classList.remove('speaking');
+  var btn = document.getElementById('btnStopTTS');
+  if(btn) btn.classList.remove('visible');
+  setOmegaSpeaking(false);
+  addLog('[TTS] Fermato manualmente', 'info');
 }
 
 // -- SESSION RESTORE ------------------------------------------------------------
@@ -3559,15 +3625,7 @@ function viewM(title,key) {
 }
 
 function delS(id) {
-  showConfirm(
-    'Elimina sessione',
-    'Scegli dove eliminare questa sessione.',
-    [
-      { label: 'Elimina solo locale', sub: 'Supabase intatto -- torna al prossimo login.', style: 'warn', action: function(){ doDelS(id, false); } },
-      { label: 'Elimina locale + Supabase', sub: 'Eliminazione definitiva.', style: 'danger', action: function(){ doDelS(id, true); } },
-      { label: 'Annulla', style: 'neutral', action: null }
-    ]
-  );
+  doDelS(id, true); // Always delete local + Supabase
 }
 
 function doDelS(id, alsoSB) {
