@@ -1335,6 +1335,7 @@ async function searchForSynthesis(query, matchCount) {
       <button class="o-btn o-btn-start" id="btnStart" onclick="startRec()">Inizia sessione</button>
       <button class="o-btn o-btn-tx" id="btnTranscript" onclick="showOmegaTranscript()" style="display:none">≡ Transcript</button>
       <button class="o-btn o-btn-pause" id="btnPause" onclick="pauseRec()" style="display:none">|> Pausa</button>
+      <button class="o-btn o-btn-tx" id="btnClearMsgs" onclick="clearOmegaMessages()" style="display:none" title="Cancella messaggi Omega">Cancella msg</button>
       <button class="o-btn o-btn-stop" id="btnStop" onclick="stopRec()" style="display:none">■ Fine</button>
     </div>
   </div>
@@ -2273,6 +2274,8 @@ function setUI(state) {
     if(btnStop) btnStop.style.display = 'none';
     if(btnTx) btnTx.style.display = 'none';
     if(btnSpeak) btnSpeak.style.display = 'none';
+    var bCM=document.getElementById('btnClearMsgs');if(bCM)bCM.style.display='none';
+    var btnClear = document.getElementById('btnClearMsgs'); if(btnClear) btnClear.style.display = 'none';
     if(stopTTSBtn) stopTTSBtn.classList.remove('visible');
 
   } else if(state === 'rec') {
@@ -2286,6 +2289,8 @@ function setUI(state) {
     if(btnStop) btnStop.style.display = 'inline-block';
     if(btnTx) btnTx.style.display = 'inline-block';
     if(btnSpeak) btnSpeak.style.display = 'inline-block';
+    var bCM2=document.getElementById('btnClearMsgs');if(bCM2)bCM2.style.display='inline-block';
+    var btnClear2 = document.getElementById('btnClearMsgs'); if(btnClear2) btnClear2.style.display = 'inline-block';
 
   } else if(state === 'pause') {
     if(stage) stage.classList.add('omega-state-paused');
@@ -2298,6 +2303,8 @@ function setUI(state) {
     if(btnStop) btnStop.style.display = 'inline-block';
     if(btnTx) btnTx.style.display = 'inline-block';
     if(btnSpeak) btnSpeak.style.display = 'none';
+    var bCM3=document.getElementById('btnClearMsgs');if(bCM3)bCM3.style.display='inline-block';
+    var btnClear3 = document.getElementById('btnClearMsgs'); if(btnClear3) btnClear3.style.display = 'inline-block';
   }
 
   // Legacy dot for compatibility
@@ -2895,6 +2902,15 @@ function showOmegaMsg(text, isQ) {
 
   // Update history pill
   updateHistoryPill();
+}
+
+function clearOmegaMessages() {
+  var area = document.getElementById('oMsgArea');
+  if(area) area.innerHTML = '';
+  G.omegaHistory = [];
+  var pill = document.getElementById('oHistoryPill');
+  if(pill) pill.style.display = 'none';
+  addLog('[Omega] Messaggi cancellati', 'info');
 }
 
 function closeOmegaCurrentMsg(btn) {
