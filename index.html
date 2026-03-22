@@ -233,9 +233,9 @@ body.testmode .logo span{color:var(--warn)}
 .modal-body p{font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap}
 .modal-f{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end}
 
-/* ═══════════════════════════════════════════════════════════
+/*
 OMEGA SESSION SCREEN – new design
-═══════════════════════════════════════════════════════════ */
+*/
 
 /* Omega screen layout */
 #sSess.on {
@@ -279,7 +279,7 @@ overflow: hidden;
 gap: 0;
 }
 
-/* ── Avatar system ── */
+/*  Avatar system  */
 /* – Avatar system with concentric ripples – */
 .omega-avatar-sys {
 position: relative;
@@ -390,7 +390,7 @@ z-index: 3;
 .omega-state-idle .o-bar,
 .omega-state-paused .o-bar { background: var(–faint); height: 3px; }
 
-/* ── Message bubble ── */
+/*  Message bubble  */
 .o-msg-area {
 width: 100%;
 max-width: 500px;
@@ -449,7 +449,7 @@ transition: all .2s;
 }
 .o-history-pill:hover { border-color: var(–setup); color: var(–setup); }
 
-/* ── Omega speak button ── */
+/*  Omega speak button  */
 .o-speak-btn {
 margin-top: 20px;
 background: none;
@@ -480,7 +480,7 @@ transition: opacity .3s;
 .o-speak-btn:active { transform: scale(.97); }
 .o-speak-btn span { position: relative; z-index: 1; }
 
-/* ── Session controls ── */
+/*  Session controls  */
 .o-controls {
 flex-shrink: 0;
 border-top: 1px solid var(–border);
@@ -610,7 +610,7 @@ color: var(–dim);
 }
 .o-btn-tx:hover { background: rgba(255,255,255,.07); color: var(–text); }
 
-/* ── Transcript sheet ── */
+/*  Transcript sheet  */
 .o-tx-overlay {
 position: fixed;
 inset: 0;
@@ -689,7 +689,7 @@ white-space: pre-wrap;
 font-weight: 300;
 }
 
-/* ── Pause dialog ── */
+/*  Pause dialog  */
 .o-pause-dlg {
 position: fixed;
 inset: 0;
@@ -720,7 +720,7 @@ animation: sheetUp .3s cubic-bezier(.34,1.36,.64,1);
 .o-pause-btns { display: flex; gap: 10px; }
 .o-pause-btns .o-btn { flex: 1; text-align: center; }
 
-/* ── Hour alert banner ── */
+/*  Hour alert banner  */
 .o-hour-alert {
 position: fixed;
 top: 60px; left: 50%;
@@ -1145,7 +1145,7 @@ async function searchForSynthesis(query, matchCount) {
 <div class="log-popup" id="logPopup" onclick="if(event.target===this)closeLog()">
   <div class="log-box">
     <div class="log-box-hdr">
-      <div class="log-box-title">Log attività</div>
+      <div class="log-box-title">Log attivit</div>
       <button class="modal-x" onclick="closeLog()">x</button>
     </div>
     <div class="log-box-body" id="logEntries"></div>
@@ -1185,7 +1185,7 @@ async function searchForSynthesis(query, matchCount) {
 
 <div class="hdr">
   <div class="logo">Super<span>-NOVA</span></div>
-  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.59</div>
+  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.60</div>
   <select class="mode-sel setup" id="modeSel" onchange="changeMode(this.value)">
     <option value="setup">Setup</option>
     <option value="fase0">Fase 0</option>
@@ -1351,7 +1351,7 @@ async function searchForSynthesis(query, matchCount) {
   <div class="o-core">
     <div class="o-bg"></div>
     <div class="o-inner">
-      <span class="o-glyph">Ω</span>
+      <span class="o-glyph"></span>
     </div>
     <div class="o-glow-ring"></div>
     <div class="o-badge idle" id="oBadge">Inattivo</div>
@@ -1368,7 +1368,7 @@ async function searchForSynthesis(query, matchCount) {
 <!-- Message area -->
 <div class="o-msg-area" id="oMsgArea">
   <div class="msgs-empty" id="msgsEmpty">
-    <div style="font-size:18px;opacity:.2">Ω</div>
+    <div style="font-size:18px;opacity:.2"></div>
     <div style="font-size:12px;color:var(--dim);margin-top:6px">Avvia la sessione per iniziare</div>
   </div>
 </div>
@@ -1378,7 +1378,7 @@ async function searchForSynthesis(query, matchCount) {
 
 <!-- Omega speak button -->
 <button class="o-speak-btn" id="btnOmegaSpeak" onclick="triggerArgoNow()" style="display:none">
-  <span>Ω . Parla ora</span>
+  <span> . Parla ora</span>
 </button>
 ```
 
@@ -1399,10 +1399,10 @@ async function searchForSynthesis(query, matchCount) {
     <!-- Action buttons -->
     <div class="o-btn-row">
       <button class="o-btn o-btn-start" id="btnStart" onclick="startRec()">Inizia sessione</button>
-      <button class="o-btn o-btn-tx" id="btnTranscript" onclick="showOmegaTranscript()" style="display:none">≡ Transcript</button>
+      <button class="o-btn o-btn-tx" id="btnTranscript" onclick="showOmegaTranscript()" style="display:none"> Transcript</button>
       <button class="o-btn o-btn-pause" id="btnPause" onclick="pauseRec()" style="display:none">|> Pausa</button>
       <button class="o-btn o-btn-tx" id="btnClearMsgs" onclick="clearOmegaMessages()" style="display:none" title="Cancella messaggi Omega">Cancella msg</button>
-      <button class="o-btn o-btn-stop" id="btnStop" onclick="stopRec()" style="display:none">■ Fine</button>
+      <button class="o-btn o-btn-stop" id="btnStop" onclick="stopRec()" style="display:none"> Fine</button>
     </div>
   </div>
 
@@ -1449,7 +1449,7 @@ async function searchForSynthesis(query, matchCount) {
   <div class="o-pause-card">
     <div class="o-pause-icon">|></div>
     <div class="o-pause-title">Sessione in pausa</div>
-    <div class="o-pause-body" id="oPauseBody">La sessione è in pausa da <strong>3 minuti</strong>.<br>Vuoi continuare o chiudere e salvare?</div>
+    <div class="o-pause-body" id="oPauseBody">La sessione  in pausa da <strong>3 minuti</strong>.<br>Vuoi continuare o chiudere e salvare?</div>
     <div class="o-pause-btns">
       <button class="o-btn o-btn-tx" onclick="omegaContinuePause()">Continua</button>
       <button class="o-btn o-btn-stop" onclick="omegaClosePause()">Chiudi e salva</button>
@@ -1460,7 +1460,7 @@ async function searchForSynthesis(query, matchCount) {
 <!-- HOUR ALERT -->
 
 <div class="o-hour-alert" id="oHourAlert">
-  ⏱ Sessione attiva da <span id="oHourCount">1</span> ora -- tutto ok?
+   Sessione attiva da <span id="oHourCount">1</span> ora -- tutto ok?
   <button onclick="document.getElementById('oHourAlert').classList.remove('on')">x</button>
 </div>
 
@@ -1493,7 +1493,7 @@ async function searchForSynthesis(query, matchCount) {
       <span class="sync-dot"></span>
       <span id="syncPillText">Verifica...</span>
     </span>
-    <button class="btn-sm" onclick="syncFromSupabase()" title="Sincronizza con Supabase">↻ Sincronizza</button>
+    <button class="btn-sm" onclick="syncFromSupabase()" title="Sincronizza con Supabase"> Sincronizza</button>
     <button class="btn-sm" onclick="exportAll()" style="margin-left:auto">Esporta tutto</button>
     <button class="btn-sm" id="btnSelMode" onclick="toggleSelMode()">Seleziona</button>
     <button class="btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="clearAll()">Cancella tutto</button>
@@ -2918,10 +2918,21 @@ function showOmegaTranscript() {
   if(body) body.textContent = tx;
   addLog('[Transcript] Aperto: ' + tx.length + ' chars', 'info');
   if(title) title.textContent = 'Transcript . ' + fmt(G.totalSec);
-  overlay.classList.add('on');
-  overlay.style.display = 'flex'; // Safari fallback
-  // Auto pause when viewing transcript
-  if(G.recActive && !G.recPaused) pauseRec();
+  // Pause first so procChunk flushes current audio to G.txFull
+  if(G.recActive && !G.recPaused) {
+    pauseRec();
+    // Small delay to let procChunk finish before showing transcript
+    setTimeout(function(){
+      var tx2 = G.txFull || G.silentTxBuffer || 'Nessuna trascrizione disponibile ancora.';
+      if(body) body.textContent = tx2;
+      if(title) title.textContent = 'Transcript . ' + fmt(G.totalSec);
+      overlay.classList.add('on');
+      overlay.style.display = 'flex';
+    }, 1200);
+  } else {
+    overlay.classList.add('on');
+    overlay.style.display = 'flex';
+  }
 }
 
 function closeOmegaTranscript() {
@@ -3064,7 +3075,7 @@ function pubblicaTranscript() {
 
 function copyLog() {
   if(!logEntries || logEntries.length === 0) { sysMsg("Log vuoto."); return; }
-  var parts = logEntries.map(function(e){ return e.time + " " + e.text; });
+  var parts = logEntries.map(function(e){ return e.time + " " + (e.msg || e.text || ""); });
   var text = parts.join("\n");
   if(navigator.clipboard) {
     navigator.clipboard.writeText(text).then(function(){
@@ -3482,7 +3493,24 @@ function renderArch() {
   if(G.sessions.length===0){ss.innerHTML+='<p class="arch-note">Nessuna sessione ancora.</p>';}
   else{G.sessions.slice().reverse().forEach(function(s){
     var el=document.createElement('div');el.className='acard';
-    el.innerHTML='<input type="checkbox" class="acard-cb" data-id="'+s.id+'" data-type="sess" onchange="updateSelCount()">'+'<div class="acard-hdr"><div class="acard-title">'+ s.date +'</div><div class="acard-meta">'+fmt(s.duration||0)+' - '+s.transcript.split(' ').length+' parole</div></div><div class="acard-prev">'+esc(s.transcript.substring(0,160))+'</div><div class="acard-btns"><button class="btn-sm" onclick="viewM(\'Transcript \'+s.date,s.id+\'T\')">Mostra trascrizione</button><button class="btn-sm" onclick="viewM(\'Sintesi \'+s.date,s.id+\'S\')">Sintesi</button><button class="btn-sm" onclick="delS('+s.id+')">Elimina</button></div>';ss.appendChild(el);
+    el.innerHTML='<input type="checkbox" class="acard-cb" data-id="'+s.id+'" data-type="sess" onchange="updateSelCount()">'
+      +'<div class="acard-hdr"><div class="acard-title">'+s.date+'</div>'
+      +'<div class="acard-meta">'+fmt(s.duration||0)+' - '+s.transcript.split(' ').length+' parole</div></div>'
+      +'<div class="acard-prev">'+esc(s.transcript.substring(0,160))+'</div>'
+      +'<div class="acard-btns"></div>';
+    var btns=el.querySelector('.acard-btns');
+    [['Mostra trascrizione','T'],['Sintesi','S']].forEach(function(pair){
+      var btn=document.createElement('button');btn.className='btn-sm';btn.textContent=pair[0];
+      (function(sid,typ){btn.onclick=function(){
+        var se=G.sessions.find(function(x){return String(x.id)===String(sid);});
+        viewM((typ==='T'?'Transcript ':'Sintesi ')+(se?se.date:''),String(sid)+typ);
+      };}(s.id,pair[1]));
+      btns.appendChild(btn);
+    });
+    var b3=document.createElement('button');b3.className='btn-sm';b3.textContent='Elimina';
+    (function(sid){b3.onclick=function(){delS(sid);};}(s.id));
+    btns.appendChild(b3);
+    ss.appendChild(el);
   });}
   w.appendChild(ss);
 }
@@ -3497,6 +3525,14 @@ function viewModal(type, key) {
     var s2 = G.sessions.find(function(x){return x.id===id2;});
     viewM('Sintesi ' + (s2?s2.date:''), key);
   }
+}
+
+function viewMSess(id, type) {
+  var s = G.sessions.find(function(x){ return x.id === id || x.id === String(id); });
+  if(!s) { s = G.sessions.find(function(x){ return String(x.id) === String(id); }); }
+  if(!s) { viewM('Sessione', 'Non trovata (id: ' + id + ')'); return; }
+  if(type === 'T') viewM('Transcript ' + s.date, String(s.id) + 'T');
+  else viewM('Sintesi ' + s.date, String(s.id) + 'S');
 }
 
 function viewM(title,key) {
