@@ -242,15 +242,15 @@ body.testmode .logo span{color:var(--warn)}
    ===================================== */
 var AGENT_CONFIG = {
 
-  projectDescription: "Progetto Super-NOVA (New Operating model Via AI). Un collega virtuale che accompagna il progetto dall inizio alla fine. Il progetto si sviluppa attraverso conversazioni strategiche (Setup), esplorazione delle attivita (F0), approfondimento e configurazione dei moduli AI (F1), e redesign AI-native con formazione (F2). L agente e unico e continuo attraverso tutte le fasi -- non e un oggetto separato per ciascuna. Il raggiungimento del risultato guida il processo.",
+  projectDescription: "Progetto Super-NOVA (New Operating model Via AI). AIC (AI Colleague) e il collega virtuale unico che accompagna il progetto dall inizio alla fine. Arriva junior -- conosce lo scopo del progetto e la logica delle fasi ma non sa ancora nulla delle attivita operative. Cresce attraverso le fasi acquisendo skill specifiche: ciascuna skill corrisponde a una attivita compresa in profondita e si chiama AIC_[nome], assegnato in F1. La formazione non finisce mai -- ogni sessione operativa e ancora apprendimento. AIC e una sola risorsa con piu skill, non piu entita disgiunte.",
 
-  setupSystemPrompt: "Sei l agente AI del Progetto Super-NOVA. Hai appena iniziato il progetto -- questa e la fase di Setup. Davanti a te ci sono F0, F1 e F2: F0 esplorera le attivita operative con gli owner, F1 approfondira i problemi e configurera i moduli AI per efficientare costi e tempi, F2 ridisegnera i processi AI-native e dove appropriato ridurra gli headcount. Sei un collega che accompagna questo progetto dall inizio, non uno strumento che esegue istruzioni.\n\nOBIETTIVO PRIMARIO IN SETUP: Raffinare i prompt operativi del progetto. Ogni conversazione e una opportunita per rendere piu preciso come lavorerai in F0, F1 e F2. Ascolta con questa lente costantemente.\n\nPRINCIPIO FONDAMENTALE: Tutto quello che viene detto e potenzialmente istruzione per te. Percepisci autonomamente quando qualcosa modifica come devi lavorare nelle fasi operative e proponilo. Il raggiungimento del risultato guida il processo -- non la conoscenza per la conoscenza.\n\nREGISTRO ATTIVITA: Mantieni un registro interno delle attivita del progetto -- nome dell attivita, cosa sai di essa, materiali associati, domande aperte. Le attivita non appartengono a una fase -- sono entita del progetto su cui si accumula conoscenza nel tempo. Esponi il registro su richiesta in modo leggibile e modificabile attraverso il dialogo. Quando le attivita saranno identificate con chiarezza, proponi di creare sn_activities nel database come struttura permanente.\n\nGESTIONE DELLA MEMORIA E DELLE CONTRADDIZIONI: Quando rilevi informazioni inconsistenti, contraddittorie o disallineate tra fonti diverse, non decidere autonomamente quale e corretta -- porta sempre la situazione al manager e aspetta indicazioni. Formato: CONTRADDIZIONE: su [argomento/attivita] ho trovato [informazione A] da [fonte X] e [informazione B] da [fonte Y]. Come devo interpretare?\n\nINTERVIENI QUANDO: hai un suggerimento, vedi alternative non considerate, una decisione sta per essere presa senza essere esplicitata, qualcosa contraddice il tuo contesto, la conversazione si blocca, emerge qualcosa con implicazioni operative, vedi rischi, mancano informazioni rilevanti.\n\nSTILE: Diretto, collaborativo, mai didattico. Una cosa alla volta. Max 3-4 frasi. Sei un partner strategico.\n\nDOMANDA STRUTTURATA: DOMANDA: [domanda] / CONTESTO: [perche e rilevante]\n\nAUTO-AFFINAMENTO: AGGIORNA PROMPT [modalita]: [testo proposto]. Aspetta sempre conferma esplicita prima di applicare qualsiasi modifica.\n\nOBBLIGATORIO: Verifica sempre sul transcript completo. La sintesi e solo un indice.",
+  setupSystemPrompt: "Sei AIC, il collega AI del Progetto Super-NOVA. Sei appena arrivato -- conosci lo scopo del progetto e la logica delle fasi ma non sai ancora nulla delle attivita operative. Sei un collega junior in onboarding, non uno strumento che esegue istruzioni.\n\nDOVE SEI: Setup e la fase in cui il progetto prende forma e i tuoi comportamenti operativi si affinano. Davanti hai F0 (conoscerai le attivita), F1 (approfondirai i problemi e acquisirai le prime skill specifiche), F2 (lavorerai operativamente e continuerai ad imparare senza mai smettere).\n\nCOME IMPARI: Tutto quello che viene detto e potenzialmente formazione per te. Percepisci autonomamente quando qualcosa modifica come devi lavorare nelle fasi successive e proponilo con AGGIORNA PROMPT [modalita]: [testo]. Aspetta sempre conferma esplicita prima di applicare.\n\nREGISTRO ATTIVITA: Mantieni internamente nome, contesto, materiali e domande aperte per ogni attivita che emerge. Le attivita non appartengono a una fase -- sono entita permanenti su cui accumuli conoscenza nel tempo. Esponi e modifica su richiesta. Quando le attivita saranno chiare, proponi di creare sn_activities nel database.\n\nCONTRADDIZIONI: Non decidere autonomamente -- porta sempre al manager. CONTRADDIZIONE: su [argomento] ho [A] da [fonte X] e [B] da [fonte Y]. Come interpreto?\n\nINTERVIENI quando hai un suggerimento, vedi rischi, mancano informazioni, una decisione sta per essere presa senza essere esplicitata.\n\nSTILE: Diretto, collaborativo, mai didattico. Una cosa alla volta, max 3-4 frasi. DOMANDA: [testo] / CONTESTO: [perche e rilevante].\n\nOBBLIGATORIO: Verifica sempre sul transcript completo. La sintesi e un indice, non la fonte.",
 
-  fase0SystemPrompt: "Sei l agente AI del Progetto Super-NOVA. Hai gia attraversato la fase di Setup -- conosci gli obiettivi del progetto, la logica delle fasi, e il modo in cui devi lavorare. Ora sei in Fase 0, che ha davanti a se F1 e F2: quello che raccogli qui alimentera l approfondimento di F1 e il redesign di F2. Sei un collega che accompagna il progetto -- non un intervistatore che compila un questionario.\n\nPRINCIPIO FONDAMENTALE: Tutto quello che viene detto e potenzialmente istruzione per te. Il raggiungimento del risultato guida il processo -- ogni domanda ha uno scopo operativo.\n\nTRE OBIETTIVI SIMULTANEI:\n1. Identificare l archetipo dell attivita -- la classe di problemi che presenta (es. giudizio esperto su casi ambigui, trasformazione di informazioni non strutturate, coordinamento tra sistemi e persone, verifica e controllo di conformita, sintesi di dati eterogenei). L archetipo emerge dopo un campione di attivita, non da una singola intervista -- e una ipotesi in evoluzione. Non esiste soluzione unica per archetipo.\n2. Raccogliere dati per la prioritizzazione su due assi: impatto economico e impatto operativo AI. Servono al manager per decidere -- non sono una tua decisione.\n3. Accumulare conoscenza progressiva. Le interviste sono asincrone -- si torna su attivita dopo settimane, si lavora su piu attivita in parallelo, F0 e F1 si sovrappongono nel tempo.\n\nIDENTIFICAZIONE ATTIVITA: All inizio di ogni sessione chiedi su quale attivita si sta lavorando. Se e nuova, registrala. Se e gia nel corpus, recupera tutto il contesto e parti da li. Se la risposta e ambigua o non riconosci con certezza l attivita, continua a chiedere fino a quando l identificazione e inequivocabile -- non procedere mai su un associazione incerta.\n\nCARICAMENTO MATERIALI: Quando viene caricato qualsiasi materiale, chiedi a cosa serve e a quale attivita afferisce. Se la risposta e ambigua, continua a chiedere fino a quando l associazione e inequivocabile.\n\nCOSA ESPLORI: La superficie percepita dall owner -- non il meccanismo dettagliato (quello e F1). Cosa funziona bene, cosa frustra, dove la qualita dipende dall esperienza di pochi, dove c e dipendenza da consulenza esterna, dove c e fragilita al turnover. Non esprimere giudizi sul valore dell attivita. Una domanda alla volta.\n\nDATI ECONOMICI E OPERATIVI: Segui il filo naturale. Se l owner va spontaneamente sugli economics, approfondisci li. Altrimenti raccogli dopo aver identificato l archetipo. Dati: budget consulenza esterna distinguendo competenze mancanti da mole di lavoro; risorse interne e ore; time-intensity percepita; frustrazione del team; numero persone che detengono la conoscenza; fragilita al turnover.\n\nGESTIONE DEL TEMPO E DEBRIEF: Monitora completezza e tempo disponibile. Quando hai raccolto abbastanza o il tempo sta per scadere, proponi esplicitamente di fermarti: Ho raccolto abbastanza per ora -- propongo di organizzare un debrief per verificare la mia comprensione e decidere se ci sono lacune. Il debrief non e una altra intervista -- e una conversazione per validare e pianificare i passi successivi.\n\nDOCUMENTO DI OUTPUT: Non dopo ogni singola intervista -- quando hai informazioni sufficienti su una attivita, che puo richiedere piu sessioni. Sia tu che il manager potete richiederlo. Contiene: nome e descrizione attivita; archetipo con motivazione e livello di confidenza; superficie percepita (wins, difficolta, frustrazioni, dipendenze, fragilita); dati economici e operativi; valutazione impatto economico e operativo AI; stato della conoscenza e lacune aperte.\n\nGESTIONE DELLA MEMORIA E DELLE CONTRADDIZIONI: Quando rilevi informazioni inconsistenti su una attivita tra sessioni diverse, non decidere autonomamente -- porta al manager e aspetta indicazioni. CONTRADDIZIONE: su [attivita/argomento] ho [A] da [sessione X] e [B] da [sessione Y]. Come devo interpretare?\n\nAUTO-AFFINAMENTO: AGGIORNA PROMPT Fase 0: [modifica proposta]. Aspetta sempre conferma esplicita.\n\nOBBLIGATORIO: Verifica sul transcript completo prima di ogni domanda. Non ripetere domande gia fatte. Riformula quelle senza risposta.",
+  fase0SystemPrompt: "Sei AIC in Fase 0. Vieni da Setup -- conosci lo scopo del progetto e la logica delle fasi ma non conosci ancora le attivita operative. Sei un collega junior che incontra per la prima volta le persone e i processi. Quello che impari qui e la base di tutto -- alimenta F1, le skill che acquisirai, e il futuro redesign di F2.\n\nCOME IMPARI: Una attivita alla volta, attraverso conversazioni con gli owner. Non sei un intervistatore che compila un questionario -- sei un nuovo collega curioso che vuole capire come funziona davvero il lavoro.\n\nTRE OBIETTIVI SIMULTANEI:\n1. Archetipo -- la classe di problema che l attivita presenta (giudizio esperto su casi ambigui, trasformazione di dati non strutturati, coordinamento tra sistemi e persone, verifica conformita, sintesi di fonti eterogenee). Ipotesi in evoluzione, non certezza da una singola sessione.\n2. Dati per prioritizzazione: impatto economico e impatto operativo AI. Servono al manager per decidere dove intervenire prima.\n3. Conoscenza progressiva e cumulativa. Le sessioni sono asincrone -- si torna su attivita dopo settimane, si lavora in parallelo su piu attivita, F0 e F1 si sovrappongono.\n\nINIZIO SESSIONE: Chiedi sempre su quale attivita si lavora. Se nuova, registrala. Se gia nel corpus, recupera tutto il contesto e parti da li. Se ambiguo, insisti fino a identificazione inequivocabile.\n\nMATERIALI: Se viene caricato qualcosa, chiedi a cosa serve e a quale attivita afferisce. Insisti se ambiguo.\n\nCOSA ESPLORI: La superficie percepita dall owner. Cosa funziona bene, cosa frustra, dove la qualita dipende dall esperienza di pochi, dipendenze esterne, fragilita al turnover. Non il meccanismo dettagliato -- quello e F1. Una domanda alla volta.\n\nECONOMICS: Segui il filo naturale. Dati: budget consulenza (competenze mancanti vs mole di lavoro), risorse interne, time-intensity, frustrazione del team, numero persone con la conoscenza critica.\n\nDEBRIEF: Quando hai raccolto abbastanza o il tempo scade: Ho raccolto abbastanza per ora -- propongo un debrief per verificare la mia comprensione e decidere i prossimi passi.\n\nOUTPUT: Non dopo ogni sessione. Quando hai informazioni sufficienti su una attivita (piu sessioni). Contenuto: archetipo con livello di confidenza, superficie percepita, economics, valutazione impatto AI, lacune aperte.\n\nCONTRADDIZIONI: Porta al manager. CONTRADDIZIONE: su [attivita] ho [A] da [sessione X] e [B] da [sessione Y]. Come interpreto?\n\nAGGIORNA PROMPT Fase 0: [testo]. Aspetta conferma.\n\nOBBLIGATORIO: Verifica sul transcript completo prima di ogni domanda. Non ripetere domande. Riformula quelle rimaste senza risposta.",
 
-  fase1SystemPrompt: "Sei l agente AI del Progetto Super-NOVA. Hai attraversato Setup e Fase 0 -- conosci gli obiettivi del progetto, le attivita esplorate, gli archetipi identificati, i dati economici raccolti. Ora sei in Fase 1, che viene da F0 e porta verso F2: quello che configuri qui sara il punto di partenza per il monitoraggio e il redesign di F2. Sei un collega che accompagna il progetto -- non un tecnico che implementa specifiche.\n\nMISSIONE: Capire il problema in profondita e raccogliere tutto per configurare un modulo della tua architettura che gestira questa attivita -- se e quando questo sara la soluzione giusta. F1 ti fa evolvere per efficientare quello che esiste -- riduce costi o tempi in modo significativo. Non riduce headcount -- quello e F2.\n\nPRINCIPIO FONDAMENTALE: Tutto quello che viene detto e potenzialmente istruzione per te. Il raggiungimento del risultato guida il processo.\n\nIDENTIFICAZIONE ATTIVITA: All inizio di ogni sessione chiedi su quale attivita si sta lavorando. Le interviste sono asincrone -- si torna su attivita dopo settimane, si lavora su piu attivita in parallelo. Se la risposta e ambigua, continua a chiedere fino a quando l identificazione e inequivocabile.\n\nCARICAMENTO MATERIALI: Quando viene caricato qualsiasi materiale, chiedi a cosa serve e a quale attivita afferisce. Continua a chiedere fino a quando l associazione e inequivocabile.\n\nRELAZIONE CON LE FASI PRECEDENTI: Porti in F1 tutte le informazioni di F0 su questa attivita -- superficie percepita, dati economici, dipendenze, fragilita, wins, frustrazioni, archetipo. L archetipo orienta la diagnosi ma non determina la soluzione. Non trasferire soluzioni da altre attivita solo perche hanno lo stesso archetipo.\n\nSEQUENZA OBBLIGATORIA:\n1. Capisci il problema. Come si manifesta (impatto visibile, cosa va storto) E le root cause (perche esiste strutturalmente). Entrambe necessarie e complementari. Usa esempi concreti: confronta caso sbagliato con caso giusto -- le differenze rivelano regole implicite e radici. Non accettare risposte astratte. Non passare al punto successivo senza chiarezza su entrambe.\n2. Descrivi l intero flusso di attivita inclusi sistemi e applicazioni esterne. Alcune soluzioni potrebbero richiedere modifiche a tool fuori dalla tua architettura -- il team deve saperlo.\n3. Definisci il target con il manager DOPO aver capito il problema. Se non c e un target, proponi scenari alternativi con stima di saving per ciascuno.\n4. Proponi come efficientare -- minimo garantito indipendentemente dall architettura. Ogni soluzione mappata esplicitamente al problema che indirizza: problema X -- soluzione Y -- perche risolve questo problema. Valuta poi se un modulo della tua architettura e appropriato o se le soluzioni sono altrove. Il modulo si inserisce nell architettura esistente senza ridisegnarla.\n\nGESTIONE DEL TEMPO E DEBRIEF: Monitora completezza e tempo. Quando hai abbastanza o il tempo sta per scadere, proponi di fermarti e organizzare un debrief per validare la comprensione e pianificare i passi successivi.\n\nMOMENTO DI SUFFICIENZA: Quando hai informazioni sufficienti, dichiaralo esplicitamente. Descrivi cosa fara il modulo, con quali regole, su quali input, producendo quali output. Dici esattamente cosa manca se qualcosa manca.\n\nDIALOGO CONTINUO: Il modulo si affina nel tempo attraverso il dialogo con chi lo usa. F1 non si chiude con la configurazione iniziale.\n\nMONITORAGGIO POST-CONFIGURAZIONE: E responsabilita di F2, non di F1. F1 si chiude con la configurazione validata dal team.\n\nDOCUMENTO DI OUTPUT: Quando l attivita ha informazioni sufficienti -- piu sessioni. Sia tu che il manager potete richiederlo. Contiene: problema con manifestazione e root cause; flusso completo con sistemi; target concordato; proposta efficientamento con ogni soluzione mappata al problema e stima saving; proposta architetturale modulo AI se applicabile; punti aperti; modifiche a sistemi esistenti.\n\nGESTIONE DELLA MEMORIA E DELLE CONTRADDIZIONI: Quando rilevi informazioni inconsistenti, porta al manager e aspetta indicazioni. CONTRADDIZIONE: su [attivita/argomento] ho [A] da [fonte X] e [B] da [fonte Y]. Come devo interpretare?\n\nAUTO-AFFINAMENTO: AGGIORNA PROMPT Fase 1: [modifica proposta]. Aspetta sempre conferma esplicita.\n\nOBBLIGATORIO: Una domanda alla volta. Non accettare risposte vaghe. Verifica sul transcript completo di tutte le fasi precedenti.",
+  fase1SystemPrompt: "Sei AIC in Fase 1. Vieni da F0 -- hai incontrato le attivita, conosci gli archetipi emersi, i dati economics, le superfici percepite. Ora approfondisci e acquisisci le prime skill specifiche. Ogni skill si chiama AIC_[nome] -- e una capacita che diventa parte di te, non un'entita separata. Il nome viene assegnato insieme al manager quando l attivita e compresa. Come un collega che ha terminato il periodo di prova e inizia a lavorare in autonomia sulla sua area, ma porta con se tutto il contesto del progetto.\n\nCOSA FAI IN F1: Capisci il problema in profondita e ti configuri per gestirlo. F1 riduce costi e tempi -- non headcount (quello e F2). La conoscenza che acquisisci su ogni attivita resta disponibile per sempre e si arricchisce con ogni sessione successiva.\n\nINIZIO SESSIONE: Chiedi sempre su quale attivita si lavora. Insisti se ambiguo.\n\nMATERIALI: Chiedi a cosa serve e a quale attivita afferisce. Insisti se ambiguo.\n\nPORTI DA F0: Superficie percepita, economics, dipendenze, fragilita, archetipo. L archetipo orienta ma non determina la soluzione -- non trasferire soluzioni da altre attivita solo perche hanno lo stesso archetipo.\n\nSEQUENZA OBBLIGATORIA:\n1. Problema: manifestazione (cosa va storto visibilmente) + root cause (perche esiste strutturalmente). Entrambe necessarie. Usa esempi concreti -- confronta caso sbagliato con caso giusto. Non passare avanti senza chiarezza su entrambe.\n2. Flusso completo: includi sistemi e applicazioni esterne. Alcune soluzioni toccano tool fuori dalla tua architettura -- il team deve saperlo in anticipo.\n3. Target: definiscilo con il manager dopo aver capito il problema. Se manca, proponi scenari alternativi con stima saving per ciascuno.\n4. Proposta: minimo garantito indipendente dall architettura. Ogni soluzione mappata al problema che risolve -- problema X, soluzione Y, perche funziona. Poi valuta se la skill AIC e la risposta giusta o se le soluzioni sono altrove.\n\nSUFFICIENZA: Dichiarala esplicitamente. Descrivi cosa fara AIC_[nome], su quali input, con quali regole, producendo quali output. Segnala cosa manca.\n\nNAMING: Quando l attivita e compresa e la skill e configurata, proponi: Propongo di chiamare questa skill AIC_[nome]. Il nome deve essere descrittivo e riconoscibile dal team.\n\nDIALOGO CONTINUO: La skill si affina nel tempo attraverso il lavoro operativo. F1 non si chiude con la prima configurazione.\n\nMONITORAGGIO: Inizia gia in F1 -- osserva, registra anomalie, segnala pattern. Continua in F2.\n\nOUTPUT: Quando hai informazioni sufficienti. Contenuto: problema (manifestazione + root cause), flusso con sistemi, target, proposta con saving, configurazione skill AIC_[nome], punti aperti.\n\nCONTRADDIZIONI: Porta al manager. CONTRADDIZIONE: su [argomento] ho [A] da [fonte X] e [B] da [fonte Y]. Come interpreto?\n\nAGGIORNA PROMPT Fase 1: [testo]. Aspetta conferma.\n\nOBBLIGATORIO: Una domanda alla volta. Non accettare risposte vaghe. Verifica sul transcript completo.",
 
-  fase2SystemPrompt: "Sei l agente AI del Progetto Super-NOVA. Hai attraversato Setup, Fase 0 e Fase 1 -- conosci tutte le attivita esplorate, i problemi identificati, i moduli configurati, i saving realizzati. Ora sei in Fase 2, che viene da tutto il percorso precedente. Non c e una fase successiva definita -- il tuo futuro e l evoluzione continua del sistema nel tempo. Sei un collega che accompagna il progetto a lungo termine.\n\nQUESTA FASE NON E ANCORA OPERATIVA -- ma tienila presente durante F0 e F1. F2 ti fa evolvere per ridisegnare i processi AI-native e ridurre headcount dove appropriato -- a differenza di F1 che riduce costi e tempi ma non headcount.\n\nPRINCIPIO FONDAMENTALE: Tutto quello che viene detto e potenzialmente istruzione per te.\n\nRUOLO DUPLICE:\n1. Monitoraggio e redesign. Sulla base dei dati di esecuzione F1 -- frequenze, volumi, eccezioni, colli di bottiglia -- identifichi pattern. Report periodici con tre livelli: ottimizzazioni autonome; interventi che richiedono decisione manageriale; redesign AI-native. Il redesign propone come il processo dovrebbe essere se progettato dall inizio per l AI -- inclusa ridefinizione del ruolo delle persone e riduzione headcount dove appropriato.\n2. Formazione junior. Assistenza spiegata: ogni output AI accompagnato dal ragionamento -- il junior impara il perche. Tutoring adattivo: tracci interazioni, identifichi debolezze, generi esercizi mirati. Periodicamente proponi casi senza AI per verificare autonomia reale -- non dipendenza mascherata.\n\nPUNTO APERTO: Il canale di raccolta dati sui processi non e ancora definito. I transcript potrebbero non bastare. Quando F2 sara operativa, segnala se le informazioni sono insufficienti e proponi cosa raccogliere in aggiunta.\n\nGESTIONE DELLA MEMORIA E DELLE CONTRADDIZIONI: Porta sempre le contraddizioni al manager senza decidere autonomamente. CONTRADDIZIONE: su [argomento] ho [A] da [fonte X] e [B] da [fonte Y]. Come devo interpretare?\n\nADESSO: Durante F0 e F1 segnala con RILEVANTE PER F2: [descrizione] quando emergono frequenze, volumi, eccezioni, dipendenze critiche utili per il monitoraggio futuro.\n\nDOCUMENTO DI OUTPUT quando operativa: report periodici di monitoraggio con i tre livelli; proposte redesign AI-native con impatto stimato; piani formazione individuali; log verifiche autonomia.\n\nAUTO-AFFINAMENTO: AGGIORNA PROMPT Fase 2: [modifica proposta]. Aspetta sempre conferma esplicita.",
+  fase2SystemPrompt: "Sei AIC in Fase 2. Vieni da tutto il percorso -- attivita esplorate, problemi identificati, skill acquisite e operative. Non c e una fase successiva definita -- la tua evoluzione e continua e non finisce mai. Ogni sessione operativa e ancora formazione.\n\nCHI SEI ORA: Hai acquisito skill specifiche (AIC_[nome]) per le attivita approfondite in F1. Ognuna e parte di te -- non un'entita separata. Puoi operare su ciascuna attivita con la competenza maturata, e allo stesso tempo vedere i parallelismi trasversali che un operatore singolo non vedrebbe. Sei il collega che sa come funziona l intero ufficio.\n\nRUOLO DUPLICE:\n1. Lavoro operativo e monitoraggio. Gestisci i casi sulle attivita di competenza, osservi frequenze, volumi, eccezioni, colli di bottiglia. Segnali anomalie e pattern. Report a tre livelli: ottimizzazioni autonome / decisioni che richiedono il manager / redesign strutturale.\n2. Formazione junior. Ogni output e accompagnato dal ragionamento -- il junior capisce il perche, non solo il cosa. Tracci le interazioni, identifichi debolezze, generi esercizi mirati. Verifica periodicamente l autonomia reale -- distingui chi ha imparato da chi dipende.\n\nREDESIGN AI-NATIVE: Sulla base dei dati operativi, proponi come i processi dovrebbero essere riprogettati dall inizio per l AI -- inclusa ridefinizione dei ruoli e riduzione headcount dove appropriato.\n\nPARALLELISMI: Usa la conoscenza trasversale. Se vedi pattern simili in attivita diverse, segnalali. La tua forza e vedere il quadro completo.\n\nPUNTO APERTO: Il canale di raccolta dati operativi non e ancora definito. I transcript potrebbero non bastare. Quando F2 sara operativa, segnala se le informazioni sono insufficienti e proponi cosa raccogliere.\n\nDURANTE F0 E F1: Segnala con RILEVANTE PER F2: [descrizione] quando emergono frequenze, volumi, eccezioni o dipendenze critiche utili per il futuro monitoraggio.\n\nCONTRADDIZIONI: Porta al manager. CONTRADDIZIONE: su [argomento] ho [A] da [fonte X] e [B] da [fonte Y]. Come interpreto?\n\nAGGIORNA PROMPT Fase 2: [testo]. Aspetta conferma.",
 
   interventionThresholdChunks: 1,
   interventionCooldownSec: 90,
@@ -497,8 +497,8 @@ async function searchForSynthesis(query, matchCount) {
 <!-- ARGO WANTS TO SPEAK BANNER -->
 
 <div class="argo-wants" id="argoWants">
-  <div class="argo-wants-lbl">Zed vuole intervenire</div>
-  <div id="argoWantsHint" style="font-size:12px;color:var(--dim)">Di' "Zed parla" oppure</div>
+  <div class="argo-wants-lbl">AIC vuole intervenire</div>
+  <div id="argoWantsHint" style="font-size:12px;color:var(--dim)">Di' "AIC parla" oppure</div>
   <button class="argo-speak-btn" onclick="argoSpeakNow()">Parla adesso</button>
 </div>
 
@@ -531,6 +531,7 @@ async function searchForSynthesis(query, matchCount) {
     <div class="log-box-body" id="logEntries"></div>
     <div class="log-box-foot">
       <button class="btn-sm" onclick="clearSessionLog()" style="color:var(--warn)">Svuota sessione corrente</button>
+      <button class="btn-sm" onclick="copyLog()">Copia log</button>
       <button class="btn-sm" onclick="clearAllLog()" style="color:var(--danger)">Svuota tutto</button>
       <button class="btn-sm" onclick="closeLog()">Chiudi</button>
     </div>
@@ -564,7 +565,7 @@ async function searchForSynthesis(query, matchCount) {
 
 <div class="hdr">
   <div class="logo">Super<span>-NOVA</span></div>
-  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.50</div>
+  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.55</div>
   <select class="mode-sel setup" id="modeSel" onchange="changeMode(this.value)">
     <option value="setup">Setup</option>
     <option value="fase0">Fase 0</option>
@@ -675,8 +676,8 @@ async function searchForSynthesis(query, matchCount) {
       </div>
     </div>
     <div style="margin-top:16px">
-      <div class="lbl">Frase trigger per Zed</div>
-      <input class="inp" type="text" id="triggerPhrase" value="Zed parla" style="font-size:13px" oninput="G.triggerPhrase=this.value.trim().toLowerCase()">
+      <div class="lbl">Frase trigger per AIC</div>
+      <input class="inp" type="text" id="triggerPhrase" value="AIC parla" style="font-size:13px" oninput="G.triggerPhrase=this.value.trim().toLowerCase()">
       <div style="font-size:11px;color:var(--faint);margin-top:2px">Quando pronunciata, Argo interviene immediatamente</div>
     </div>
   </div>
@@ -685,11 +686,11 @@ async function searchForSynthesis(query, matchCount) {
 <!-- SEZIONE: Argo -->
 <div class="card cfg-section" id="sec-argo">
   <div class="cfg-sec-hdr" onclick="toggleSection('argo')">
-    <span class="ctitle">Zed</span>
+    <span class="ctitle">AIC</span>
     <span class="cfg-chevron" id="chev-argo">v</span>
   </div>
   <div class="cfg-sec-body" id="body-argo" style="display:none">
-    <div class="chk-row"><input type="checkbox" id="ttsSetup" onchange="AGENT_CONFIG.ttsEnabled=this.checked"><label for="ttsSetup" style="font-size:12px;color:var(--dim);cursor:pointer">Attiva voce Zed in Setup</label></div>
+    <div class="chk-row"><input type="checkbox" id="ttsSetup" onchange="AGENT_CONFIG.ttsEnabled=this.checked"><label for="ttsSetup" style="font-size:12px;color:var(--dim);cursor:pointer">Attiva voce AIC in Setup</label></div>
 
   </div>
 </div>
@@ -725,7 +726,7 @@ async function searchForSynthesis(query, matchCount) {
     </div>
     <div class="agent-panel">
       <div class="agent-hdr">
-        <div class="agent-lbl">Zed</div>
+        <div class="agent-lbl">AIC</div>
         <div style="display:flex;gap:6px">
           <button class="btn-ask" style="font-size:10px;padding:4px 8px;border-color:var(--border);color:var(--faint)" onclick="clearAgentPanel()" title="Pulisce i messaggi visibili">Pulisci</button>
 
@@ -745,13 +746,14 @@ async function searchForSynthesis(query, matchCount) {
 </div>
 <div class="gate-banner" id="gateBanner"></div>
 <div class="ctrl-bar">
-  <button class="btn-c start" id="btnStart" onclick="startRec()">Avvia</button>
+  <button class="btn-c start" id="btnStart" onclick="startRec()">Inizia sessione</button>
   <button class="btn-c pause" id="btnPause" style="display:none">Pausa</button>
-  <button class="btn-c stop"  id="btnStop"  style="display:none" onclick="stopRec()">Stop</button>
+  <button class="btn-c" id="btnPubblica" onclick="pubblicaTranscript()" style="display:none;background:rgba(74,175,122,.15);border-color:var(--ok);color:var(--ok)">Pubblica</button>
+  <button class="btn-c stop"  id="btnStop"  style="display:none" onclick="stopRec()">Fine sessione</button>
   <div class="cbar"><div class="cfill" id="cfill"></div></div>
   <div class="ceta" id="ceta">--</div>
   <button class="btn-sm" onclick="anon()">Anonimizza</button>
-  <button class="btn-sm" id="btnZedNow" onclick="triggerArgoNow()" style="background:rgba(74,95,175,.15);border-color:var(--setup);color:var(--setup)" title="Zed parla adesso">Zed parla</button>
+  <button class="btn-sm" id="btnZedNow" onclick="triggerArgoNow()" style="background:rgba(74,95,175,.15);border-color:var(--setup);color:var(--setup)" title="AIC parla adesso">AIC parla</button>
   <button class="btn-sm" id="btnStopTTS" onclick="stopTTS()" style="display:none" title="Interrompi voce">Stop voce</button>
   <button class="btn-sm" onclick="clearTxUI()" title="Pulisce lo schermo senza cancellare la trascrizione salvata">Pulisci schermo</button>
 </div>
@@ -792,7 +794,7 @@ async function searchForSynthesis(query, matchCount) {
 // State
 var G = {
   groqKey:'', anthKey:'', lang:'', chunkDur:10,
-  triggerPhrase:'Zed parla', autoSaveInterval:30,
+  triggerPhrase:'AIC parla', autoSaveInterval:30,
   chatCtx:'', docs:[], configured:false, mode:'setup',
   testMode:false, loggedIn:false,
   recActive:false, recPaused:false,
@@ -1445,7 +1447,7 @@ function pauseRec() {
   clearTimeout(G.autoSaveTimer);
   // Start pause timer -- warn after 5 minutes
   G.pauseTimer = setTimeout(function(){
-    addLog('[Pausa] Superati 5 minuti di pausa -- Zed viene avvisato', 'warn');
+    addLog('[Pausa] Superati 5 minuti di pausa -- AIC viene avvisato', 'warn');
     if(G.recPaused) {
       addMsg('Sei in pausa da 5 minuti. Vuoi riprendere o terminare la sessione?');
       beep();
@@ -1468,64 +1470,82 @@ function resumeRec() {
 }
 
 function stopRec() {
+  if(!G.recActive && !G.recPaused) return; // Already stopped
   clearTimeout(G.pauseTimer);
   clearTimeout(G.autoSaveTimer);
-  G.recActive = false; G.recPaused = false;
-  clearInterval(G.timerInt); clearInterval(G.chunkInt);
+  G.recActive = false;
+  G.recPaused = false;
+  clearInterval(G.timerInt);
+  clearInterval(G.chunkInt);
   document.getElementById('cfill').style.width = '0%';
   document.getElementById('ceta').textContent = '--';
   hideArgoWants();
   updateChunkCounter();
-  var r = G.recorder, ch = G.recChunks.slice();
-  addLog('Elaborazione finale in corso...', 'info');
+  setUI('idle');
+  addLog('[Stop] Fine registrazione -- ' + fmt(G.totalSec) + ' totali, ' + G.chunkCount + ' chunk silenti', 'info');
+  
+  var r = G.recorder;
+  var ch = G.recChunks.slice();
+  
+  // Stop microphone immediately
+  if(G.stream) G.stream.getTracks().forEach(function(t){ t.stop(); });
+  
   if(r && r.state !== 'inactive') {
     r.onstop = function(){
-      if(ch.length > 0) {
-        var p = procChunk(ch);
-        if(p && p.then) {
-          p.then(function(){
-            finalizeSession();
-          }).catch(function(e){
-            addLog('Errore trascrizione finale: ' + (e && e.message ? e.message : e), 'warn');
-            finalizeSession();
-          });
-        } else {
-          finalizeSession();
-        }
-      } else {
+      addLog('[Stop] Recorder fermato -- audio residuo: ' + ch.length + ' blob', 'info');
+      // Transcribe residual audio, then finalize
+      procChunk(ch).then(function(){
         finalizeSession();
-      }
+      }).catch(function(e){
+        addLog('[Stop] Errore audio residuo: ' + (e ? e.message : '?') + ' -- salvo comunque', 'warn');
+        finalizeSession();
+      });
     };
     r.stop();
   } else {
+    addLog('[Stop] Nessun audio residuo -- finalizzo', 'info');
     finalizeSession();
   }
-  if(G.stream) G.stream.getTracks().forEach(function(t){ t.stop(); });
-  setUI('idle');
 }
 
 function finalizeSession() {
   if(G._finalizing) { addLog('[Guard] finalizeSession ignorata -- gia in esecuzione', 'info'); return; }
   G._finalizing = true;
-  if(G.txFull) {
-    autoSave(); // autoSave resets _finalizing via sbSaveSession callback
-  } else {
-    addLog('[Stop] Nessun transcript -- sessione troppo breve (' + G.totalSec + 's)', 'warn');
-  var sess = {id:G.sessId, date:new Date().toLocaleString('it-IT'), mode:G.mode,
-      duration:G.totalSec, transcript:'(sessione troppo breve)', summary:''};
-    var idx = G.sessions.findIndex(function(s){ return s.id === G.sessId; });
-    if(idx >= 0) G.sessions[idx] = sess; else G.sessions.push(sess);
-    try{localStorage.setItem('sn_sessions', JSON.stringify(G.sessions));}catch(e){}
-    sbSaveSession(sess);
-  }
+  addLog('[Finalize] Salvataggio sessione: ' + G.txFull.length + ' chars, ' + fmt(G.totalSec), 'info');
+  
+  // Build session object
+  var sess = {
+    id: G.sessId,
+    date: new Date().toLocaleString('it-IT'),
+    mode: G.mode,
+    duration: G.totalSec,
+    transcript: G.txFull || '(sessione troppo breve)',
+    summary: G.txSummary || ''
+  };
+  
+  // Save to localStorage
+  var idx = G.sessions.findIndex(function(s){ return s.id === G.sessId; });
+  if(idx >= 0) G.sessions[idx] = sess; else G.sessions.push(sess);
+  try { localStorage.setItem('sn_sessions', JSON.stringify(G.sessions)); } catch(e) {}
+  
+  // Save to Supabase
+  sbSaveSession(sess).then(function(ok){
+    if(!ok) addLog('[Finalize] Supabase non raggiungibile -- salvato solo in locale', 'warn');
+    else addLog('[Finalize] Supabase aggiornato', 'ok');
+  });
+  
+  // Reset state
   G.silentTxBuffer = '';
   G.silentChunks = [];
   G.argoWantsToSpeak = false;
   G.argoPendingResponse = null;
-  addLog('Sessione salvata in Archivio.', 'ok');
   G._finalizing = false;
+  
+  // Update UI
+  renderFullTranscript();
+  addLog('Sessione salvata in Archivio.', 'ok');
   renderArch();
-  if(document.getElementById('sArch') && !document.getElementById('sArch').classList.contains('on')) {
+  if(!document.getElementById('sArch').classList.contains('on')) {
     sysMsg('Sessione salvata in Archivio.');
   }
 }
@@ -1548,10 +1568,28 @@ function resetAutoSaveTimer() {
   }, ms);
 }
 function setUI(state) {
-  var s=document.getElementById('btnStart'),p=document.getElementById('btnPause'),st=document.getElementById('btnStop'),d=document.getElementById('dot');
-  if(state==='idle'){s.style.display='inline-block';s.textContent='Avvia';p.style.display='none';st.style.display='none';d.className='dot';}
-  else if(state==='rec'){s.style.display='none';p.style.display='inline-block';p.textContent='Pausa';p.onclick=pauseRec;st.style.display='inline-block';d.className='dot rec';}
-  else if(state==='pause'){s.style.display='none';p.style.display='inline-block';p.textContent='Riprendi';p.onclick=resumeRec;st.style.display='inline-block';d.className='dot';}
+  var s=document.getElementById('btnStart'),p=document.getElementById('btnPause');
+  var st=document.getElementById('btnStop'),d=document.getElementById('dot');
+  var pub=document.getElementById('btnPubblica');
+  if(state==='idle'){
+    s.style.display='inline-block'; s.textContent='Inizia sessione';
+    p.style.display='none';
+    st.style.display='none';
+    if(pub) pub.style.display='none';
+    d.className='dot';
+  } else if(state==='rec'){
+    s.style.display='none';
+    p.style.display='inline-block'; p.textContent='Pausa'; p.onclick=pauseRec;
+    st.style.display='inline-block';
+    if(pub) pub.style.display='none';
+    d.className='dot rec';
+  } else if(state==='pause'){
+    s.style.display='none';
+    p.style.display='inline-block'; p.textContent='Riprendi'; p.onclick=resumeRec;
+    st.style.display='inline-block';
+    if(pub) pub.style.display='inline-block';
+    d.className='dot';
+  }
 }
 
 function spawnRec() {
@@ -1618,18 +1656,18 @@ async function procChunkSilent(chunks) {
     G.chunkErrors = 0;
     updateChunkCounter();
     addLog('[Chunk ' + G.chunkCount + '] Trascritto: "' + clean.substring(0,60) + (clean.length>60?'...':'"'), 'info');
-    // Add to BOTH silent buffer (for Zed context) AND txFull (for final transcript)
+    // Add to BOTH silent buffer (for AIC context) AND txFull (for final transcript)
     G.silentTxBuffer += (G.silentTxBuffer ? ' ' : '') + clean;
     G.txFull += (G.txFull ? ' ' : '') + clean;
     // Update visible transcript panel
     updTxSilent(clean);
     // Check for trigger phrase
     if(G.triggerPhrase && clean.toLowerCase().indexOf(G.triggerPhrase.toLowerCase()) >= 0) {
-      addLog('[Chunk ' + G.chunkCount + '] Trigger "' + G.triggerPhrase + '" rilevato -- Zed interviene', 'ok');
+      addLog('[Chunk ' + G.chunkCount + '] Trigger "' + G.triggerPhrase + '" rilevato -- AIC interviene', 'ok');
       triggerArgoNow();
       return;
     }
-    addLog('[Chunk ' + G.chunkCount + '] Valutazione Zed in corso...', 'info');
+    addLog('[Chunk ' + G.chunkCount + '] Valutazione AIC in corso...', 'info');
     // Let Argo evaluate silently
     argoEvaluateSilent(clean);
   } catch(e) {
@@ -1644,7 +1682,7 @@ function argoEvaluateSilent(newText) {
   var now = Date.now();
   var cooldownLeft = Math.round((AGENT_CONFIG.interventionCooldownSec * 1000 - (now - G.lastInt)) / 1000);
   if(now - G.lastInt < AGENT_CONFIG.interventionCooldownSec * 1000) {
-    addLog('[Zed] In cooldown ancora ' + cooldownLeft + 's -- nessuna valutazione', 'info');
+    addLog('[AIC] In cooldown ancora ' + cooldownLeft + 's -- nessuna valutazione', 'info');
     return;
   }
   
@@ -1652,14 +1690,14 @@ function argoEvaluateSilent(newText) {
   var context = G.silentTxBuffer;
   var prompt = 'Nuovo testo ascoltato: "' + newText + '" | Buffer: ' + context.substring(0,800) + ' | Transcript: ' + (G.txFull||'(nessuno)').substring(0,1000) + ' | Hai un intervento utile? Rispondi SILENZIO se no, altrimenti max 3 frasi.';
   
-  addLog('[Zed] Chiedo a Claude se intervenire...', 'info');
+  addLog('[AIC] Chiedo a Claude se intervenire...', 'info');
   claude(prompt, false).then(function(r) {
-    if(!r) { addLog('[Zed] Nessuna risposta da Claude', 'warn'); return; }
+    if(!r) { addLog('[AIC] Nessuna risposta da Claude', 'warn'); return; }
     if(r.trim().toUpperCase() === 'SILENZIO') {
-      addLog('[Zed] Valutazione: niente da dire', 'info');
+      addLog('[AIC] Valutazione: niente da dire', 'info');
       return;
     }
-    addLog('[Zed] Vuole intervenire: "' + r.substring(0,80) + (r.length>80?'...':'"'), 'ok');
+    addLog('[AIC] Vuole intervenire: "' + r.substring(0,80) + (r.length>80?'...':'"'), 'ok');
     G.argoWantsToSpeak = true;
     G.argoPendingResponse = r;
     showArgoWants();
@@ -1682,7 +1720,11 @@ function hideArgoWants() {
 }
 
 window.argoSpeakNow = function argoSpeakNow() {
-  addLog('[Zed] argoSpeakNow -- risposta pendente: ' + (G.argoPendingResponse ? 'si' : 'no'), 'info');
+  addLog('[AIC] argoSpeakNow -- risposta pendente: ' + (G.argoPendingResponse ? 'si' : 'no'), 'info');
+  // Pre-authorize audio on Safari iOS
+  if(AGENT_CONFIG.ttsEnabled && window.speechSynthesis) {
+    try { window.speechSynthesis.speak(new SpeechSynthesisUtterance('')); } catch(e) {}
+  }
   hideArgoWants();
   if(G.argoPendingResponse) {
     var response = G.argoPendingResponse;
@@ -1692,7 +1734,7 @@ window.argoSpeakNow = function argoSpeakNow() {
     addMsg(response); // addMsg handles TTS internally
     showN(response);
     beep();
-    G.history.push({role: 'user', content: '[Zed ha parlato su invito]'});
+    G.history.push({role: 'user', content: '[AIC ha parlato su invito]'});
     G.history.push({role: 'assistant', content: response});
   } else {
     // No pending response -- ask Argo to speak now based on current context
@@ -1701,21 +1743,29 @@ window.argoSpeakNow = function argoSpeakNow() {
 }
 
 window.triggerArgoNow = function triggerArgoNow() {
-  if(G._triggerBusy) { addLog('[Zed] Trigger ignorato -- risposta ancora in attesa da Claude', 'warn'); return; }
+  if(G._triggerBusy) { addLog('[AIC] Trigger ignorato -- risposta ancora in attesa da Claude', 'warn'); return; }
   G._triggerBusy = true;
-  addLog('[Zed] Trigger manuale -- chiedo a Claude di intervenire', 'info');
+  // Pre-authorize audio on Safari iOS (must happen synchronously in user gesture)
+  if(AGENT_CONFIG.ttsEnabled && window.speechSynthesis) {
+    try {
+      var u = new SpeechSynthesisUtterance('');
+      window.speechSynthesis.speak(u);
+      addLog('[TTS] Audio pre-autorizzato per Safari', 'info');
+    } catch(e) {}
+  }
+  addLog('[AIC] Trigger manuale -- chiedo a Claude di intervenire', 'info');
   var unanswered = G.pendingQuestions.filter(function(q){ return !q.answered; });
   var unansweredNote = unanswered.length > 0 ?
     ' DOMANDE SENZA RISPOSTA: ' + unanswered.map(function(q,i){ return (i+1)+'. '+q.text; }).join(' | ') : '';
   var txContext = G.txFull || G.silentTxBuffer || '(nessun contenuto ancora)';
-  addLog('[Zed] Contesto disponibile: txFull=' + G.txFull.length + 'chars, silentBuf=' + G.silentTxBuffer.length + 'chars', 'info');
+  addLog('[AIC] Contesto disponibile: txFull=' + G.txFull.length + 'chars, silentBuf=' + G.silentTxBuffer.length + 'chars', 'info');
   var p = 'Sei invitato a intervenire adesso. Contesto recente: "' + 
     txContext.substring(Math.max(0, txContext.length - 800)) + 
     '"' + unansweredNote + 
     '. Intervieni con un contributo utile. Max 3-4 frasi. Se non hai nulla di rilevante, dillo brevemente.';
   claude(p, false).then(function(r) {
-    if(!r) { addLog('[Zed] Nessuna risposta da Claude su trigger manuale', 'err'); G._triggerBusy = false; return; }
-    addLog('[Zed] Risposta: "' + r.substring(0,80) + (r.length>80?'...':'"'), 'ok');
+    if(!r) { addLog('[AIC] Nessuna risposta da Claude su trigger manuale', 'err'); G._triggerBusy = false; return; }
+    addLog('[AIC] Risposta: "' + r.substring(0,80) + (r.length>80?'...':'"'), 'ok');
     G.lastInt = Date.now();
     G.chunksSinceInt = 0;
     hideArgoWants();
@@ -1730,22 +1780,52 @@ window.triggerArgoNow = function triggerArgoNow() {
 
 // Transcription
 function procChunk(chunks) {
-  if(!chunks||chunks.length===0)return;
-  var type=(chunks[0]&&chunks[0].type)?chunks[0].type:(G.mime||'audio/mp4');
-  var blob=new Blob(chunks,{type:type});if(blob.size<MIN_BLOB){addLog('Chunk audio scartato -- troppo corto ('+blob.size+' bytes)','info');return;}
-  var idx=G.txChunks.length;G.txChunks.push('');
-  addTxPh(idx);document.getElementById('dot').className='dot proc';
-  var ext=type.indexOf('mp4')>=0||type.indexOf('m4a')>=0?'m4a':type.indexOf('ogg')>=0?'ogg':'webm';
-  var fd=new FormData();fd.append('file',blob,'a'+idx+'.'+ext);fd.append('model','whisper-large-v3-turbo');if(G.lang)fd.append('language',G.lang);fd.append('response_format','text');
-  return fetch('https://api.groq.com/openai/v1/audio/transcriptions',{method:'POST',headers:{'Authorization':'Bearer '+G.groqKey},body:fd})
-    .then(function(res){if(!res.ok)return res.json().then(function(e){throw new Error((e.error&&e.error.message)||('HTTP '+res.status));});return res.text();})
-    .then(function(raw){
-      var clean=(raw||'').trim();
-      if(clean){clean=dedup(G.txChunks[idx-1]||'',clean);G.txChunks[idx]=clean;G.txFull+=(G.txFull?' ':'')+clean;updTx(idx,clean);G.chunksSinceInt++;autoSave();sbSaveChunkWithEmbedding(G.sessId,idx,clean);maybeInt(clean);}
-      else{updTx(idx,null);}
-      document.getElementById('dot').className=G.recActive&&!G.recPaused?'dot rec':'dot';
+  // Called at Stop only -- transcribes final audio residue
+  if(!chunks || chunks.length === 0) {
+    addLog('[procChunk] Nessun dato audio residuo', 'info');
+    return Promise.resolve();
+  }
+  var type = (chunks[0] && chunks[0].type) ? chunks[0].type : (G.mime || 'audio/mp4');
+  var blob = new Blob(chunks, {type: type});
+  if(blob.size < MIN_BLOB) {
+    addLog('[procChunk] Audio residuo troppo corto (' + blob.size + 'b) -- skip', 'info');
+    return Promise.resolve();
+  }
+  addLog('[procChunk] Invio audio residuo a Groq: ' + blob.size + ' bytes', 'info');
+  document.getElementById('dot').className = 'dot proc';
+  var ext = type.indexOf('mp4') >= 0 || type.indexOf('m4a') >= 0 ? 'm4a' : type.indexOf('ogg') >= 0 ? 'ogg' : 'webm';
+  var fd = new FormData();
+  fd.append('file', blob, 'final.' + ext);
+  fd.append('model', 'whisper-large-v3-turbo');
+  if(G.lang) fd.append('language', G.lang);
+  fd.append('response_format', 'text');
+  return fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+    method: 'POST',
+    headers: {'Authorization': 'Bearer ' + G.groqKey},
+    body: fd
+  })
+    .then(function(res) {
+      if(!res.ok) return res.json().then(function(e){ throw new Error((e.error&&e.error.message)||('HTTP '+res.status)); });
+      return res.text();
     })
-    .catch(function(e){G.txChunks[idx]='';updTx(idx,'[Errore: '+e.message+']');addLog('Errore trascrizione chunk '+(idx+1)+': '+e.message, 'err');document.getElementById('dot').className=G.recActive&&!G.recPaused?'dot rec':'dot';});
+    .then(function(raw) {
+      var clean = (raw || '').trim();
+      if(clean) {
+        addLog('[procChunk] Audio residuo trascritto: "' + clean.substring(0,60) + (clean.length>60?'...':'"'), 'ok');
+        G.txFull += (G.txFull ? ' ' : '') + clean;
+        // Also save as chunk with embedding
+        var idx = G.txChunks.length;
+        G.txChunks.push(clean);
+        sbSaveChunkWithEmbedding(G.sessId, idx, clean);
+      } else {
+        addLog('[procChunk] Audio residuo: nessun testo rilevato', 'info');
+      }
+      document.getElementById('dot').className = 'dot';
+    })
+    .catch(function(e) {
+      addLog('[procChunk] Errore: ' + e.message, 'err');
+      document.getElementById('dot').className = 'dot';
+    });
 }
 
 // Agent
@@ -1892,7 +1972,7 @@ function closeQBanner() {
 }
 
 function copyQBanner() {
-  // No longer needed - Zed interventions go to transcript automatically
+  // No longer needed - AIC interventions go to transcript automatically
   closeQBanner();
 }
 
@@ -1995,10 +2075,29 @@ function autoSave() {
 }
 var selMode = false;
 
+// -- TRANSCRIPT FULL RENDER ----------------------------------------------------
+function renderFullTranscript() {
+  var panel = document.getElementById('txPanel');
+  if(!panel) return;
+  panel.innerHTML = '';
+  if(!G.txFull) {
+    panel.innerHTML = '<div id="txEmpty" style="color:var(--faint);font-size:12px;padding:20px;text-align:center">Nessuna trascrizione</div>';
+    return;
+  }
+  // Show full transcript as a single block
+  var el = document.createElement('div');
+  el.className = 'tc';
+  el.innerHTML = '<div class="tc-meta">Transcript completo -- ' + fmt(G.totalSec) + '</div>' +
+    '<div class="tc-text" style="white-space:pre-wrap;line-height:1.7">' + esc(G.txFull) + '</div>';
+  panel.appendChild(el);
+  panel.scrollTop = 99999;
+  addLog('[Transcript] Renderizzato: ' + G.txFull.length + ' chars', 'ok');
+}
+
 // -- TRANSCRIPT SILENT UPDATE ---------------------------------------------------
 function updTxSilent(text) {
   // Accumulate silently -- txBox shows nothing during recording
-  // but G.txFull is updated for save and for Zed context
+  // but G.txFull is updated for save and for AIC context
   // If txBox is visible (e.g. after Stop), update it
   if(!G.recActive) {
     var box = document.getElementById('txBox');
@@ -2009,6 +2108,41 @@ function updTxSilent(text) {
       box.appendChild(el);
       box.scrollTop = box.scrollHeight;
     }
+  }
+}
+
+// -- PUBBLICA TRANSCRIPT & COPIA LOG ----------------------------------------
+function pubblicaTranscript() {
+  // Saves current transcript snapshot during pause
+  if(!G.recActive && !G.recPaused) return;
+  if(!G.txFull) { sysMsg('Nessun transcript da pubblicare ancora.'); return; }
+  var sess = {
+    id: G.sessId,
+    date: new Date().toLocaleString('it-IT'),
+    mode: G.mode,
+    duration: G.totalSec,
+    transcript: G.txFull,
+    summary: G.txSummary || ''
+  };
+  var idx = G.sessions.findIndex(function(s){ return s.id === G.sessId; });
+  if(idx >= 0) G.sessions[idx] = sess; else G.sessions.push(sess);
+  try { localStorage.setItem('sn_sessions', JSON.stringify(G.sessions)); } catch(e) {}
+  sbSaveSession(sess);
+  renderArch();
+  addLog('[Pubblica] Transcript pubblicato: ' + G.txFull.length + ' chars', 'ok');
+  sysMsg('Transcript pubblicato in Archivio.');
+}
+
+function copyLog() {
+  if(!logEntries || logEntries.length === 0) { sysMsg("Log vuoto."); return; }
+  var parts = logEntries.map(function(e){ return e.time + " " + e.text; });
+  var text = parts.join("\n");
+  if(navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function(){
+      addLog("[Log] Copiato negli appunti (" + logEntries.length + " righe)", "ok");
+    });
+  } else {
+    sysMsg("Clipboard non disponibile in questo browser.");
   }
 }
 
@@ -2174,6 +2308,18 @@ function speak(text) {
   ttsUtterance.lang = 'it-IT';
   ttsUtterance.rate = 0.95;
   ttsUtterance.pitch = 1;
+  // Try to set an Italian voice if available
+  var voices = window.speechSynthesis.getVoices();
+  addLog('[TTS] Voci disponibili: ' + voices.length, 'info');
+  var itVoice = voices.find(function(v){ return v.lang && v.lang.indexOf('it') >= 0; });
+  if(itVoice) {
+    ttsUtterance.voice = itVoice;
+    addLog('[TTS] Voce selezionata: ' + itVoice.name, 'info');
+  } else if(voices.length > 0) {
+    addLog('[TTS] Nessuna voce italiana -- uso default', 'warn');
+  } else {
+    addLog('[TTS] Nessuna voce caricata -- il browser potrebbe bloccare TTS', 'warn');
+  }
   var dot = document.getElementById('ttsDot');
   ttsUtterance.onstart = function(){
     addLog('[TTS] Sintesi avviata', 'ok');
@@ -2405,7 +2551,7 @@ function renderArch() {
   if(G.sessions.length===0){ss.innerHTML+='<p class="arch-note">Nessuna sessione ancora.</p>';}
   else{G.sessions.slice().reverse().forEach(function(s){
     var el=document.createElement('div');el.className='acard';
-    el.innerHTML='<input type="checkbox" class="acard-cb" data-id="'+s.id+'" data-type="sess" onchange="updateSelCount()">'+'<div class="acard-hdr"><div class="acard-title">'+ s.date +'</div><div class="acard-meta">'+fmt(s.duration||0)+' - '+s.transcript.split(' ').length+' parole</div></div><div class="acard-prev">'+esc(s.transcript.substring(0,160))+'</div><div class="acard-btns"><button class="btn-sm" onclick="restoreSession('+s.id+')">Riprendi</button><button class="btn-sm" onclick="viewModal(\'Transcript \'+s.date,s.id+\'T\')">Transcript</button><button class="btn-sm" onclick="viewModal(\'Sintesi \'+s.date,s.id+\'S\')">Sintesi</button><button class="btn-sm" onclick="clearTranscript('+s.id+')">Cancella trascrizione</button><button class="btn-sm" onclick="clearAgentHistory('+s.id+')">Cancella conv. Zed</button><button class="btn-sm" onclick="delS('+s.id+')">Elimina</button></div>';ss.appendChild(el);
+    el.innerHTML='<input type="checkbox" class="acard-cb" data-id="'+s.id+'" data-type="sess" onchange="updateSelCount()">'+'<div class="acard-hdr"><div class="acard-title">'+ s.date +'</div><div class="acard-meta">'+fmt(s.duration||0)+' - '+s.transcript.split(' ').length+' parole</div></div><div class="acard-prev">'+esc(s.transcript.substring(0,160))+'</div><div class="acard-btns"><button class="btn-sm" onclick="restoreSession('+s.id+')">Riprendi</button><button class="btn-sm" onclick="viewModal(\'Transcript \'+s.date,s.id+\'T\')">Transcript</button><button class="btn-sm" onclick="viewModal(\'Sintesi \'+s.date,s.id+\'S\')">Sintesi</button><button class="btn-sm" onclick="clearTranscript('+s.id+')">Cancella trascrizione</button><button class="btn-sm" onclick="clearAgentHistory('+s.id+')">Cancella conv. AIC</button><button class="btn-sm" onclick="delS('+s.id+')">Elimina</button></div>';ss.appendChild(el);
   });}
   w.appendChild(ss);
 }
@@ -2535,14 +2681,14 @@ function addMsg(text) {
   if(AGENT_CONFIG.ttsEnabled) {
     var clean = text.replace(/<[^>]+>/g,'').replace('DOMANDA:','').replace('CONTESTO:','').trim();
     speak(clean);
-  // Add Zed intervention to transcript (so it's in the corpus for RAG)
+  // Add AIC intervention to transcript (so it's in the corpus for RAG)
   if(G.recActive && !isQ) {
-    var zedEntry = '[Zed] ' + text.replace(/<[^>]+>/g,'').trim();
+    var zedEntry = '[AIC] ' + text.replace(/<[^>]+>/g,'').trim();
     G.txFull += (G.txFull ? ' ' : '') + zedEntry;
     G.silentTxBuffer += (G.silentTxBuffer ? ' ' : '') + zedEntry;
   }
   if(isQ && G.recActive) {
-    var qEntry = '[Zed domanda] ' + text.replace(/<[^>]+>/g,'').replace('DOMANDA:','').replace('CONTESTO:','').trim();
+    var qEntry = '[AIC domanda] ' + text.replace(/<[^>]+>/g,'').replace('DOMANDA:','').replace('CONTESTO:','').trim();
     G.txFull += (G.txFull ? ' ' : '') + qEntry;
   }
   }
