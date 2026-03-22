@@ -232,6 +232,562 @@ body.testmode .logo span{color:var(--warn)}
 .modal-body{flex:1;overflow-y:auto;padding:18px 20px}
 .modal-body p{font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap}
 .modal-f{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end}
+
+/* ═══════════════════════════════════════════════════════════
+OMEGA SESSION SCREEN – new design
+═══════════════════════════════════════════════════════════ */
+
+/* Omega screen layout */
+#sSess.on {
+display: flex;
+flex-direction: column;
+height: 100%;
+overflow: hidden;
+background: var(–bg);
+position: relative;
+}
+
+/* Ambient background blobs */
+#sSess::before {
+content: ‘’;
+position: absolute;
+width: 500px; height: 500px;
+border-radius: 50%;
+background: radial-gradient(circle, rgba(74,158,114,.07) 0%, transparent 70%);
+top: -150px; left: 50%;
+transform: translateX(-50%);
+pointer-events: none;
+z-index: 0;
+animation: blobDrift 10s ease-in-out infinite;
+}
+@keyframes blobDrift {
+0%,100% { transform: translateX(-50%) translateY(0); }
+50%      { transform: translateX(-50%) translateY(24px); }
+}
+
+/* Omega stage – top area */
+.omega-stage {
+flex: 1;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+padding: 20px 24px 12px;
+position: relative;
+z-index: 1;
+overflow: hidden;
+gap: 0;
+}
+
+/* ── Avatar system ── */
+.omega-avatar-sys {
+position: relative;
+display: flex;
+align-items: center;
+justify-content: center;
+margin-bottom: 28px;
+}
+.o-orbit {
+position: absolute;
+border-radius: 50%;
+border: 1px solid rgba(74,158,114,.07);
+}
+.o-orbit-1 {
+width: 150px; height: 150px;
+animation: oSpin 18s linear infinite;
+}
+.o-orbit-2 {
+width: 196px; height: 196px;
+animation: oSpin 28s linear infinite reverse;
+}
+.o-orbit-1::after {
+content: ‘’;
+position: absolute;
+top: -3px; left: 50%;
+transform: translateX(-50%);
+width: 5px; height: 5px;
+border-radius: 50%;
+background: var(–setup);
+opacity: .7;
+box-shadow: 0 0 10px rgba(74,158,114,.6);
+}
+@keyframes oSpin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+
+.o-core {
+width: 96px; height: 96px;
+border-radius: 50%;
+position: relative;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+.o-bg {
+position: absolute;
+inset: 0;
+border-radius: 50%;
+background: conic-gradient(from 180deg, rgba(74,158,114,.2), rgba(42,110,82,.1), rgba(74,158,114,.2));
+animation: oSpin 10s linear infinite;
+}
+.o-inner {
+position: absolute;
+inset: 3px;
+border-radius: 50%;
+background: radial-gradient(circle at 40% 35%, #141e1a, #0d1410);
+border: 1px solid rgba(74,158,114,.18);
+display: flex;
+align-items: center;
+justify-content: center;
+box-shadow: inset 0 0 24px rgba(74,158,114,.06);
+}
+.o-glyph {
+font-size: 36px;
+font-weight: 300;
+color: var(–text);
+font-family: var(–fm);
+letter-spacing: -.02em;
+line-height: 1;
+text-shadow: 0 0 24px rgba(74,158,114,.5);
+position: relative;
+z-index: 1;
+}
+.o-glow-ring {
+position: absolute;
+inset: -3px;
+border-radius: 50%;
+opacity: 0;
+transition: opacity .5s;
+}
+.omega-state-listening .o-glow-ring {
+opacity: 1;
+background: conic-gradient(from 0deg, transparent, rgba(74,158,114,.25), transparent, rgba(74,158,114,.25), transparent);
+animation: oSpin 4s linear infinite;
+}
+.omega-state-speaking .o-glow-ring {
+opacity: 1;
+background: conic-gradient(from 0deg, transparent, rgba(232,168,74,.35), transparent, rgba(232,168,74,.35), transparent);
+animation: oSpin 1s linear infinite;
+}
+.o-badge {
+position: absolute;
+bottom: 0; right: -4px;
+border-radius: 20px;
+padding: 3px 8px;
+font-family: var(–fm);
+font-size: 9px;
+letter-spacing: .1em;
+text-transform: uppercase;
+white-space: nowrap;
+border: 1px solid;
+transition: all .3s;
+}
+.o-badge.listening { background: rgba(74,175,122,.1); border-color: rgba(74,175,122,.3); color: var(–ok); }
+.o-badge.speaking  { background: rgba(232,168,74,.1); border-color: rgba(232,168,74,.3); color: var(–warn); animation: badgePulse .6s ease-in-out infinite alternate; }
+.o-badge.paused    { background: var(–s2); border-color: var(–border2); color: var(–dim); }
+.o-badge.idle      { background: var(–s2); border-color: var(–border); color: var(–faint); }
+@keyframes badgePulse { from{opacity:.6} to{opacity:1} }
+
+/* ── Waveform ── */
+.o-wave {
+display: flex;
+align-items: center;
+gap: 3px;
+height: 24px;
+margin-bottom: 18px;
+}
+.o-bar {
+width: 2.5px;
+border-radius: 2px;
+transition: background .4s;
+}
+.omega-state-listening .o-bar {
+background: var(–setup);
+}
+.omega-state-listening .o-bar:nth-child(1) { animation: wL 2s ease-in-out infinite 0.00s; }
+.omega-state-listening .o-bar:nth-child(2) { animation: wL 2s ease-in-out infinite 0.11s; }
+.omega-state-listening .o-bar:nth-child(3) { animation: wL 2s ease-in-out infinite 0.22s; }
+.omega-state-listening .o-bar:nth-child(4) { animation: wL 2s ease-in-out infinite 0.33s; }
+.omega-state-listening .o-bar:nth-child(5) { animation: wL 2s ease-in-out infinite 0.44s; }
+.omega-state-listening .o-bar:nth-child(6) { animation: wL 2s ease-in-out infinite 0.33s; }
+.omega-state-listening .o-bar:nth-child(7) { animation: wL 2s ease-in-out infinite 0.22s; }
+.omega-state-listening .o-bar:nth-child(8) { animation: wL 2s ease-in-out infinite 0.11s; }
+.omega-state-listening .o-bar:nth-child(9) { animation: wL 2s ease-in-out infinite 0.00s; }
+@keyframes wL { 0%,100%{height:3px;opacity:.2} 50%{height:15px;opacity:.8} }
+
+.omega-state-speaking .o-bar { background: var(–warn); }
+.omega-state-speaking .o-bar:nth-child(1) { animation: wS .38s ease-in-out infinite alternate 0.00s; }
+.omega-state-speaking .o-bar:nth-child(2) { animation: wS .38s ease-in-out infinite alternate 0.04s; }
+.omega-state-speaking .o-bar:nth-child(3) { animation: wS .38s ease-in-out infinite alternate 0.08s; }
+.omega-state-speaking .o-bar:nth-child(4) { animation: wS .38s ease-in-out infinite alternate 0.12s; }
+.omega-state-speaking .o-bar:nth-child(5) { animation: wS .38s ease-in-out infinite alternate 0.16s; }
+.omega-state-speaking .o-bar:nth-child(6) { animation: wS .38s ease-in-out infinite alternate 0.12s; }
+.omega-state-speaking .o-bar:nth-child(7) { animation: wS .38s ease-in-out infinite alternate 0.08s; }
+.omega-state-speaking .o-bar:nth-child(8) { animation: wS .38s ease-in-out infinite alternate 0.04s; }
+.omega-state-speaking .o-bar:nth-child(9) { animation: wS .38s ease-in-out infinite alternate 0.00s; }
+@keyframes wS { from{height:4px} to{height:22px} }
+
+.omega-state-idle .o-bar,
+.omega-state-paused .o-bar { background: var(–faint); height: 3px; }
+
+/* ── Message bubble ── */
+.o-msg-area {
+width: 100%;
+max-width: 500px;
+}
+.o-msg-bubble {
+background: linear-gradient(135deg, rgba(74,158,114,.08), rgba(42,110,82,.04));
+border: 1px solid rgba(74,158,114,.15);
+border-radius: 4px 14px 14px 14px;
+padding: 13px 38px 13px 15px;
+font-size: 13.5px;
+line-height: 1.75;
+color: var(–text);
+position: relative;
+animation: msgIn .3s cubic-bezier(.34,1.26,.64,1);
+}
+@keyframes msgIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+.o-msg-lbl {
+font-family: var(–fm);
+font-size: 9px;
+letter-spacing: .12em;
+color: var(–setup);
+text-transform: uppercase;
+margin-bottom: 6px;
+opacity: .8;
+}
+.o-msg-x {
+position: absolute;
+top: 9px; right: 10px;
+background: rgba(255,255,255,.05);
+border: none;
+color: var(–dim);
+width: 22px; height: 22px;
+border-radius: 50%;
+font-size: 13px;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+transition: all .2s;
+line-height: 1;
+}
+.o-msg-x:hover { background: rgba(255,255,255,.1); color: var(–text); }
+.o-history-pill {
+display: none;
+margin-top: 8px;
+background: none;
+border: 1px solid var(–faint);
+color: var(–dim);
+font-family: var(–fm);
+font-size: 10px;
+letter-spacing: .06em;
+padding: 5px 12px;
+border-radius: 20px;
+cursor: pointer;
+transition: all .2s;
+}
+.o-history-pill:hover { border-color: var(–setup); color: var(–setup); }
+
+/* ── Omega speak button ── */
+.o-speak-btn {
+margin-top: 20px;
+background: none;
+border: 1.5px solid rgba(74,158,114,.35);
+color: var(–text);
+font-family: var(–fm);
+font-size: 11px;
+font-weight: 500;
+letter-spacing: .12em;
+text-transform: uppercase;
+padding: 12px 30px;
+border-radius: 50px;
+cursor: pointer;
+transition: border-color .3s, box-shadow .3s;
+position: relative;
+overflow: hidden;
+}
+.o-speak-btn::before {
+content: ‘’;
+position: absolute;
+inset: 0;
+background: radial-gradient(ellipse, rgba(74,158,114,.12), transparent 70%);
+opacity: 0;
+transition: opacity .3s;
+}
+.o-speak-btn:hover { border-color: var(–setup); box-shadow: 0 0 20px rgba(74,158,114,.15); }
+.o-speak-btn:hover::before { opacity: 1; }
+.o-speak-btn:active { transform: scale(.97); }
+.o-speak-btn span { position: relative; z-index: 1; }
+
+/* ── Session controls ── */
+.o-controls {
+flex-shrink: 0;
+border-top: 1px solid var(–border);
+background: rgba(10,12,15,.92);
+backdrop-filter: blur(16px);
+-webkit-backdrop-filter: blur(16px);
+padding: 12px 20px 16px;
+display: flex;
+flex-direction: column;
+gap: 10px;
+position: relative;
+z-index: 5;
+}
+.o-controls::before {
+content: ‘’;
+position: absolute;
+top: 0; left: 15%; right: 15%;
+height: 1px;
+background: linear-gradient(90deg, transparent, var(–setup), transparent);
+opacity: 0;
+transition: opacity .6s;
+}
+.omega-state-listening ~ .o-controls::before,
+.omega-state-speaking ~ .o-controls::before { opacity: .3; }
+
+.o-timer-row {
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+.o-rec-status {
+display: flex;
+align-items: center;
+gap: 6px;
+}
+.o-rec-dot {
+width: 6px; height: 6px;
+border-radius: 50%;
+background: var(–faint);
+transition: background .3s, box-shadow .3s;
+}
+.o-rec-dot.active {
+background: var(–ok);
+box-shadow: 0 0 6px rgba(74,175,122,.5);
+animation: dotPulse 1.5s ease-in-out infinite;
+}
+.o-rec-dot.paused { background: var(–warn); }
+@keyframes dotPulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+.o-rec-label {
+font-family: var(–fm);
+font-size: 10px;
+letter-spacing: .08em;
+color: var(–dim);
+text-transform: uppercase;
+}
+.o-timer {
+font-family: var(–fm);
+font-size: 24px;
+font-weight: 400;
+letter-spacing: .06em;
+color: var(–text);
+transition: color .3s;
+}
+.o-timer.active { color: var(–text); }
+.o-timer.paused { color: var(–warn); animation: timerBlink 1s step-start infinite; }
+@keyframes timerBlink { 0%,100%{opacity:1} 50%{opacity:.4} }
+.o-stop-tts {
+background: none;
+border: none;
+color: var(–faint);
+font-family: var(–fm);
+font-size: 9px;
+letter-spacing: .08em;
+text-transform: uppercase;
+cursor: pointer;
+padding: 4px 8px;
+border-radius: 5px;
+transition: color .2s, opacity .3s;
+opacity: 0;
+pointer-events: none;
+}
+.o-stop-tts.visible { opacity: 1; pointer-events: all; }
+.o-stop-tts:hover { color: var(–danger); }
+
+.o-btn-row {
+display: flex;
+gap: 8px;
+align-items: center;
+}
+.o-btn {
+font-family: var(–fm);
+font-size: 10px;
+font-weight: 500;
+letter-spacing: .08em;
+text-transform: uppercase;
+padding: 9px 14px;
+border-radius: 9px;
+border: 1px solid;
+cursor: pointer;
+transition: all .2s;
+white-space: nowrap;
+}
+.o-btn-start {
+background: rgba(74,175,122,.08);
+border-color: rgba(74,175,122,.25);
+color: var(–ok);
+flex: 1;
+text-align: center;
+}
+.o-btn-start:hover { background: rgba(74,175,122,.14); }
+.o-btn-pause {
+background: rgba(232,168,74,.07);
+border-color: rgba(232,168,74,.2);
+color: var(–warn);
+}
+.o-btn-pause:hover { background: rgba(232,168,74,.13); }
+.o-btn-stop {
+background: rgba(217,95,95,.07);
+border-color: rgba(217,95,95,.2);
+color: var(–danger);
+}
+.o-btn-stop:hover { background: rgba(217,95,95,.13); }
+.o-btn-tx {
+background: rgba(255,255,255,.03);
+border-color: var(–border2);
+color: var(–dim);
+}
+.o-btn-tx:hover { background: rgba(255,255,255,.07); color: var(–text); }
+
+/* ── Transcript sheet ── */
+.o-tx-overlay {
+position: fixed;
+inset: 0;
+background: rgba(0,0,0,.72);
+z-index: 300;
+display: none;
+align-items: flex-end;
+padding: 16px;
+backdrop-filter: blur(8px);
+-webkit-backdrop-filter: blur(8px);
+animation: fadeIn .2s ease;
+}
+.o-tx-overlay.on { display: flex; }
+.o-sheet {
+background: linear-gradient(180deg, var(–s1), var(–bg));
+border: 1px solid var(–border2);
+border-radius: 20px;
+width: 100%;
+max-height: 68dvh;
+display: flex;
+flex-direction: column;
+animation: sheetUp .3s cubic-bezier(.34,1.26,.64,1);
+}
+@keyframes sheetUp { from{transform:translateY(24px);opacity:0} to{transform:none;opacity:1} }
+.o-sheet-hdr {
+padding: 14px 18px;
+border-bottom: 1px solid var(–border);
+display: flex;
+align-items: center;
+justify-content: space-between;
+flex-shrink: 0;
+}
+.o-sheet-title {
+font-family: var(–fm);
+font-size: 11px;
+letter-spacing: .1em;
+text-transform: uppercase;
+color: var(–dim);
+}
+.o-sheet-acts { display: flex; gap: 8px; align-items: center; }
+.o-copy-btn {
+background: rgba(74,158,114,.1);
+border: 1px solid rgba(74,158,114,.22);
+color: var(–setup);
+font-family: var(–fm);
+font-size: 10px;
+letter-spacing: .08em;
+text-transform: uppercase;
+padding: 6px 13px;
+border-radius: 8px;
+cursor: pointer;
+transition: background .2s;
+}
+.o-copy-btn:hover { background: rgba(74,158,114,.18); }
+.o-close-btn {
+width: 26px; height: 26px;
+background: rgba(255,255,255,.05);
+border: none;
+border-radius: 50%;
+color: var(–dim);
+font-size: 14px;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+transition: all .2s;
+}
+.o-close-btn:hover { background: rgba(255,255,255,.1); color: var(–text); }
+.o-sheet-body {
+overflow-y: auto;
+padding: 18px 20px;
+font-size: 13.5px;
+line-height: 1.8;
+color: var(–text);
+white-space: pre-wrap;
+font-weight: 300;
+}
+
+/* ── Pause dialog ── */
+.o-pause-dlg {
+position: fixed;
+inset: 0;
+z-index: 250;
+display: none;
+align-items: center;
+justify-content: center;
+padding: 24px;
+background: rgba(0,0,0,.65);
+backdrop-filter: blur(6px);
+animation: fadeIn .2s ease;
+}
+.o-pause-dlg.on { display: flex; }
+.o-pause-card {
+background: linear-gradient(135deg, var(–s1), var(–bg));
+border: 1px solid rgba(232,168,74,.2);
+border-radius: 20px;
+padding: 26px 22px;
+max-width: 320px;
+width: 100%;
+text-align: center;
+box-shadow: 0 16px 50px rgba(0,0,0,.55), 0 0 30px rgba(232,168,74,.05);
+animation: sheetUp .3s cubic-bezier(.34,1.36,.64,1);
+}
+.o-pause-icon { font-size: 26px; margin-bottom: 12px; opacity: .7; }
+.o-pause-title { font-size: 15px; font-weight: 600; color: var(–text); margin-bottom: 8px; }
+.o-pause-body { font-size: 13px; color: var(–dim); line-height: 1.6; margin-bottom: 20px; font-weight: 300; }
+.o-pause-body strong { color: var(–warn); }
+.o-pause-btns { display: flex; gap: 10px; }
+.o-pause-btns .o-btn { flex: 1; text-align: center; }
+
+/* ── Hour alert banner ── */
+.o-hour-alert {
+position: fixed;
+top: 60px; left: 50%;
+transform: translateX(-50%);
+z-index: 200;
+background: var(–s1);
+border: 1px solid var(–setup);
+border-radius: 10px;
+padding: 10px 18px;
+font-size: 12px;
+color: var(–setup);
+font-family: var(–fm);
+letter-spacing: .04em;
+display: none;
+animation: msgIn .3s ease;
+box-shadow: 0 4px 20px rgba(0,0,0,.4);
+}
+.o-hour-alert.on { display: block; }
+.o-hour-alert button {
+margin-left: 12px;
+background: none;
+border: none;
+color: var(–dim);
+cursor: pointer;
+font-size: 14px;
+line-height: 1;
+}
+
 </style>
 </head>
 <body>
@@ -497,8 +1053,8 @@ async function searchForSynthesis(query, matchCount) {
 <!-- ARGO WANTS TO SPEAK BANNER -->
 
 <div class="argo-wants" id="argoWants">
-  <div class="argo-wants-lbl">AIC vuole intervenire</div>
-  <div id="argoWantsHint" style="font-size:12px;color:var(--dim)">Di' "AIC parla" oppure</div>
+  <div class="argo-wants-lbl">Omega vuole intervenire</div>
+  <div id="argoWantsHint" style="font-size:12px;color:var(--dim)">Di' "Omega parla" oppure</div>
   <button class="argo-speak-btn" onclick="argoSpeakNow()">Parla adesso</button>
 </div>
 
@@ -512,7 +1068,7 @@ async function searchForSynthesis(query, matchCount) {
 <!-- QUESTION BANNER -->
 
 <div class="q-banner" id="qBanner">
-  <button class="q-banner-x" onclick="closeQBanner()">×</button>
+  <button class="q-banner-x" onclick="closeQBanner()">x</button>
   <div class="q-banner-lbl">Domanda strutturata dell'agente</div>
   <div class="q-banner-text" id="qBannerText"></div>
   <div class="q-banner-actions">
@@ -526,7 +1082,7 @@ async function searchForSynthesis(query, matchCount) {
   <div class="log-box">
     <div class="log-box-hdr">
       <div class="log-box-title">Log attività</div>
-      <button class="modal-x" onclick="closeLog()">×</button>
+      <button class="modal-x" onclick="closeLog()">x</button>
     </div>
     <div class="log-box-body" id="logEntries"></div>
     <div class="log-box-foot">
@@ -565,7 +1121,7 @@ async function searchForSynthesis(query, matchCount) {
 
 <div class="hdr">
   <div class="logo">Super<span>-NOVA</span></div>
-  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.55</div>
+  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.56</div>
   <select class="mode-sel setup" id="modeSel" onchange="changeMode(this.value)">
     <option value="setup">Setup</option>
     <option value="fase0">Fase 0</option>
@@ -606,7 +1162,7 @@ async function searchForSynthesis(query, matchCount) {
 </div>
      <button class="home-btn" onclick="doLogin()">Accedi</button>
       </div>
-      <div class="home-version">v2026.03 · Progetto Super-NOVA</div>
+      <div class="home-version">v2026.03 . Progetto Super-NOVA</div>
     </div>
   </div>
 </div>
@@ -676,8 +1232,8 @@ async function searchForSynthesis(query, matchCount) {
       </div>
     </div>
     <div style="margin-top:16px">
-      <div class="lbl">Frase trigger per AIC</div>
-      <input class="inp" type="text" id="triggerPhrase" value="AIC parla" style="font-size:13px" oninput="G.triggerPhrase=this.value.trim().toLowerCase()">
+      <div class="lbl">Frase trigger per Omega</div>
+      <input class="inp" type="text" id="triggerPhrase" value="Omega parla" style="font-size:13px" oninput="G.triggerPhrase=this.value.trim().toLowerCase()">
       <div style="font-size:11px;color:var(--faint);margin-top:2px">Quando pronunciata, Argo interviene immediatamente</div>
     </div>
   </div>
@@ -686,11 +1242,11 @@ async function searchForSynthesis(query, matchCount) {
 <!-- SEZIONE: Argo -->
 <div class="card cfg-section" id="sec-argo">
   <div class="cfg-sec-hdr" onclick="toggleSection('argo')">
-    <span class="ctitle">AIC</span>
+    <span class="ctitle">Omega</span>
     <span class="cfg-chevron" id="chev-argo">v</span>
   </div>
   <div class="cfg-sec-body" id="body-argo" style="display:none">
-    <div class="chk-row"><input type="checkbox" id="ttsSetup" onchange="AGENT_CONFIG.ttsEnabled=this.checked"><label for="ttsSetup" style="font-size:12px;color:var(--dim);cursor:pointer">Attiva voce AIC in Setup</label></div>
+    <div class="chk-row"><input type="checkbox" id="ttsSetup" onchange="AGENT_CONFIG.ttsEnabled=this.checked"><label for="ttsSetup" style="font-size:12px;color:var(--dim);cursor:pointer">Attiva voce Omega in Setup</label></div>
 
   </div>
 </div>
@@ -716,51 +1272,146 @@ async function searchForSynthesis(query, matchCount) {
 <!-- SESSIONE -->
 
 <div class="screen" id="sSess">
-  <div class="sess-grid">
-    <div class="tx-panel" id="txPanel">
-      <div class="plbl">Trascrizione</div>
-      <div class="tx-empty" id="txEmpty">
-        <div style="font-size:26px;opacity:.3">mic</div>
-        <div>Avvia la registrazione per iniziare</div>
+
+  <!-- Omega Stage -->
+
+  <div class="omega-stage omega-state-idle" id="omegaStage">
+
+```
+<!-- Avatar -->
+<div class="omega-avatar-sys">
+  <div class="o-orbit o-orbit-1"></div>
+  <div class="o-orbit o-orbit-2"></div>
+  <div class="o-core">
+    <div class="o-bg"></div>
+    <div class="o-inner">
+      <span class="o-glyph">Ω</span>
+    </div>
+    <div class="o-glow-ring"></div>
+    <div class="o-badge idle" id="oBadge">Inattivo</div>
+  </div>
+</div>
+
+<!-- Waveform -->
+<div class="o-wave" id="oWave">
+  <div class="o-bar"></div><div class="o-bar"></div><div class="o-bar"></div>
+  <div class="o-bar"></div><div class="o-bar"></div><div class="o-bar"></div>
+  <div class="o-bar"></div><div class="o-bar"></div><div class="o-bar"></div>
+</div>
+
+<!-- Message area -->
+<div class="o-msg-area" id="oMsgArea">
+  <div class="msgs-empty" id="msgsEmpty">
+    <div style="font-size:18px;opacity:.2">Ω</div>
+    <div style="font-size:12px;color:var(--dim);margin-top:6px">Avvia la sessione per iniziare</div>
+  </div>
+</div>
+
+<!-- History pill -->
+<button class="o-history-pill" id="oHistoryPill" onclick="showOmegaHistory()">^ Messaggi precedenti</button>
+
+<!-- Omega speak button -->
+<button class="o-speak-btn" id="btnOmegaSpeak" onclick="triggerArgoNow()" style="display:none">
+  <span>Ω . Parla ora</span>
+</button>
+```
+
+  </div>
+
+  <!-- Controls -->
+
+  <div class="o-controls">
+    <!-- Timer row -->
+    <div class="o-timer-row">
+      <div class="o-rec-status">
+        <div class="o-rec-dot" id="oRecDot"></div>
+        <span class="o-rec-label" id="oRecLabel">In attesa</span>
+      </div>
+      <div class="o-timer" id="timer">00:00</div>
+      <button class="o-stop-tts" id="btnStopTTS" onclick="stopTTS()">x stop voce</button>
+    </div>
+    <!-- Action buttons -->
+    <div class="o-btn-row">
+      <button class="o-btn o-btn-start" id="btnStart" onclick="startRec()">Inizia sessione</button>
+      <button class="o-btn o-btn-tx" id="btnTranscript" onclick="showOmegaTranscript()" style="display:none">≡ Transcript</button>
+      <button class="o-btn o-btn-pause" id="btnPause" onclick="pauseRec()" style="display:none">|> Pausa</button>
+      <button class="o-btn o-btn-stop" id="btnStop" onclick="stopRec()" style="display:none">■ Fine</button>
+    </div>
+  </div>
+
+  <!-- Gate banner (hidden, legacy) -->
+
+  <div class="gate-banner" id="gateBanner" style="display:none"></div>
+
+  <!-- Legacy hidden elements for compatibility -->
+
+  <div style="display:none">
+    <div id="txPanel"></div>
+    <div id="txBox"></div>
+    <div id="msgs"></div>
+    <div id="agentPanel"></div>
+    <input id="agentInp" />
+    <div id="dot" class="dot"></div>
+    <div id="cfill"></div>
+    <div id="ceta"></div>
+    <div id="ttsDot"></div>
+    <div id="btnStopTTS_legacy"></div>
+    <div id="btnPubblica"></div>
+  </div>
+
+</div>
+
+<!-- TRANSCRIPT OVERLAY -->
+
+<div class="o-tx-overlay" id="oTxOverlay" onclick="if(event.target===this)closeOmegaTranscript()">
+  <div class="o-sheet">
+    <div class="o-sheet-hdr">
+      <div class="o-sheet-title" id="oTxTitle">Transcript sessione</div>
+      <div class="o-sheet-acts">
+        <button class="o-copy-btn" onclick="copyOmegaTranscript()">Copia</button>
+        <button class="o-close-btn" onclick="closeOmegaTranscript()">x</button>
       </div>
     </div>
-    <div class="agent-panel">
-      <div class="agent-hdr">
-        <div class="agent-lbl">AIC</div>
-        <div style="display:flex;gap:6px">
-          <button class="btn-ask" style="font-size:10px;padding:4px 8px;border-color:var(--border);color:var(--faint)" onclick="clearAgentPanel()" title="Pulisce i messaggi visibili">Pulisci</button>
+    <div class="o-sheet-body" id="oTxBody">Nessuna trascrizione disponibile.</div>
+  </div>
+</div>
 
-```
+<!-- PAUSE DIALOG -->
+
+<div class="o-pause-dlg" id="oPauseDlg">
+  <div class="o-pause-card">
+    <div class="o-pause-icon">|></div>
+    <div class="o-pause-title">Sessione in pausa</div>
+    <div class="o-pause-body" id="oPauseBody">La sessione è in pausa da <strong>3 minuti</strong>.<br>Vuoi continuare o chiudere e salvare?</div>
+    <div class="o-pause-btns">
+      <button class="o-btn o-btn-tx" onclick="omegaContinuePause()">Continua</button>
+      <button class="o-btn o-btn-stop" onclick="omegaClosePause()">Chiudi e salva</button>
     </div>
   </div>
-  <div class="msgs" id="msgs">
-    <div class="msgs-empty" id="msgsEmpty">
-      <div style="font-size:22px;opacity:.3">AI</div>
-      <div>L'agente interviene durante<br>la conversazione</div>
-    </div>
-  </div>
-  <div class="inp-row">
-    <input class="agent-inp" id="agentInp" placeholder="Fai una domanda..." onkeydown="if(event.key==='Enter'){ask(this.value);this.value=''}">
-    
-  </div>
 </div>
-<div class="gate-banner" id="gateBanner"></div>
-<div class="ctrl-bar">
-  <button class="btn-c start" id="btnStart" onclick="startRec()">Inizia sessione</button>
-  <button class="btn-c pause" id="btnPause" style="display:none">Pausa</button>
-  <button class="btn-c" id="btnPubblica" onclick="pubblicaTranscript()" style="display:none;background:rgba(74,175,122,.15);border-color:var(--ok);color:var(--ok)">Pubblica</button>
-  <button class="btn-c stop"  id="btnStop"  style="display:none" onclick="stopRec()">Fine sessione</button>
-  <div class="cbar"><div class="cfill" id="cfill"></div></div>
-  <div class="ceta" id="ceta">--</div>
-  <button class="btn-sm" onclick="anon()">Anonimizza</button>
-  <button class="btn-sm" id="btnZedNow" onclick="triggerArgoNow()" style="background:rgba(74,95,175,.15);border-color:var(--setup);color:var(--setup)" title="AIC parla adesso">AIC parla</button>
-  <button class="btn-sm" id="btnStopTTS" onclick="stopTTS()" style="display:none" title="Interrompi voce">Stop voce</button>
-  <button class="btn-sm" onclick="clearTxUI()" title="Pulisce lo schermo senza cancellare la trascrizione salvata">Pulisci schermo</button>
-</div>
-```
 
+<!-- HOUR ALERT -->
+
+<div class="o-hour-alert" id="oHourAlert">
+  ⏱ Sessione attiva da <span id="oHourCount">1</span> ora -- tutto ok?
+  <button onclick="document.getElementById('oHourAlert').classList.remove('on')">x</button>
+</div>
+
+<!-- OMEGA HISTORY OVERLAY -->
+
+<div class="o-tx-overlay" id="oHistoryOverlay" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="o-sheet">
+    <div class="o-sheet-hdr">
+      <div class="o-sheet-title">Messaggi precedenti</div>
+      <div class="o-sheet-acts">
+        <button class="o-close-btn" onclick="document.getElementById('oHistoryOverlay').classList.remove('on')">x</button>
+      </div>
+    </div>
+    <div class="o-sheet-body" id="oHistoryBody">Nessun messaggio precedente.</div>
   </div>
 </div>
+
+<!-- ARCHIVIO -->
 
 <!-- ARCHIVIO -->
 
@@ -794,7 +1445,7 @@ async function searchForSynthesis(query, matchCount) {
 // State
 var G = {
   groqKey:'', anthKey:'', lang:'', chunkDur:10,
-  triggerPhrase:'AIC parla', autoSaveInterval:30,
+  triggerPhrase:'Omega parla', autoSaveInterval:30,
   chatCtx:'', docs:[], configured:false, mode:'setup',
   testMode:false, loggedIn:false,
   recActive:false, recPaused:false,
@@ -1410,20 +2061,24 @@ function startRec() {
       if(dot) dot.className = 'dot';
       spawnRec();
       setUI('rec');
-      // Main timer
+      // Main timer with hourly alert
       G.timerInt = setInterval(function(){
         G.totalSec++;
         document.getElementById('timer').textContent = fmt(G.totalSec);
+        if(G.totalSec > 0 && G.totalSec % 3600 === 0) {
+          var hours = G.totalSec / 3600;
+          var el = document.getElementById('oHourAlert');
+          var cnt = document.getElementById('oHourCount');
+          if(el) el.classList.add('on');
+          if(cnt) cnt.textContent = hours;
+          addLog('[Sessione] ' + hours + ' ora/e di registrazione attiva', 'warn');
+        }
       }, 1000);
-      // Silent chunk timer -- every G.chunkDur seconds, send to Groq silently
+      // Silent chunk timer -- for Omega only, invisible to user
       G.chunkInt = setInterval(function(){
         G.chunkSec++;
-        var pct = (G.chunkSec / G.chunkDur) * 100;
-        document.getElementById('cfill').style.width = pct + '%';
-        document.getElementById('ceta').textContent = fmt(G.chunkDur - G.chunkSec);
         if(G.chunkSec >= G.chunkDur) {
           G.chunkSec = 0;
-          document.getElementById('cfill').style.width = '0%';
           addLog('[Timer] Chunk ' + (G.chunkCount+1) + ' -- invio a Groq', 'info');
           rolloverSilent();
         }
@@ -1435,38 +2090,61 @@ function startRec() {
 }
 
 function pauseRec() {
-  if(!G.recActive||G.recPaused)return;
-  G.recPaused=true;
-  clearInterval(G.timerInt);clearInterval(G.chunkInt);
-  document.getElementById('cfill').style.width='0%';
-  document.getElementById('ceta').textContent='--';
-  var r=G.recorder,ch=G.recChunks.slice();
-  if(r&&r.state!=='inactive'){r.onstop=function(){if(ch.length>0)procChunk(ch);};r.stop();}
+  if(!G.recActive || G.recPaused) return;
+  G.recPaused = true;
+  clearInterval(G.timerInt); clearInterval(G.chunkInt);
+  var r = G.recorder;
+  if(r && r.state !== 'inactive') { r.stop(); }
   setUI('pause');
-  addLog('[Pausa] Registrazione in pausa -- trascritto finora: ' + G.txFull.length + ' chars, ' + G.chunkCount + ' chunk', 'info');
+  addLog('[Pausa] In pausa -- ' + G.txFull.length + ' chars, ' + G.chunkCount + ' chunk, ' + fmt(G.totalSec), 'info');
   clearTimeout(G.autoSaveTimer);
-  // Start pause timer -- warn after 5 minutes
+  G.pauseMinutes = 0;
+  startPauseCountdown();
+}
+
+function startPauseCountdown() {
+  clearTimeout(G.pauseTimer);
   G.pauseTimer = setTimeout(function(){
-    addLog('[Pausa] Superati 5 minuti di pausa -- AIC viene avvisato', 'warn');
-    if(G.recPaused) {
-      addMsg('Sei in pausa da 5 minuti. Vuoi riprendere o terminare la sessione?');
-      beep();
-    }
-  }, 5 * 60 * 1000);
+    if(!G.recPaused) return;
+    G.pauseMinutes = (G.pauseMinutes || 0) + 3;
+    addLog('[Pausa] ' + G.pauseMinutes + ' minuti in pausa -- mostro dialogo', 'warn');
+    var body = document.getElementById('oPauseBody');
+    if(body) body.innerHTML = 'La sessione e in pausa da <strong>' + G.pauseMinutes + ' minut' + (G.pauseMinutes === 1 ? 'o' : 'i') + '</strong>.<br>Vuoi continuare o chiudere e salvare?';
+    document.getElementById('oPauseDlg').classList.add('on');
+    beep();
+  }, 3 * 60 * 1000);
 }
 
 function resumeRec() {
   clearTimeout(G.pauseTimer);
+  document.getElementById('oPauseDlg').classList.remove('on');
   resetAutoSaveTimer();
-  G.recPaused=false; G.chunkSec=0; spawnRec(); setUI('rec');
-  G.timerInt=setInterval(function(){G.totalSec++;document.getElementById('timer').textContent=fmt(G.totalSec);},1000);
-  G.chunkInt=setInterval(function(){
+  G.recPaused = false;
+  G.chunkSec = 0;
+  spawnRec();
+  setUI('rec');
+  G.timerInt = setInterval(function(){
+    G.totalSec++;
+    document.getElementById('timer').textContent = fmt(G.totalSec);
+    // Hourly alert
+    if(G.totalSec > 0 && G.totalSec % 3600 === 0) {
+      var hours = G.totalSec / 3600;
+      var el = document.getElementById('oHourAlert');
+      var cnt = document.getElementById('oHourCount');
+      if(el) { el.classList.add('on'); }
+      if(cnt) cnt.textContent = hours;
+      addLog('[Sessione] ' + hours + ' ora/e di registrazione attiva', 'warn');
+    }
+  }, 1000);
+  G.chunkInt = setInterval(function(){
     G.chunkSec++;
-    document.getElementById('cfill').style.width=((G.chunkSec/G.chunkDur)*100)+'%';
-    document.getElementById('ceta').textContent=fmt(G.chunkDur-G.chunkSec);
-    if(G.chunkSec>=G.chunkDur){G.chunkSec=0;document.getElementById('cfill').style.width='0%';rollover();}
-  },1000);
-  addLog('Registrazione ripresa.','ok');
+    if(G.chunkSec >= G.chunkDur) {
+      G.chunkSec = 0;
+      addLog('[Timer] Chunk ' + (G.chunkCount+1) + ' -- invio a Groq', 'info');
+      rolloverSilent();
+    }
+  }, 1000);
+  addLog('[Riprendi] Registrazione ripresa -- ' + fmt(G.totalSec) + ' trascorsi', 'info');
 }
 
 function stopRec() {
@@ -1568,27 +2246,81 @@ function resetAutoSaveTimer() {
   }, ms);
 }
 function setUI(state) {
-  var s=document.getElementById('btnStart'),p=document.getElementById('btnPause');
-  var st=document.getElementById('btnStop'),d=document.getElementById('dot');
-  var pub=document.getElementById('btnPubblica');
-  if(state==='idle'){
-    s.style.display='inline-block'; s.textContent='Inizia sessione';
-    p.style.display='none';
-    st.style.display='none';
-    if(pub) pub.style.display='none';
-    d.className='dot';
-  } else if(state==='rec'){
-    s.style.display='none';
-    p.style.display='inline-block'; p.textContent='Pausa'; p.onclick=pauseRec;
-    st.style.display='inline-block';
-    if(pub) pub.style.display='none';
-    d.className='dot rec';
-  } else if(state==='pause'){
-    s.style.display='none';
-    p.style.display='inline-block'; p.textContent='Riprendi'; p.onclick=resumeRec;
-    st.style.display='inline-block';
-    if(pub) pub.style.display='inline-block';
-    d.className='dot';
+  // New Omega UI
+  var stage = document.getElementById('omegaStage');
+  var badge = document.getElementById('oBadge');
+  var recDot = document.getElementById('oRecDot');
+  var recLabel = document.getElementById('oRecLabel');
+  var timerEl = document.getElementById('timer');
+  var btnStart = document.getElementById('btnStart');
+  var btnPause = document.getElementById('btnPause');
+  var btnStop = document.getElementById('btnStop');
+  var btnTx = document.getElementById('btnTranscript');
+  var btnSpeak = document.getElementById('btnOmegaSpeak');
+  var stopTTSBtn = document.getElementById('btnStopTTS');
+
+  // Remove all state classes
+  if(stage) stage.className = stage.className.replace(/omega-state-\w+/g, '').trim();
+
+  if(state === 'idle') {
+    if(stage) stage.classList.add('omega-state-idle');
+    if(badge) { badge.className = 'o-badge idle'; badge.textContent = 'Inattivo'; }
+    if(recDot) recDot.className = 'o-rec-dot';
+    if(recLabel) recLabel.textContent = 'In attesa';
+    if(timerEl) timerEl.className = 'o-timer';
+    if(btnStart) { btnStart.style.display = 'inline-block'; btnStart.textContent = 'Inizia sessione'; }
+    if(btnPause) btnPause.style.display = 'none';
+    if(btnStop) btnStop.style.display = 'none';
+    if(btnTx) btnTx.style.display = 'none';
+    if(btnSpeak) btnSpeak.style.display = 'none';
+    if(stopTTSBtn) stopTTSBtn.classList.remove('visible');
+
+  } else if(state === 'rec') {
+    if(stage) stage.classList.add('omega-state-listening');
+    if(badge) { badge.className = 'o-badge listening'; badge.textContent = 'In ascolto'; }
+    if(recDot) recDot.className = 'o-rec-dot active';
+    if(recLabel) recLabel.textContent = 'Registrazione';
+    if(timerEl) timerEl.className = 'o-timer active';
+    if(btnStart) btnStart.style.display = 'none';
+    if(btnPause) { btnPause.style.display = 'inline-block'; btnPause.textContent = '|> Pausa'; btnPause.onclick = pauseRec; }
+    if(btnStop) btnStop.style.display = 'inline-block';
+    if(btnTx) btnTx.style.display = 'inline-block';
+    if(btnSpeak) btnSpeak.style.display = 'inline-block';
+
+  } else if(state === 'pause') {
+    if(stage) stage.classList.add('omega-state-paused');
+    if(badge) { badge.className = 'o-badge paused'; badge.textContent = 'In pausa'; }
+    if(recDot) recDot.className = 'o-rec-dot paused';
+    if(recLabel) recLabel.textContent = 'In pausa';
+    if(timerEl) timerEl.className = 'o-timer paused';
+    if(btnStart) btnStart.style.display = 'none';
+    if(btnPause) { btnPause.style.display = 'inline-block'; btnPause.textContent = '> Riprendi'; btnPause.onclick = resumeRec; }
+    if(btnStop) btnStop.style.display = 'inline-block';
+    if(btnTx) btnTx.style.display = 'inline-block';
+    if(btnSpeak) btnSpeak.style.display = 'none';
+  }
+
+  // Legacy dot for compatibility
+  var dot = document.getElementById('dot');
+  if(dot) dot.className = state === 'rec' ? 'dot rec' : 'dot';
+}
+
+// Set Omega speaking state (called from addMsg when TTS fires)
+function setOmegaSpeaking(speaking) {
+  var stage = document.getElementById('omegaStage');
+  var badge = document.getElementById('oBadge');
+  var stopTTSBtn = document.getElementById('btnStopTTS');
+  if(!stage) return;
+  if(speaking) {
+    stage.className = stage.className.replace(/omega-state-\w+/g, '').trim();
+    stage.classList.add('omega-state-speaking');
+    if(badge) { badge.className = 'o-badge speaking'; badge.textContent = 'Omega parla'; }
+    if(stopTTSBtn) stopTTSBtn.classList.add('visible');
+  } else {
+    if(G.recActive && !G.recPaused) setUI('rec');
+    else if(G.recPaused) setUI('pause');
+    else setUI('idle');
+    if(stopTTSBtn) stopTTSBtn.classList.remove('visible');
   }
 }
 
@@ -1656,7 +2388,7 @@ async function procChunkSilent(chunks) {
     G.chunkErrors = 0;
     updateChunkCounter();
     addLog('[Chunk ' + G.chunkCount + '] Trascritto: "' + clean.substring(0,60) + (clean.length>60?'...':'"'), 'info');
-    // Add to BOTH silent buffer (for AIC context) AND txFull (for final transcript)
+    // Add to BOTH silent buffer (for Omega context) AND txFull (for final transcript)
     G.silentTxBuffer += (G.silentTxBuffer ? ' ' : '') + clean;
     G.txFull += (G.txFull ? ' ' : '') + clean;
     // Update visible transcript panel
@@ -1667,7 +2399,7 @@ async function procChunkSilent(chunks) {
       triggerArgoNow();
       return;
     }
-    addLog('[Chunk ' + G.chunkCount + '] Valutazione AIC in corso...', 'info');
+    addLog('[Chunk ' + G.chunkCount + '] Valutazione Omega in corso...', 'info');
     // Let Argo evaluate silently
     argoEvaluateSilent(clean);
   } catch(e) {
@@ -1682,7 +2414,7 @@ function argoEvaluateSilent(newText) {
   var now = Date.now();
   var cooldownLeft = Math.round((AGENT_CONFIG.interventionCooldownSec * 1000 - (now - G.lastInt)) / 1000);
   if(now - G.lastInt < AGENT_CONFIG.interventionCooldownSec * 1000) {
-    addLog('[AIC] In cooldown ancora ' + cooldownLeft + 's -- nessuna valutazione', 'info');
+    addLog('[Omega] In cooldown ancora ' + cooldownLeft + 's -- nessuna valutazione', 'info');
     return;
   }
   
@@ -1690,14 +2422,14 @@ function argoEvaluateSilent(newText) {
   var context = G.silentTxBuffer;
   var prompt = 'Nuovo testo ascoltato: "' + newText + '" | Buffer: ' + context.substring(0,800) + ' | Transcript: ' + (G.txFull||'(nessuno)').substring(0,1000) + ' | Hai un intervento utile? Rispondi SILENZIO se no, altrimenti max 3 frasi.';
   
-  addLog('[AIC] Chiedo a Claude se intervenire...', 'info');
+  addLog('[Omega] Chiedo a Claude se intervenire...', 'info');
   claude(prompt, false).then(function(r) {
-    if(!r) { addLog('[AIC] Nessuna risposta da Claude', 'warn'); return; }
+    if(!r) { addLog('[Omega] Nessuna risposta da Claude', 'warn'); return; }
     if(r.trim().toUpperCase() === 'SILENZIO') {
-      addLog('[AIC] Valutazione: niente da dire', 'info');
+      addLog('[Omega] Valutazione: niente da dire', 'info');
       return;
     }
-    addLog('[AIC] Vuole intervenire: "' + r.substring(0,80) + (r.length>80?'...':'"'), 'ok');
+    addLog('[Omega] Vuole intervenire: "' + r.substring(0,80) + (r.length>80?'...':'"'), 'ok');
     G.argoWantsToSpeak = true;
     G.argoPendingResponse = r;
     showArgoWants();
@@ -1720,7 +2452,7 @@ function hideArgoWants() {
 }
 
 window.argoSpeakNow = function argoSpeakNow() {
-  addLog('[AIC] argoSpeakNow -- risposta pendente: ' + (G.argoPendingResponse ? 'si' : 'no'), 'info');
+  addLog('[Omega] argoSpeakNow -- risposta pendente: ' + (G.argoPendingResponse ? 'si' : 'no'), 'info');
   // Pre-authorize audio on Safari iOS
   if(AGENT_CONFIG.ttsEnabled && window.speechSynthesis) {
     try { window.speechSynthesis.speak(new SpeechSynthesisUtterance('')); } catch(e) {}
@@ -1743,7 +2475,7 @@ window.argoSpeakNow = function argoSpeakNow() {
 }
 
 window.triggerArgoNow = function triggerArgoNow() {
-  if(G._triggerBusy) { addLog('[AIC] Trigger ignorato -- risposta ancora in attesa da Claude', 'warn'); return; }
+  if(G._triggerBusy) { addLog('[Omega] Trigger ignorato -- risposta ancora in attesa da Claude', 'warn'); return; }
   G._triggerBusy = true;
   // Pre-authorize audio on Safari iOS (must happen synchronously in user gesture)
   if(AGENT_CONFIG.ttsEnabled && window.speechSynthesis) {
@@ -1753,19 +2485,19 @@ window.triggerArgoNow = function triggerArgoNow() {
       addLog('[TTS] Audio pre-autorizzato per Safari', 'info');
     } catch(e) {}
   }
-  addLog('[AIC] Trigger manuale -- chiedo a Claude di intervenire', 'info');
+  addLog('[Omega] Trigger manuale -- chiedo a Claude di intervenire', 'info');
   var unanswered = G.pendingQuestions.filter(function(q){ return !q.answered; });
   var unansweredNote = unanswered.length > 0 ?
     ' DOMANDE SENZA RISPOSTA: ' + unanswered.map(function(q,i){ return (i+1)+'. '+q.text; }).join(' | ') : '';
   var txContext = G.txFull || G.silentTxBuffer || '(nessun contenuto ancora)';
-  addLog('[AIC] Contesto disponibile: txFull=' + G.txFull.length + 'chars, silentBuf=' + G.silentTxBuffer.length + 'chars', 'info');
+  addLog('[Omega] Contesto disponibile: txFull=' + G.txFull.length + 'chars, silentBuf=' + G.silentTxBuffer.length + 'chars', 'info');
   var p = 'Sei invitato a intervenire adesso. Contesto recente: "' + 
     txContext.substring(Math.max(0, txContext.length - 800)) + 
     '"' + unansweredNote + 
     '. Intervieni con un contributo utile. Max 3-4 frasi. Se non hai nulla di rilevante, dillo brevemente.';
   claude(p, false).then(function(r) {
-    if(!r) { addLog('[AIC] Nessuna risposta da Claude su trigger manuale', 'err'); G._triggerBusy = false; return; }
-    addLog('[AIC] Risposta: "' + r.substring(0,80) + (r.length>80?'...':'"'), 'ok');
+    if(!r) { addLog('[Omega] Nessuna risposta da Claude su trigger manuale', 'err'); G._triggerBusy = false; return; }
+    addLog('[Omega] Risposta: "' + r.substring(0,80) + (r.length>80?'...':'"'), 'ok');
     G.lastInt = Date.now();
     G.chunksSinceInt = 0;
     hideArgoWants();
@@ -1972,7 +2704,7 @@ function closeQBanner() {
 }
 
 function copyQBanner() {
-  // No longer needed - AIC interventions go to transcript automatically
+  // No longer needed - Omega interventions go to transcript automatically
   closeQBanner();
 }
 
@@ -2097,7 +2829,7 @@ function renderFullTranscript() {
 // -- TRANSCRIPT SILENT UPDATE ---------------------------------------------------
 function updTxSilent(text) {
   // Accumulate silently -- txBox shows nothing during recording
-  // but G.txFull is updated for save and for AIC context
+  // but G.txFull is updated for save and for Omega context
   // If txBox is visible (e.g. after Stop), update it
   if(!G.recActive) {
     var box = document.getElementById('txBox');
@@ -2110,6 +2842,117 @@ function updTxSilent(text) {
     }
   }
 }
+
+// -- OMEGA SESSION FUNCTIONS --------------------------------------------------
+
+function showOmegaTranscript() {
+  var overlay = document.getElementById('oTxOverlay');
+  var body = document.getElementById('oTxBody');
+  var title = document.getElementById('oTxTitle');
+  if(!overlay) return;
+  var tx = G.txFull || '(Nessuna trascrizione disponibile ancora)';
+  if(body) body.textContent = tx;
+  if(title) title.textContent = 'Transcript . ' + fmt(G.totalSec);
+  overlay.classList.add('on');
+  // Auto pause when viewing transcript
+  if(G.recActive && !G.recPaused) pauseRec();
+}
+
+function closeOmegaTranscript() {
+  document.getElementById('oTxOverlay').classList.remove('on');
+}
+
+function copyOmegaTranscript() {
+  var text = G.txFull || '';
+  if(!text) { sysMsg('Nessun transcript da copiare.'); return; }
+  navigator.clipboard && navigator.clipboard.writeText(text).then(function(){
+    var btn = document.querySelector('.o-copy-btn');
+    if(btn) { btn.textContent = 'Copiato v'; setTimeout(function(){ btn.textContent = 'Copia'; }, 1500); }
+  });
+}
+
+// Omega message display -- replaces addMsg for the new UI
+function showOmegaMsg(text, isQ) {
+  var area = document.getElementById('oMsgArea');
+  var empty = document.getElementById('msgsEmpty');
+  if(!area) return;
+  if(empty) empty.style.display = 'none';
+
+  // Store in history
+  if(!G.omegaHistory) G.omegaHistory = [];
+  G.omegaHistory.push({ text: text, isQ: isQ, time: now() });
+
+  // Show bubble
+  var bubble = document.createElement('div');
+  bubble.className = 'o-msg-bubble';
+  var label = isQ ? 'Omega . Domanda' : 'Omega';
+  var clean = text.replace(/<[^>]+>/g,'').replace('DOMANDA:','').replace('CONTESTO:','').trim();
+  bubble.innerHTML = '<div class="o-msg-lbl">' + label + '</div>' +
+    '<button class="o-msg-x" onclick="closeOmegaCurrentMsg(this)">x</button>' +
+    esc(clean);
+  area.innerHTML = '';
+  area.appendChild(bubble);
+
+  // Update history pill
+  updateHistoryPill();
+}
+
+function closeOmegaCurrentMsg(btn) {
+  var b = btn.parentElement;
+  if(!b) return;
+  b.style.opacity = '0';
+  b.style.transform = 'translateY(-6px)';
+  b.style.transition = 'all .2s';
+  setTimeout(function(){ if(b.parentNode) b.parentNode.removeChild(b); updateHistoryPill(); }, 200);
+}
+
+function updateHistoryPill() {
+  var pill = document.getElementById('oHistoryPill');
+  if(!pill) return;
+  var count = G.omegaHistory ? G.omegaHistory.length : 0;
+  if(count > 1) {
+    pill.style.display = 'inline-block';
+    pill.textContent = '^ Messaggi precedenti (' + count + ')';
+  }
+}
+
+function showOmegaHistory() {
+  var overlay = document.getElementById('oHistoryOverlay');
+  var body = document.getElementById('oHistoryBody');
+  if(!overlay || !body) return;
+  if(!G.omegaHistory || G.omegaHistory.length === 0) {
+    body.textContent = 'Nessun messaggio precedente.';
+  } else {
+    body.innerHTML = G.omegaHistory.map(function(m, i){
+      return '<div style="margin-bottom:16px"><div style="font-family:var(--fm);font-size:9px;color:var(--setup);letter-spacing:.1em;margin-bottom:4px">' + m.time + ' . ' + (m.isQ ? 'DOMANDA' : 'OMEGA') + '</div><div style="font-size:13.5px;line-height:1.7">' + esc(m.text.replace(/<[^>]+>/g,'').trim()) + '</div></div>';
+    }).join('<hr style="border:none;border-top:1px solid var(--border);margin:0 0 16px">');
+  }
+  overlay.classList.add('on');
+}
+
+function omegaContinuePause() {
+  document.getElementById('oPauseDlg').classList.remove('on');
+  if(G.recPaused) startPauseCountdown(); // restart 3 min timer
+}
+
+function omegaClosePause() {
+  document.getElementById('oPauseDlg').classList.remove('on');
+  stopRec();
+}
+
+// Page close -> save session
+window.addEventListener('beforeunload', function() {
+  if(G.recActive || G.recPaused) {
+    // Best effort save -- synchronous not possible but try anyway
+    if(G.txFull) {
+      var sess = {id:G.sessId, date:new Date().toLocaleString('it-IT'), mode:G.mode,
+        duration:G.totalSec, transcript:G.txFull, summary:G.txSummary||''};
+      var idx = G.sessions.findIndex(function(s){ return s.id===G.sessId; });
+      if(idx>=0) G.sessions[idx]=sess; else G.sessions.push(sess);
+      try { localStorage.setItem('sn_sessions', JSON.stringify(G.sessions)); } catch(e) {}
+    }
+  }
+});
 
 // -- PUBBLICA TRANSCRIPT & COPIA LOG ----------------------------------------
 function pubblicaTranscript() {
@@ -2330,12 +3173,14 @@ function speak(text) {
     clearTimeout(G._ttsTimeout);
     G._ttsActive = false;
     if(dot) dot.classList.remove('speaking');
+    setOmegaSpeaking(false);
   };
   ttsUtterance.onerror = function(e){
     addLog('[TTS] Errore: ' + (e.error||'sconosciuto'), 'err');
     clearTimeout(G._ttsTimeout);
     G._ttsActive = false;
     if(dot) dot.classList.remove('speaking');
+    setOmegaSpeaking(false);
   };
   try {
     window.speechSynthesis.speak(ttsUtterance);
@@ -2551,7 +3396,7 @@ function renderArch() {
   if(G.sessions.length===0){ss.innerHTML+='<p class="arch-note">Nessuna sessione ancora.</p>';}
   else{G.sessions.slice().reverse().forEach(function(s){
     var el=document.createElement('div');el.className='acard';
-    el.innerHTML='<input type="checkbox" class="acard-cb" data-id="'+s.id+'" data-type="sess" onchange="updateSelCount()">'+'<div class="acard-hdr"><div class="acard-title">'+ s.date +'</div><div class="acard-meta">'+fmt(s.duration||0)+' - '+s.transcript.split(' ').length+' parole</div></div><div class="acard-prev">'+esc(s.transcript.substring(0,160))+'</div><div class="acard-btns"><button class="btn-sm" onclick="restoreSession('+s.id+')">Riprendi</button><button class="btn-sm" onclick="viewModal(\'Transcript \'+s.date,s.id+\'T\')">Transcript</button><button class="btn-sm" onclick="viewModal(\'Sintesi \'+s.date,s.id+\'S\')">Sintesi</button><button class="btn-sm" onclick="clearTranscript('+s.id+')">Cancella trascrizione</button><button class="btn-sm" onclick="clearAgentHistory('+s.id+')">Cancella conv. AIC</button><button class="btn-sm" onclick="delS('+s.id+')">Elimina</button></div>';ss.appendChild(el);
+    el.innerHTML='<input type="checkbox" class="acard-cb" data-id="'+s.id+'" data-type="sess" onchange="updateSelCount()">'+'<div class="acard-hdr"><div class="acard-title">'+ s.date +'</div><div class="acard-meta">'+fmt(s.duration||0)+' - '+s.transcript.split(' ').length+' parole</div></div><div class="acard-prev">'+esc(s.transcript.substring(0,160))+'</div><div class="acard-btns"><button class="btn-sm" onclick="restoreSession('+s.id+')">Riprendi</button><button class="btn-sm" onclick="viewModal(\'Transcript \'+s.date,s.id+\'T\')">Transcript</button><button class="btn-sm" onclick="viewModal(\'Sintesi \'+s.date,s.id+\'S\')">Sintesi</button><button class="btn-sm" onclick="clearTranscript('+s.id+')">Cancella trascrizione</button><button class="btn-sm" onclick="clearAgentHistory('+s.id+')">Cancella conv. Omega</button><button class="btn-sm" onclick="delS('+s.id+')">Elimina</button></div>';ss.appendChild(el);
   });}
   w.appendChild(ss);
 }
@@ -2677,18 +3522,21 @@ function addMsg(text) {
   else{el.className='msg agent';el.innerHTML='<div class="mlbl">Agente</div>'+esc(text)+'<div class="mtime">'+now()+'</div>';}
   box.appendChild(el);box.scrollTop=box.scrollHeight;
   // TTS for Fase 0 and Fase 1 -- speak agent messages
+  // Show in Omega UI
+  showOmegaMsg(text, isQ);
   // TTS: speak if enabled (ttsSetup toggle in Config controls this for Setup mode)
   if(AGENT_CONFIG.ttsEnabled) {
     var clean = text.replace(/<[^>]+>/g,'').replace('DOMANDA:','').replace('CONTESTO:','').trim();
+    setOmegaSpeaking(true);
     speak(clean);
-  // Add AIC intervention to transcript (so it's in the corpus for RAG)
+  // Add Omega intervention to transcript (so it's in the corpus for RAG)
   if(G.recActive && !isQ) {
-    var zedEntry = '[AIC] ' + text.replace(/<[^>]+>/g,'').trim();
+    var zedEntry = '[Omega] ' + text.replace(/<[^>]+>/g,'').trim();
     G.txFull += (G.txFull ? ' ' : '') + zedEntry;
     G.silentTxBuffer += (G.silentTxBuffer ? ' ' : '') + zedEntry;
   }
   if(isQ && G.recActive) {
-    var qEntry = '[AIC domanda] ' + text.replace(/<[^>]+>/g,'').replace('DOMANDA:','').replace('CONTESTO:','').trim();
+    var qEntry = '[Omega domanda] ' + text.replace(/<[^>]+>/g,'').replace('DOMANDA:','').replace('CONTESTO:','').trim();
     G.txFull += (G.txFull ? ' ' : '') + qEntry;
   }
   }
