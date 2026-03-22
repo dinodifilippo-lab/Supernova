@@ -564,7 +564,7 @@ async function searchForSynthesis(query, matchCount) {
 
 <div class="hdr">
   <div class="logo">Super<span>-NOVA</span></div>
-  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.48</div>
+  <div style="font-size:10px;color:var(--faint);font-family:var(--fm);letter-spacing:.06em;align-self:center;margin-left:-6px">v.49</div>
   <select class="mode-sel setup" id="modeSel" onchange="changeMode(this.value)">
     <option value="setup">Setup</option>
     <option value="fase0">Fase 0</option>
@@ -1569,20 +1569,33 @@ function rollover() {
 // Silent rollover: send to Groq for Argo only, don't show transcript
 function rolloverSilent() {
   var or = G.recorder, oc = G.recChunks.slice();
+  addLog('[Rollover] Chunk silente -- recorder state: ' + (or ? or.state : 'null') + ', chunks: ' + oc.length + ', recActive: ' + G.recActive, 'info');
+  if(!G.recActive || G.recPaused) {
+    addLog('[Rollover] Sessione non attiva -- skip', 'warn');
+    return;
+  }
   spawnRec();
   setTimeout(function(){
     if(or && or.state !== 'inactive') {
-      or.onstop = function(){ procChunkSilent(oc); };
+      or.onstop = function(){
+        addLog('[Rollover] Elaborazione ' + oc.length + ' blob, recActive: ' + G.recActive, 'info');
+        procChunkSilent(oc);
+      };
       or.stop();
+    } else {
+      addLog('[Rollover] Recorder gia inattivo -- skip procChunkSilent', 'warn');
     }
   }, OVERLAP * 1000);
 }
 
 async function procChunkSilent(chunks) {
-  if(!chunks || chunks.length === 0) return;
+  var totalSize = chunks ? chunks.reduce(function(s,c){return s+c.size;}, 0) : 0;
+  addLog('[procChunkSilent] ' + (chunks?chunks.length:0) + ' blob, ' + totalSize + ' bytes, recActive: ' + G.recActive, 'info');
+  if(!chunks || chunks.length === 0) { addLog('[procChunkSilent] Nessun dato -- skip', 'warn'); return; }
+  if(totalSize < MIN_BLOB) { addLog('[procChunkSilent] Blob troppo piccolo (' + totalSize + 'b < ' + MIN_BLOB + ') -- skip', 'warn'); return; }
   var type = (chunks[0] && chunks[0].type) ? chunks[0].type : (G.mime || 'audio/mp4');
   var blob = new Blob(chunks, {type: type});
-  if(blob.size < MIN_BLOB) return;
+  addLog('[procChunkSilent] Blob creato: ' + blob.size + ' bytes, tipo: ' + type, 'info');
   var ext = type.indexOf('mp4') >= 0 ? 'm4a' : type.indexOf('ogg') >= 0 ? 'ogg' : 'webm';
   var fd = new FormData();
   fd.append('file', blob, 'silent.' + ext);
