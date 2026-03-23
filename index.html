@@ -60,14 +60,19 @@ LAYOUT
 HOME SCREEN
 ================================================================ */
 #sHome {
-align-items: center;
-justify-content: center;
+align-items: stretch;
+justify-content: stretch;
 position: relative;
 overflow: hidden;
 background: #0f0a1e;
 }
 
-/* v60 space background */
+/* v60 exact space background */
+.home-wrap {
+flex: 1; display: flex; flex-direction: column;
+align-items: center; justify-content: center;
+position: relative; overflow: hidden; min-height: 0;
+}
 .home-bg {
 position: absolute; inset: 0; z-index: 0;
 background:
@@ -78,8 +83,14 @@ radial-gradient(ellipse at 50% 50%, rgba(10,12,15,1) 0%, rgba(15,10,30,1) 100%);
 }
 .home-bg::before {
 content: ‘’; position: absolute; inset: 0;
-background: url(‘https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1600&q=80&fm=jpg’) center/cover no-repeat;
+background: url(‘https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1600&q=80&fm=jpg’) center/cover no-repeat;
 opacity: .45; mix-blend-mode: screen;
+}
+.home-content {
+position: relative; z-index: 1;
+display: flex; flex-direction: column;
+align-items: center; gap: 24px;
+padding: 40px 24px; width: 100%; max-width: 400px;
 }
 
 .home-ver {
@@ -88,28 +99,19 @@ font-family: var(–fm); font-size: 10px;
 letter-spacing: .1em; color: var(–faint);
 }
 
-.home-box {
-position: relative; z-index: 1;
-width: 100%; max-width: 360px;
-padding: 0 24px;
-display: flex; flex-direction: column; align-items: center; gap: 32px;
-animation: fadeUp .6s ease both;
-}
 @keyframes fadeUp {
 from { opacity: 0; transform: translateY(24px); }
 to   { opacity: 1; transform: translateY(0); }
 }
 
-.home-logo { text-align: center; }
 .home-title {
-font-family: var(–fd); font-size: 52px; font-weight: 400;
+font-family: var(–fd); font-size: 48px; font-weight: 400;
 letter-spacing: .02em; color: white; text-align: center; line-height: 1.1;
 }
-.home-title span { color: #90caf9; }
+.home-title span { color: var(–blue); }
 .home-sub {
-font-family: var(–fm); font-size: 12px; letter-spacing: .12em;
-color: rgba(255,255,255,.45); text-transform: uppercase;
-text-align: center; margin-top: 10px;
+font-size: 13px; color: rgba(255,255,255,.5);
+text-align: center; letter-spacing: .04em; text-transform: uppercase;
 }
 
 .home-form { width: 100%; display: flex; flex-direction: column; gap: 12px; }
@@ -129,23 +131,28 @@ outline: none; transition: border-color .2s;
 .inp::placeholder { color: var(–faint); }
 .inp:focus { border-color: var(–omega); }
 
-/* Home-specific overrides */
-#sHome .inp {
-background: rgba(10,12,15,.75);
-border-color: rgba(90,159,212,.5);
-color: white;
+.home-inp {
+width: 100%; background: rgba(10,12,15,.75);
+border: 1.5px solid rgba(90,159,212,.5);
+border-radius: 8px; padding: 13px 16px;
+color: white; font-family: var(–ff); font-size: 14px;
+outline: none; transition: border-color .2s, background .2s;
+backdrop-filter: blur(8px); -webkit-appearance: none;
 }
-#sHome .inp:focus { border-color: rgba(90,159,212,.9); }
-#sHome .btn-primary {
-background: rgba(90,159,212,.15);
-border-color: rgba(90,159,212,.5);
-color: #90caf9;
+.home-inp::placeholder { color: rgba(255,255,255,.3); }
+.home-inp:focus { border-color: rgba(90,159,212,.9); background: rgba(10,12,15,.9); }
+.home-btn {
+width: 100%; background: var(–blue); border: none;
+border-radius: 8px; padding: 15px; color: white;
+font-family: var(–ff); font-size: 15px; font-weight: 500;
+cursor: pointer; transition: background .2s;
+letter-spacing: .01em; margin-top: 4px;
 }
-#sHome .btn-primary:hover {
-background: rgba(90,159,212,.25);
-border-color: rgba(90,159,212,.8);
+.home-btn:hover { background: var(–omega); }
+.home-err-msg {
+font-size: 12px; color: #f08080;
+text-align: center; min-height: 16px;
 }
-#sHome .home-err { color: #f48fb1; }
 
 .btn-primary {
 background: var(–omega-d); border: 1px solid rgba(74,158,114,.4);
@@ -690,6 +697,38 @@ align-items: flex-end; padding: 16px;
 .history-overlay.on { display: flex; animation: fadeIn .2s ease; }
 
 /* ================================================================
+BOTTOM NAV BAR (always visible navigation)
+================================================================ */
+.bottom-nav {
+display: none; /* only shown when logged in */
+flex-shrink: 0;
+height: 52px;
+background: rgba(10,12,15,.95);
+border-top: 1px solid var(–border);
+backdrop-filter: blur(12px);
+-webkit-backdrop-filter: blur(12px);
+flex-direction: row;
+align-items: stretch;
+justify-content: space-around;
+z-index: 25;
+}
+.bottom-nav.on { display: flex; }
+.bottom-nav-btn {
+flex: 1; background: none; border: none;
+display: flex; flex-direction: column;
+align-items: center; justify-content: center; gap: 3px;
+font-family: var(–fm); font-size: 9px; letter-spacing: .1em;
+text-transform: uppercase; color: var(–dim);
+cursor: pointer; transition: color .2s;
+border-right: 1px solid var(–border);
+padding: 6px 0;
+}
+.bottom-nav-btn:last-child { border-right: none; }
+.bottom-nav-btn:hover { color: var(–text); }
+.bottom-nav-btn.active { color: var(–omega); }
+.bottom-nav-icon { font-size: 16px; line-height: 1; }
+
+/* ================================================================
 SCROLLBAR
 ================================================================ */
 ::-webkit-scrollbar { width: 4px; }
@@ -725,26 +764,24 @@ UTILITIES
        ============================================================ -->
 
   <div class="screen on" id="sHome">
-    <div class="home-bg"></div>
-    <div class="home-ver" style="color:rgba(255,255,255,.3)">v1.1</div>
-    <div class="home-box" style="position:relative;z-index:1">
-      <div class="home-logo">
-        <div class="home-title">Super<span>NOVA</span></div>
-        <div class="home-sub">New Operating Model Via AI</div>
-      </div>
-      <div class="home-form">
-        <div class="inp-group">
-          <label class="inp-label">Username</label>
-          <input class="inp" id="homeUser" type="text" placeholder="nome utente"
-            autocomplete="username" autocapitalize="none" autocorrect="off">
+    <div class="home-wrap">
+      <div class="home-bg"></div>
+      <div class="home-content">
+        <div style="position:absolute;top:16px;left:20px;font-family:var(--fm);font-size:10px;color:rgba(255,255,255,.25);letter-spacing:.1em">v1.1</div>
+        <div>
+          <div class="home-title">Super<span>-NOVA</span></div>
+          <div class="home-sub">New Operating model Via AI</div>
         </div>
-        <div class="inp-group">
-          <label class="inp-label">Password</label>
-          <input class="inp" id="homePsw" type="password" placeholder="password"
-            autocomplete="current-password">
+        <div class="home-form">
+          <input class="home-inp" id="homeUser" type="text" placeholder="Username"
+            autocomplete="off" autocorrect="off" autocapitalize="none"
+            onkeydown="if(event.key==='Enter')document.getElementById('homePsw').focus()">
+          <input class="home-inp" id="homePsw" type="password" placeholder="Password"
+            autocomplete="current-password"
+            onkeydown="if(event.key==='Enter')doLogin()">
+          <div class="home-err-msg" id="homeErr"></div>
+          <button class="home-btn" onclick="doLogin()">Accedi</button>
         </div>
-        <div class="home-err" id="homeErr">Credenziali non riconosciute</div>
-        <button class="btn-primary" id="homeLoginBtn" onclick="doLogin()">Accedi</button>
       </div>
     </div>
   </div>
@@ -1054,6 +1091,25 @@ UTILITIES
     </div>
     <div class="sheet-body" id="historyBody"></div>
   </div>
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav hidden" id="bottomNav">
+    <button class="bottom-nav-btn" id="bnSess" onclick="navTo('sSess');updateBottomNav('sSess')">
+      <span class="bottom-nav-icon">&#937;</span>
+      <span>Sessione</span>
+    </button>
+    <button class="bottom-nav-btn" id="bnArch" onclick="navTo('sArch');updateBottomNav('sArch')">
+      <span class="bottom-nav-icon">&#9633;</span>
+      <span>Archivio</span>
+    </button>
+    <button class="bottom-nav-btn" id="bnLog" onclick="navTo('sLog');updateBottomNav('sLog')">
+      <span class="bottom-nav-icon">&#8801;</span>
+      <span>Log</span>
+    </button>
+    <button class="bottom-nav-btn" id="bnCfg" onclick="navTo('sCfg');updateBottomNav('sCfg')">
+      <span class="bottom-nav-icon">&#9881;</span>
+      <span>Config</span>
+    </button>
+  </nav>
 </div>
 
 <script>
@@ -1259,9 +1315,12 @@ function loginSuccess(username) {
   el('mainHdr').classList.remove('hidden');
   el('mainWrap').classList.remove('hidden');
   el('cfgUser').value = username;
+  el('bottomNav').classList.remove('hidden');
+  el('bottomNav').classList.add('on');
   loadCfg();
   loadSessions();
   navTo('sSess');
+  updateBottomNav('sSess');
 }
 
 function doLogout() {
@@ -1273,6 +1332,8 @@ function doLogout() {
   STATE.user = null;
   el('mainHdr').classList.add('hidden');
   el('mainWrap').classList.add('hidden');
+  el('bottomNav').classList.add('hidden');
+  el('bottomNav').classList.remove('on');
   el('sHome').classList.add('on');
   el('homeUser').value = '';
   el('homePsw').value = '';
@@ -1308,6 +1369,14 @@ function navTo(screenId) {
   if(screenId === 'sArch') { renderArch(); setTimeout(resizeCanvas, 100); }
   if(screenId === 'sLog') renderLog();
   if(screenId === 'sSess') setTimeout(resizeCanvas, 100);
+  updateBottomNav(screenId);
+}
+
+function updateBottomNav(screenId) {
+  const map = { sSess: 'bnSess', sArch: 'bnArch', sLog: 'bnLog', sCfg: 'bnCfg' };
+  document.querySelectorAll('.bottom-nav-btn').forEach(b => b.classList.remove('active'));
+  const active = el(map[screenId]);
+  if(active) active.classList.add('active');
 }
 
 function togglePanel() {
