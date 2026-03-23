@@ -4,36 +4,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>SuperNOVA</title>
+<title>SuperNOVA — App</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@300;400;500&family=Fraunces:ital,wght@0,300;0,400;0,600;1,300&display=swap');
-
-/* ================================================================
-VARIABLES & RESET
-================================================================ */
 :root {
-/* Colors */
-–bg:       #0a0c0f;
-–s1:       #111318;
-–s2:       #181c22;
-–s3:       #1e232b;
-–border:   #252b35;
-–border2:  #2e3540;
-–omega:    #4a9e72;
-–omega2:   #6bbf92;
-–omega-d:  rgba(74,158,114,.12);
-–omega-g:  rgba(74,158,114,.06);
-–blue:     #3d7ab5;
-–warn:     #e8a84a;
-–danger:   #d95f5f;
-–ok:       #4aaf7a;
-–text:     #dde2e8;
-–dim:      #7a8694;
-–faint:    #3d4655;
-/* Typography */
-–ff: ‘DM Sans’, sans-serif;
-–fm: ‘DM Mono’, monospace;
-–fd: ‘Fraunces’, serif;
+  --bg:    #0a0c0f;
+  --s1:    #111318;
+  --s2:    #181c22;
+  --s3:    #1e232b;
+  --bd:    #252b35;
+  --bd2:   #2e3540;
+  --omega: #4a9e72;
+  --ow:    #6bbf92;
+  --od:    rgba(74,158,114,.12);
+  --blue:  #3d7ab5;
+  --warn:  #e8a84a;
+  --dngr:  #d95f5f;
+  --ok:    #4aaf7a;
+  --text:  #dde2e8;
+  --dim:   #7a8694;
+  --faint: #3d4655;
+  --ff: 'DM Sans', sans-serif;
+  --fm: 'DM Mono', monospace;
+  --fd: 'Fraunces', serif;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -47,495 +40,1010 @@ font-weight: 300;
 -webkit-font-smoothing: antialiased;
 }
 
-/* ================================================================
-LAYOUT
-================================================================ */
-.app { height: 100dvh; display: flex; flex-direction: column; position: relative; }
+.app {
+height: 100dvh;
+display: flex;
+flex-direction: column;
+}
 
-/* Screen system */
+/* No bottom nav — side panel only */
+
+/* ── HEADER ── */
+.hdr {
+height: 52px;
+flex-shrink: 0;
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 0 16px;
+border-bottom: 1px solid var(–bd);
+background: rgba(10,12,15,.92);
+backdrop-filter: blur(16px);
+-webkit-backdrop-filter: blur(16px);
+position: relative;
+z-index: 50;
+}
+
+.hdr-left { display: flex; align-items: center; gap: 14px; }
+.hdr-right { display: flex; align-items: center; gap: 10px; }
+
+.hmb {
+background: none; border: none; cursor: pointer;
+display: flex; flex-direction: column; gap: 5px; padding: 6px;
+border-radius: 6px; transition: background .2s;
+}
+.hmb:hover { background: rgba(255,255,255,.06); }
+.hmb span {
+display: block; width: 20px; height: 1.5px;
+background: var(–dim); border-radius: 2px;
+transition: background .2s, transform .2s;
+}
+.hmb:hover span { background: var(–text); }
+.hmb.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+.hmb.open span:nth-child(2) { opacity: 0; }
+.hmb.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+.hdr-title {
+font-family: var(–fm);
+font-size: 11px;
+letter-spacing: .14em;
+color: var(–dim);
+text-transform: uppercase;
+}
+
+.phase-chip {
+background: var(–od);
+border: 1px solid rgba(74,158,114,.3);
+border-radius: 20px;
+padding: 5px 12px;
+font-family: var(–fm);
+font-size: 10px;
+letter-spacing: .1em;
+color: var(–omega);
+cursor: pointer;
+transition: all .2s;
+display: flex;
+align-items: center;
+gap: 6px;
+position: relative;
+}
+.phase-chip::after {
+content: ‘▾’;
+font-size: 9px;
+opacity: .6;
+}
+
+.phase-dropdown {
+display: none;
+position: absolute;
+top: calc(100% + 8px);
+right: 0;
+background: var(–s2);
+border: 1px solid var(–bd2);
+border-radius: 10px;
+overflow: hidden;
+min-width: 120px;
+z-index: 100;
+box-shadow: 0 8px 32px rgba(0,0,0,.4);
+}
+.phase-dropdown.on { display: block; }
+.phase-opt {
+padding: 10px 16px;
+font-family: var(–fm);
+font-size: 11px;
+letter-spacing: .08em;
+color: var(–dim);
+cursor: pointer;
+transition: all .15s;
+}
+.phase-opt:hover { background: var(–od); color: var(–omega); }
+.phase-opt.active { color: var(–omega); }
+
+.btn-logout {
+background: none;
+border: 1px solid var(–bd);
+border-radius: 6px;
+padding: 5px 10px;
+font-family: var(–fm);
+font-size: 10px;
+letter-spacing: .08em;
+color: var(–dim);
+cursor: pointer;
+transition: all .2s;
+}
+.btn-logout:hover { color: var(–text); border-color: var(–bd2); }
+
+/* ── MAIN ── */
+.main {
+flex: 1;
+display: flex;
+overflow: hidden;
+position: relative;
+}
+
+/* ── SIDE PANEL ── */
+.side {
+width: 0;
+overflow: hidden;
+transition: width .28s cubic-bezier(.4,0,.2,1);
+border-right: 1px solid transparent;
+background: var(–s1);
+flex-shrink: 0;
+display: flex;
+flex-direction: column;
+z-index: 40;
+}
+.side.open {
+width: 210px;
+border-right-color: var(–bd);
+}
+
+.side-nav { padding: 8px 0; }
+.side-link {
+display: flex;
+align-items: center;
+gap: 12px;
+padding: 13px 20px;
+font-family: var(–fm);
+font-size: 11px;
+letter-spacing: .1em;
+text-transform: uppercase;
+color: var(–dim);
+background: none;
+border: none;
+cursor: pointer;
+width: 100%;
+text-align: left;
+transition: all .18s;
+white-space: nowrap;
+}
+.side-link:hover { color: var(–text); background: rgba(255,255,255,.03); }
+.side-link.on { color: var(–omega); background: var(–od); }
+.side-link-icon { font-size: 16px; width: 20px; text-align: center; }
+
+.side-footer {
+padding: 16px 20px;
+border-top: 1px solid var(–bd);
+margin-top: auto;
+}
+.side-user {
+font-family: var(–fm);
+font-size: 10px;
+letter-spacing: .08em;
+color: var(–faint);
+margin-bottom: 8px;
+}
+
+/* ── SCREENS ── */
 .screen { display: none; flex: 1; flex-direction: column; overflow: hidden; }
 .screen.on { display: flex; }
 
 /* ================================================================
-HOME SCREEN
+SESSIONE
 ================================================================ */
-#sHome {
-align-items: stretch;
-justify-content: stretch;
-position: relative;
-overflow: hidden;
-background: #0f0a1e;
+#sSess { position: relative; }
+
+canvas#wc {
+position: absolute;
+inset: 0;
+z-index: 0;
+pointer-events: none;
 }
 
-/* v60 exact space background */
-.home-wrap {
-flex: 1; display: flex; flex-direction: column;
-align-items: center; justify-content: center;
-position: relative; overflow: hidden; min-height: 0;
-}
-.home-bg {
-position: absolute; inset: 0; z-index: 0;
-background:
-radial-gradient(ellipse at 20% 50%, rgba(74,20,140,.6) 0%, transparent 50%),
-radial-gradient(ellipse at 80% 20%, rgba(13,71,161,.5) 0%, transparent 45%),
-radial-gradient(ellipse at 60% 80%, rgba(0,96,100,.4) 0%, transparent 40%),
-radial-gradient(ellipse at 50% 50%, rgba(10,12,15,1) 0%, rgba(15,10,30,1) 100%);
-}
-.home-bg::before {
-content: ‘’; position: absolute; inset: 0;
-background: url(‘https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1600&q=80&fm=jpg’) center/cover no-repeat;
-opacity: .45; mix-blend-mode: screen;
-}
-.home-content {
-position: relative; z-index: 1;
-display: flex; flex-direction: column;
-align-items: center; gap: 24px;
-padding: 40px 24px; width: 100%; max-width: 400px;
-}
-
-.home-ver {
-position: absolute; top: 18px; left: 20px;
-font-family: var(–fm); font-size: 10px;
-letter-spacing: .1em; color: var(–faint);
-}
-
-@keyframes fadeUp {
-from { opacity: 0; transform: translateY(24px); }
-to   { opacity: 1; transform: translateY(0); }
-}
-
-.home-title {
-font-family: var(–fd); font-size: 48px; font-weight: 400;
-letter-spacing: .02em; color: white; text-align: center; line-height: 1.1;
-}
-.home-title span { color: var(–blue); }
-.home-sub {
-font-size: 13px; color: rgba(255,255,255,.5);
-text-align: center; letter-spacing: .04em; text-transform: uppercase;
-}
-
-.home-form { width: 100%; display: flex; flex-direction: column; gap: 12px; }
-
-.inp-group { display: flex; flex-direction: column; gap: 6px; }
-.inp-label {
-font-family: var(–fm); font-size: 9px;
-letter-spacing: .14em; text-transform: uppercase; color: var(–dim);
-}
-.inp {
-background: var(–s1); border: 1px solid var(–border);
-border-radius: 8px; padding: 12px 14px;
-font-family: var(–fm); font-size: 14px; color: var(–text);
-outline: none; transition: border-color .2s;
--webkit-appearance: none; width: 100%;
-}
-.inp::placeholder { color: var(–faint); }
-.inp:focus { border-color: var(–omega); }
-
-.home-inp {
-width: 100%; background: rgba(10,12,15,.75);
-border: 1.5px solid rgba(90,159,212,.5);
-border-radius: 8px; padding: 13px 16px;
-color: white; font-family: var(–ff); font-size: 14px;
-outline: none; transition: border-color .2s, background .2s;
-backdrop-filter: blur(8px); -webkit-appearance: none;
-}
-.home-inp::placeholder { color: rgba(255,255,255,.3); }
-.home-inp:focus { border-color: rgba(90,159,212,.9); background: rgba(10,12,15,.9); }
-.home-btn {
-width: 100%; background: var(–blue); border: none;
-border-radius: 8px; padding: 15px; color: white;
-font-family: var(–ff); font-size: 15px; font-weight: 500;
-cursor: pointer; transition: background .2s;
-letter-spacing: .01em; margin-top: 4px;
-}
-.home-btn:hover { background: var(–omega); }
-.home-err-msg {
-font-size: 12px; color: #f08080;
-text-align: center; min-height: 16px;
-}
-
-.btn-primary {
-background: var(–omega-d); border: 1px solid rgba(74,158,114,.4);
-border-radius: 8px; padding: 13px;
-font-family: var(–fm); font-size: 11px;
-letter-spacing: .16em; text-transform: uppercase;
-color: var(–omega2); cursor: pointer;
-transition: all .2s; width: 100%;
-}
-.btn-primary:hover { background: rgba(74,158,114,.2); border-color: rgba(74,158,114,.7); }
-.btn-primary:active { transform: scale(.98); }
-.btn-primary:disabled { opacity: .4; cursor: not-allowed; }
-
-.home-err {
-font-family: var(–fm); font-size: 11px;
-color: var(–danger); text-align: center; min-height: 14px;
-opacity: 0; transition: opacity .2s;
-}
-.home-err.on { opacity: 1; }
-
-/* ================================================================
-HEADER (shared)
-================================================================ */
-.hdr {
-height: 50px; flex-shrink: 0;
-display: flex; align-items: center;
+.sess-body {
+flex: 1;
+display: flex;
+flex-direction: column;
+align-items: center;
 justify-content: space-between;
-padding: 0 16px;
-border-bottom: 1px solid var(–border);
-background: rgba(10,12,15,.9);
-backdrop-filter: blur(12px);
--webkit-backdrop-filter: blur(12px);
-position: relative; z-index: 20;
-}
-.hdr-left { display: flex; align-items: center; gap: 14px; }
-.hdr-right { display: flex; align-items: center; gap: 8px; }
-
-/* Hamburger */
-.hmb {
-background: none; border: none; cursor: pointer;
-display: flex; flex-direction: column; gap: 4px; padding: 4px;
-}
-.hmb span {
-display: block; width: 18px; height: 1.5px;
-background: var(–dim); border-radius: 2px; transition: background .2s;
-}
-.hmb:hover span { background: var(–text); }
-
-.hdr-title {
-font-family: var(–fm); font-size: 11px;
-letter-spacing: .12em; color: var(–dim);
+padding: 28px 20px 36px;
+position: relative;
+z-index: 1;
 }
 
-/* Phase selector */
-.phase-sel {
-background: var(–omega-d); border: 1px solid rgba(74,158,114,.25);
-border-radius: 6px; padding: 5px 10px;
-font-family: var(–fm); font-size: 10px; letter-spacing: .1em;
-color: var(–omega); cursor: pointer; outline: none;
--webkit-appearance: none;
+/* Omega center */
+.omega-stage {
+flex: 1;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+position: relative;
 }
 
-/* Logout btn */
-.btn-sm {
-background: none; border: 1px solid var(–border);
-border-radius: 6px; padding: 5px 10px;
-font-family: var(–fm); font-size: 10px; letter-spacing: .08em;
-color: var(–dim); cursor: pointer; transition: all .2s;
+.omega-glyph {
+font-family: var(–fd);
+font-size: clamp(120px, 30vw, 200px);
+font-weight: 300;
+color: var(–text);
+line-height: 1;
+user-select: none;
+transition: all .6s;
+text-shadow:
+0 0 50px rgba(74,158,114,.4),
+0 0 100px rgba(74,158,114,.15),
+0 2px 4px rgba(0,0,0,.4);
 }
-.btn-sm:hover { border-color: var(–border2); color: var(–text); }
-
-/* ================================================================
-SIDE PANEL
-================================================================ */
-.main-wrap { flex: 1; display: flex; overflow: hidden; }
-
-.side-panel {
-width: 0; overflow: hidden;
-transition: width .28s cubic-bezier(.4,0,.2,1);
-border-right: 1px solid transparent;
-background: var(–s1); flex-shrink: 0;
-display: flex; flex-direction: column;
+.omega-glyph.rec {
+text-shadow:
+0 0 60px rgba(74,158,114,.7),
+0 0 120px rgba(74,158,114,.3),
+0 0 200px rgba(74,158,114,.1);
+color: #e8f5f0;
 }
-.side-panel.open { width: 200px; border-right-color: var(–border); }
-
-.side-nav { padding: 20px 0; display: flex; flex-direction: column; }
-.side-link {
-display: flex; align-items: center; gap: 10px;
-padding: 12px 18px;
-font-family: var(–fm); font-size: 11px; letter-spacing: .1em;
-text-transform: uppercase; color: var(–dim);
-cursor: pointer; transition: all .2s; border: none; background: none;
-white-space: nowrap; width: 100%; text-align: left;
-}
-.side-link:hover { color: var(–text); background: rgba(255,255,255,.03); }
-.side-link.active { color: var(–omega); }
-.side-close-btn {
-margin: auto 16px 20px;
-background: none; border: 1px solid var(–border);
-border-radius: 6px; padding: 8px;
-font-family: var(–fm); font-size: 10px;
-letter-spacing: .1em; color: var(–dim);
-cursor: pointer; transition: all .2s; white-space: nowrap;
-}
-.side-close-btn:hover { color: var(–text); }
-
-/* ================================================================
-SESSION SCREEN
-================================================================ */
-#sSess {
-position: relative; overflow: hidden;
+.omega-glyph.paused {
+text-shadow: 0 0 30px rgba(232,168,74,.4), 0 0 80px rgba(232,168,74,.15);
+color: rgba(221,226,232,.7);
 }
 
-canvas#waveCanvas {
-position: absolute; inset: 0; z-index: 0; pointer-events: none;
+.omega-state {
+font-family: var(–fm);
+font-size: 10px;
+letter-spacing: .2em;
+text-transform: uppercase;
+color: var(–dim);
+margin-top: 16px;
+transition: color .3s;
+}
+.omega-state.rec { color: var(–ok); animation: pulse 2s ease-in-out infinite; }
+.omega-state.paused { color: var(–warn); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+.omega-timer {
+font-family: var(–fm);
+font-size: 28px;
+letter-spacing: .1em;
+color: var(–text);
+opacity: .5;
+margin-top: 10px;
+min-height: 36px;
+transition: opacity .3s;
+}
+.omega-timer.on { opacity: .9; }
+
+/* Session stats */
+.sess-stats {
+display: none;
+gap: 32px;
+margin-top: 14px;
+}
+.sess-stats.on { display: flex; }
+.stat {
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 3px;
+}
+.stat-lbl {
+font-family: var(–fm);
+font-size: 9px;
+letter-spacing: .12em;
+text-transform: uppercase;
+color: var(–faint);
+}
+.stat-val {
+font-family: var(–fm);
+font-size: 14px;
+color: var(–dim);
 }
 
-.sess-content {
-flex: 1; display: flex; flex-direction: column;
-align-items: center; justify-content: space-between;
-padding: 24px 20px 32px; position: relative; z-index: 1;
+/* Omega ask button */
+/* Omega ask — prominent standalone button */
+.omega-ask-wrap {
+display: none;
+flex-direction: column;
+align-items: center;
+gap: 6px;
+margin-bottom: 4px;
+}
+.omega-ask-wrap.on { display: flex; }
+
+.omega-ask {
+background: linear-gradient(135deg, rgba(74,158,114,.18), rgba(74,158,114,.08));
+border: 1.5px solid rgba(74,158,114,.5);
+border-radius: 50px;
+padding: 14px 36px;
+font-family: var(–fm);
+font-size: 12px;
+letter-spacing: .16em;
+text-transform: uppercase;
+color: var(–ow);
+cursor: pointer;
+transition: all .25s;
+white-space: nowrap;
+box-shadow: 0 0 20px rgba(74,158,114,.1);
+display: flex;
+align-items: center;
+gap: 8px;
+}
+.omega-ask:hover {
+background: linear-gradient(135deg, rgba(74,158,114,.28), rgba(74,158,114,.14));
+border-color: rgba(74,158,114,.8);
+box-shadow: 0 0 30px rgba(74,158,114,.2);
+transform: translateY(-1px);
+}
+.omega-ask-sym { font-size: 18px; font-family: var(–fd); }
+.omega-ask.disabled { opacity: .3; pointer-events: none; }
+.omega-ask-hint {
+font-family: var(–fm);
+font-size: 9px;
+letter-spacing: .1em;
+color: var(–faint);
+text-transform: uppercase;
 }
 
-/* Omega symbol */
-.omega-center {
-flex: 1; display: flex; flex-direction: column;
-align-items: center; justify-content: center; position: relative;
+/* Message bubble */
+.omega-bubble {
+display: none;
+position: absolute;
+bottom: 10px;
+left: 50%;
+transform: translateX(-50%);
+width: calc(100% - 32px);
+max-width: 500px;
+background: linear-gradient(135deg, rgba(74,158,114,.1), rgba(42,100,72,.05));
+border: 1px solid rgba(74,158,114,.2);
+border-radius: 4px 14px 14px 14px;
+padding: 14px 40px 14px 16px;
+animation: msgIn .3s cubic-bezier(.34,1.26,.64,1);
 }
-
-.omega-sym {
-font-family: var(–fm); font-size: clamp(110px, 28vw, 200px);
-font-weight: 300; color: var(–text); line-height: 1;
-letter-spacing: -.02em; user-select: none;
-text-shadow: 0 0 40px rgba(74,158,114,.3), 0 0 80px rgba(74,158,114,.1);
-transition: text-shadow .5s, color .5s;
+@keyframes msgIn { from{opacity:0;transform:translateX(-50%) translateY(8px)} to{opacity:1;transform:translateX(-50%) none} }
+.omega-bubble.on { display: block; }
+.bubble-lbl {
+font-family: var(–fm);
+font-size: 9px;
+letter-spacing: .12em;
+text-transform: uppercase;
+color: var(–omega);
+margin-bottom: 6px;
 }
-.omega-sym.rec {
-text-shadow: 0 0 50px rgba(74,158,114,.6), 0 0 100px rgba(74,158,114,.25), 0 0 160px rgba(74,158,114,.08);
+.bubble-text {
+font-size: 14px;
+line-height: 1.7;
+color: var(–text);
+font-weight: 300;
 }
-.omega-sym.paused {
-text-shadow: 0 0 20px rgba(232,168,74,.3), 0 0 60px rgba(232,168,74,.1);
-color: rgba(221,226,232,.6);
+.bubble-x {
+position: absolute;
+top: 10px; right: 10px;
+background: rgba(255,255,255,.06);
+border: none;
+color: var(–dim);
+width: 24px; height: 24px;
+border-radius: 50%;
+font-size: 12px;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
 }
-
-.omega-status {
-font-family: var(–fm); font-size: 10px; letter-spacing: .16em;
-text-transform: uppercase; color: var(–dim);
-margin-top: 14px; min-height: 14px; transition: color .3s;
-}
-.omega-status.rec { color: var(–ok); }
-.omega-status.paused { color: var(–warn); animation: statusBlink 1.5s step-end infinite; }
-@keyframes statusBlink { 0%,100%{opacity:1} 50%{opacity:.4} }
-
-.sess-timer {
-font-family: var(–fm); font-size: 26px; letter-spacing: .12em;
-color: var(–text); opacity: .5; margin-top: 10px;
-min-height: 32px; transition: opacity .3s;
-}
-.sess-timer.active { opacity: .9; }
-
-/* Session info strip */
-.sess-info-strip {
-display: none; flex-direction: row; gap: 24px;
-margin-top: 12px; margin-bottom: 4px;
-font-family: var(–fm); font-size: 10px; letter-spacing: .1em;
-text-transform: uppercase; color: var(–faint);
-}
-.sess-info-strip.on { display: flex; }
-.sess-info-item { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-.sess-info-val { font-size: 13px; color: var(–dim); }
-
-/* Omega chiedi button - near symbol */
-.omega-ask-btn {
-position: absolute; bottom: -8px;
-background: var(–omega-d); border: 1px solid rgba(74,158,114,.3);
-border-radius: 20px; padding: 7px 16px;
-font-family: var(–fm); font-size: 10px; letter-spacing: .1em;
-text-transform: uppercase; color: var(–omega); cursor: pointer;
-transition: all .25s; white-space: nowrap; display: none;
-}
-.omega-ask-btn:hover { background: rgba(74,158,114,.2); }
-.omega-ask-btn:disabled { opacity: .35; cursor: not-allowed; pointer-events: none; }
 
 /* Controls */
 .sess-controls {
-display: flex; flex-direction: column;
-align-items: center; gap: 14px; width: 100%;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 16px;
+width: 100%;
 }
 
 .btn-avvia {
-background: var(–omega-d); border: 1.5px solid rgba(74,158,114,.5);
-border-radius: 50px; padding: 18px 60px;
-font-family: var(–fm); font-size: 13px;
-letter-spacing: .22em; text-transform: uppercase;
-color: var(–omega2); cursor: pointer; transition: all .25s;
+background: linear-gradient(135deg, var(–od), rgba(74,158,114,.06));
+border: 1.5px solid rgba(74,158,114,.5);
+border-radius: 50px;
+padding: 18px 60px;
+font-family: var(–fm);
+font-size: 13px;
+letter-spacing: .22em;
+text-transform: uppercase;
+color: var(–ow);
+cursor: pointer;
+transition: all .25s;
+box-shadow: 0 0 0 0 rgba(74,158,114,0);
 }
 .btn-avvia:hover {
-background: rgba(74,158,114,.2);
+background: linear-gradient(135deg, rgba(74,158,114,.2), rgba(74,158,114,.1));
 border-color: rgba(74,158,114,.8);
 box-shadow: 0 0 30px rgba(74,158,114,.15);
 }
 
-.sess-btns { display: none; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.sess-btn-row { display: none; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.sess-btn-row.on { display: flex; }
 
-.btn-sess {
-border-radius: 8px; padding: 12px 20px;
-font-family: var(–fm); font-size: 10px; letter-spacing: .1em;
-text-transform: uppercase; cursor: pointer; transition: all .2s;
-border: 1px solid; white-space: nowrap;
+.btn-s {
+border-radius: 8px;
+padding: 12px 20px;
+font-family: var(–fm);
+font-size: 10px;
+letter-spacing: .12em;
+text-transform: uppercase;
+cursor: pointer;
+transition: all .2s;
+border: 1px solid;
+white-space: nowrap;
 }
 .btn-pause { background: rgba(232,168,74,.07); border-color: rgba(232,168,74,.25); color: var(–warn); }
 .btn-pause:hover { background: rgba(232,168,74,.14); }
-.btn-stop { background: rgba(217,95,95,.07); border-color: rgba(217,95,95,.25); color: var(–danger); }
+.btn-stop { background: rgba(217,95,95,.07); border-color: rgba(217,95,95,.25); color: var(–dngr); }
 .btn-stop:hover { background: rgba(217,95,95,.14); }
-.btn-tx { background: rgba(255,255,255,.04); border-color: var(–border2); color: var(–dim); }
+.btn-tx { background: rgba(255,255,255,.04); border-color: var(–bd2); color: var(–dim); }
 .btn-tx:hover { background: rgba(255,255,255,.08); color: var(–text); }
 
-/* ================================================================
-OMEGA MESSAGE BUBBLE
-================================================================ */
-.omega-msg-area { position: fixed; bottom: 140px; left: 50%; transform: translateX(-50%); z-index: 30; width: calc(100% - 40px); max-width: 500px; }
-
-.omega-msg-bubble {
-background: linear-gradient(135deg, rgba(74,158,114,.1), rgba(42,110,82,.05));
-border: 1px solid rgba(74,158,114,.2);
-border-radius: 4px 14px 14px 14px;
-padding: 14px 40px 14px 16px; font-size: 14px; line-height: 1.7;
-color: var(–text); position: relative;
-animation: msgIn .3s cubic-bezier(.34,1.26,.64,1);
+/* ── OMEGA QUESTION POPUP ── */
+.omega-q-overlay {
+display: none;
+position: fixed;
+inset: 0;
+z-index: 200;
+background: rgba(0,0,0,.75);
+backdrop-filter: blur(8px);
+align-items: center;
+justify-content: center;
+padding: 24px;
 }
-@keyframes msgIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
-
-.omega-msg-lbl {
-font-family: var(–fm); font-size: 9px; letter-spacing: .12em;
-color: var(–omega); text-transform: uppercase; margin-bottom: 6px; opacity: .8;
-}
-.omega-msg-x {
-position: absolute; top: 10px; right: 10px;
-background: rgba(255,255,255,.06); border: none;
-color: var(–dim); width: 22px; height: 22px;
-border-radius: 50%; font-size: 13px; cursor: pointer;
-display: flex; align-items: center; justify-content: center;
-transition: all .2s;
-}
-.omega-msg-x:hover { background: rgba(255,255,255,.12); color: var(–text); }
-
-.omega-history-pill {
-display: none; margin-top: 8px;
-background: none; border: 1px solid var(–faint);
-color: var(–dim); font-family: var(–fm); font-size: 10px;
-letter-spacing: .06em; padding: 5px 12px; border-radius: 20px;
-cursor: pointer; transition: all .2s;
-}
-.omega-history-pill:hover { border-color: var(–omega); color: var(–omega); }
-
-/* Stop TTS button */
-.stop-tts-btn {
-position: fixed; bottom: 105px; right: 20px; z-index: 35;
-background: rgba(217,95,95,.1); border: 1px solid rgba(217,95,95,.3);
-border-radius: 20px; padding: 7px 14px;
-font-family: var(–fm); font-size: 10px; letter-spacing: .08em;
-text-transform: uppercase; color: var(–danger); cursor: pointer;
-display: none; transition: all .2s;
-}
-.stop-tts-btn:hover { background: rgba(217,95,95,.18); }
-
-/* ================================================================
-OMEGA HAS A QUESTION - big flashing popup
-================================================================ */
-.omega-question-overlay {
-display: none; position: fixed; inset: 0; z-index: 100;
-background: rgba(0,0,0,.75); backdrop-filter: blur(6px);
-align-items: center; justify-content: center; padding: 24px;
-}
-.omega-question-overlay.on { display: flex; animation: fadeIn .2s ease; }
+.omega-q-overlay.on { display: flex; animation: fadeIn .2s ease; }
 @keyframes fadeIn { from{opacity:0} to{opacity:1} }
 
-.omega-question-card {
-background: linear-gradient(135deg, var(–s1), var(–bg));
+.omega-q-card {
+background: linear-gradient(135deg, #111520, #0a0c10);
 border: 1.5px solid rgba(74,158,114,.4);
-border-radius: 20px; padding: 32px 26px;
-max-width: 400px; width: 100%; text-align: center;
-box-shadow: 0 0 60px rgba(74,158,114,.1), 0 20px 60px rgba(0,0,0,.6);
+border-radius: 24px;
+padding: 36px 28px 28px;
+max-width: 400px;
+width: 100%;
+text-align: center;
+box-shadow:
+0 0 80px rgba(74,158,114,.1),
+0 24px 80px rgba(0,0,0,.7);
 animation: popIn .35s cubic-bezier(.34,1.3,.64,1);
 }
-@keyframes popIn { from{opacity:0;transform:scale(.9)} to{opacity:1;transform:scale(1)} }
+@keyframes popIn { from{opacity:0;transform:scale(.88)} to{opacity:1;transform:scale(1)} }
 
 .omega-q-alert {
-font-family: var(–fm); font-size: 11px; letter-spacing: .2em;
-text-transform: uppercase; color: var(–omega); margin-bottom: 20px;
+font-family: var(–fm);
+font-size: 10px;
+letter-spacing: .22em;
+text-transform: uppercase;
+color: var(–omega);
+margin-bottom: 20px;
 animation: alertBlink 1s step-end infinite;
 }
-@keyframes alertBlink { 0%,100%{opacity:1} 50%{opacity:.2} }
+@keyframes alertBlink { 0%,100%{opacity:1} 50%{opacity:.15} }
 
 .omega-q-sym {
-font-family: var(–fm); font-size: 56px; font-weight: 300;
-color: var(–omega2); line-height: 1; margin-bottom: 16px;
-text-shadow: 0 0 30px rgba(74,158,114,.5);
+font-family: var(–fd);
+font-size: 64px;
+font-weight: 300;
+color: var(–ow);
+line-height: 1;
+margin-bottom: 16px;
+text-shadow: 0 0 40px rgba(74,158,114,.5);
 }
 
 .omega-q-text {
-font-size: 17px; font-weight: 300; line-height: 1.65;
-color: var(–text); margin-bottom: 24px; font-style: italic;
-display: none;
+font-size: 17px;
+font-weight: 300;
+line-height: 1.7;
+color: var(–text);
+margin-bottom: 24px;
+font-style: italic;
 }
 
-.omega-q-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-.omega-q-btn {
-padding: 10px 18px; border-radius: 8px;
-font-family: var(–fm); font-size: 10px; letter-spacing: .1em;
-text-transform: uppercase; cursor: pointer; transition: all .2s; border: 1px solid;
+.omega-q-btns {
+display: flex;
+gap: 10px;
+justify-content: center;
+flex-wrap: wrap;
 }
-.omega-q-btn.listen { background: var(–omega-d); border-color: rgba(74,158,114,.4); color: var(–omega2); }
-.omega-q-btn.listen:hover { background: rgba(74,158,114,.2); }
-.omega-q-btn.silence { background: rgba(255,255,255,.03); border-color: var(–border); color: var(–dim); }
-.omega-q-btn.silence:hover { color: var(–text); }
-.omega-q-btn.close { background: rgba(217,95,95,.08); border-color: rgba(217,95,95,.25); color: var(–danger); }
-.omega-q-btn.close:hover { background: rgba(217,95,95,.15); }
-.omega-q-btn.interrompi { background: rgba(217,95,95,.08); border-color: rgba(217,95,95,.25); color: var(–danger); display: none; }
+
+.q-btn {
+padding: 11px 20px;
+border-radius: 10px;
+font-family: var(–fm);
+font-size: 10px;
+letter-spacing: .1em;
+text-transform: uppercase;
+cursor: pointer;
+transition: all .2s;
+border: 1px solid;
+}
+.q-btn.listen { background: var(–od); border-color: rgba(74,158,114,.4); color: var(–ow); }
+.q-btn.listen:hover { background: rgba(74,158,114,.2); }
+.q-btn.mute { background: rgba(255,255,255,.03); border-color: var(–bd2); color: var(–dim); }
+.q-btn.mute:hover { color: var(–text); }
+.q-btn.close-q { background: rgba(217,95,95,.08); border-color: rgba(217,95,95,.25); color: var(–dngr); }
+.q-btn.close-q:hover { background: rgba(217,95,95,.15); }
+
+/* ================================================================
+ARCHIVIO & LOG (shared two-col layout)
+================================================================ */
+.two-col { flex: 1; display: flex; overflow: hidden; }
+
+.col-left {
+width: 230px;
+flex-shrink: 0;
+border-right: 1px solid var(–bd);
+display: flex;
+flex-direction: column;
+background: var(–s1);
+}
+
+.col-left-hdr {
+padding: 12px 14px;
+border-bottom: 1px solid var(–bd);
+flex-shrink: 0;
+}
+
+.filter-sel {
+width: 100%;
+background: var(–s2);
+border: 1px solid var(–bd);
+border-radius: 6px;
+padding: 7px 10px;
+font-family: var(–fm);
+font-size: 10px;
+letter-spacing: .08em;
+color: var(–text);
+outline: none;
+cursor: pointer;
+-webkit-appearance: none;
+}
+
+.sess-list { flex: 1; overflow-y: auto; }
+
+.sess-item {
+padding: 14px 16px;
+border-bottom: 1px solid rgba(255,255,255,.03);
+cursor: pointer;
+transition: background .15s;
+position: relative;
+}
+.sess-item:hover { background: rgba(255,255,255,.03); }
+.sess-item.on {
+background: rgba(74,158,114,.08);
+border-left: 2.5px solid var(–omega);
+}
+.sess-item-date {
+font-family: var(–fm);
+font-size: 9px;
+letter-spacing: .08em;
+color: var(–faint);
+margin-bottom: 4px;
+}
+.sess-item-title {
+font-size: 13px;
+color: var(–text);
+margin-bottom: 6px;
+line-height: 1.4;
+}
+.sess-item-meta {
+display: flex;
+align-items: center;
+gap: 8px;
+}
+.phase-tag {
+background: var(–s3);
+border-radius: 4px;
+padding: 2px 7px;
+font-family: var(–fm);
+font-size: 8px;
+letter-spacing: .1em;
+text-transform: uppercase;
+color: var(–omega);
+}
+.sess-item-dur {
+font-family: var(–fm);
+font-size: 10px;
+color: var(–faint);
+}
+
+.col-right {
+flex: 1;
+display: flex;
+flex-direction: column;
+overflow: hidden;
+}
+
+.col-right-hdr {
+padding: 14px 20px;
+border-bottom: 1px solid var(–bd);
+display: flex;
+align-items: center;
+justify-content: space-between;
+flex-shrink: 0;
+}
+.col-right-title {
+font-family: var(–fm);
+font-size: 11px;
+letter-spacing: .1em;
+text-transform: uppercase;
+color: var(–dim);
+}
+.col-right-acts { display: flex; gap: 8px; }
+
+.act-btn {
+background: none;
+border: 1px solid var(–bd);
+border-radius: 6px;
+padding: 6px 12px;
+font-family: var(–fm);
+font-size: 10px;
+letter-spacing: .08em;
+text-transform: uppercase;
+color: var(–dim);
+cursor: pointer;
+transition: all .2s;
+}
+.act-btn:hover { color: var(–text); border-color: var(–bd2); }
+.act-btn.green { border-color: rgba(74,158,114,.25); color: var(–omega); }
+.act-btn.green:hover { background: var(–od); }
+.act-btn.blue { border-color: rgba(61,122,181,.25); color: #5a9fd4; }
+.act-btn.blue:hover { background: rgba(61,122,181,.1); }
+.act-btn.red { border-color: rgba(217,95,95,.25); color: var(–dngr); }
+.act-btn.red:hover { background: rgba(217,95,95,.08); }
+
+.col-right-body {
+flex: 1;
+overflow-y: auto;
+padding: 20px;
+}
+
+.tx-content {
+font-size: 14px;
+line-height: 1.85;
+color: var(–text);
+white-space: pre-wrap;
+font-weight: 300;
+}
+
+.tx-omega-line {
+color: var(–omega);
+font-style: italic;
+}
+
+.empty-state {
+height: 100%;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 10px;
+}
+.empty-icon {
+font-size: 36px;
+opacity: .1;
+}
+.empty-text {
+font-family: var(–fm);
+font-size: 11px;
+letter-spacing: .1em;
+text-transform: uppercase;
+color: var(–faint);
+}
+
+/* ================================================================
+CONFIG
+================================================================ */
+#sCfg { overflow-y: auto; }
+.cfg-body { padding: 20px; max-width: 540px; display: flex; flex-direction: column; gap: 10px; }
+
+.cfg-section {
+border: 1px solid var(–bd);
+border-radius: 12px;
+overflow: hidden;
+}
+
+.cfg-hdr {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 14px 18px;
+cursor: pointer;
+background: var(–s1);
+transition: background .15s;
+user-select: none;
+}
+.cfg-hdr:hover { background: var(–s2); }
+.cfg-hdr-title {
+font-family: var(–fm);
+font-size: 11px;
+letter-spacing: .1em;
+text-transform: uppercase;
+color: var(–dim);
+display: flex;
+align-items: center;
+gap: 10px;
+}
+.cfg-hdr-icon { font-size: 14px; color: var(–faint); }
+.cfg-arrow {
+font-size: 12px;
+color: var(–faint);
+transition: transform .2s;
+}
+.cfg-section.open .cfg-arrow { transform: rotate(90deg); }
+.cfg-section.open .cfg-hdr { background: var(–s2); }
+
+.cfg-body-inner {
+display: none;
+padding: 16px 18px;
+border-top: 1px solid var(–bd);
+background: rgba(10,12,15,.5);
+flex-direction: column;
+gap: 14px;
+}
+.cfg-section.open .cfg-body-inner { display: flex; }
+
+.cfg-row { display: flex; flex-direction: column; gap: 6px; }
+.cfg-lbl {
+font-family: var(–fm);
+font-size: 9px;
+letter-spacing: .14em;
+text-transform: uppercase;
+color: var(–dim);
+}
+.cfg-inp {
+background: var(–s1);
+border: 1px solid var(–bd);
+border-radius: 8px;
+padding: 11px 14px;
+font-family: var(–fm);
+font-size: 13px;
+color: var(–text);
+outline: none;
+transition: border-color .2s;
+width: 100%;
+}
+.cfg-inp:focus { border-color: var(–omega); }
+.cfg-sel {
+background: var(–s1);
+border: 1px solid var(–bd);
+border-radius: 8px;
+padding: 11px 14px;
+font-family: var(–fm);
+font-size: 13px;
+color: var(–text);
+outline: none;
+cursor: pointer;
+-webkit-appearance: none;
+width: 100%;
+}
+
+.cfg-check-row {
+display: flex;
+align-items: center;
+gap: 12px;
+}
+.cfg-check { accent-color: var(–omega); width: 16px; height: 16px; cursor: pointer; }
+.cfg-check-lbl { font-family: var(–fm); font-size: 12px; color: var(–dim); cursor: pointer; }
+
+.cfg-save {
+background: var(–od);
+border: 1px solid rgba(74,158,114,.35);
+border-radius: 8px;
+padding: 11px;
+font-family: var(–fm);
+font-size: 10px;
+letter-spacing: .14em;
+text-transform: uppercase;
+color: var(–omega);
+cursor: pointer;
+transition: background .2s;
+margin-top: 4px;
+}
+.cfg-save:hover { background: rgba(74,158,114,.2); }
 
 /* ================================================================
 TRANSCRIPT OVERLAY
 ================================================================ */
 .tx-overlay {
-display: none; position: fixed; inset: 0; z-index: 90;
-background: rgba(0,0,0,.75); backdrop-filter: blur(8px);
-align-items: flex-end; padding: 16px;
+display: none;
+position: fixed;
+inset: 0;
+z-index: 150;
+background: rgba(0,0,0,.75);
+backdrop-filter: blur(8px);
+align-items: flex-end;
+padding: 16px;
 }
 .tx-overlay.on { display: flex; animation: fadeIn .2s ease; }
 
 .tx-sheet {
 background: linear-gradient(180deg, var(–s1), var(–bg));
-border: 1px solid var(–border2);
-border-radius: 20px; width: 100%; max-height: 66dvh;
-display: flex; flex-direction: column;
-animation: sheetUp .3s cubic-bezier(.34,1.2,.64,1);
+border: 1px solid var(–bd2);
+border-radius: 20px;
+width: 100%;
+max-height: 66dvh;
+display: flex;
+flex-direction: column;
+animation: slideUp .3s cubic-bezier(.34,1.2,.64,1);
 }
-@keyframes sheetUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
+@keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
 
-.sheet-hdr {
-padding: 14px 18px; border-bottom: 1px solid var(–border);
-display: flex; align-items: center; justify-content: space-between;
+.tx-hdr {
+padding: 14px 18px;
+border-bottom: 1px solid var(–bd);
+display: flex;
+align-items: center;
+justify-content: space-between;
 flex-shrink: 0;
 }
-.sheet-title { font-family: var(–fm); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(–dim); }
-.sheet-acts { display: flex; gap: 8px; align-items: center; }
-.sheet-copy-btn {
-background: var(–omega-d); border: 1px solid rgba(74,158,114,.25);
-border-radius: 6px; padding: 6px 12px;
-font-family: var(–fm); font-size: 10px; letter-spacing: .08em;
-text-transform: uppercase; color: var(–omega); cursor: pointer; transition: background .2s;
+.tx-title { font-family: var(–fm); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(–dim); }
+.tx-acts { display: flex; gap: 8px; align-items: center; }
+.tx-copy { background: var(–od); border: 1px solid rgba(74,158,114,.25); border-radius: 6px; padding: 6px 12px; font-family: var(–fm); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(–omega); cursor: pointer; transition: background .2s; }
+.tx-copy:hover { background: rgba(74,158,114,.2); }
+.tx-xbtn { width: 28px; height: 28px; background: rgba(255,255,255,.05); border: none; border-radius: 50%; color: var(–dim); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; }
+.tx-xbtn:hover { background: rgba(255,255,255,.1); color: var(–text); }
+.tx-body { overflow-y: auto; padding: 18px 20px; font-size: 13.5px; line-height: 1.85; color: var(–text); white-space: pre-wrap; font-weight: 300; }
+
+.bn-btn {
+flex: 1;
+background: none;
+border: none;
+border-right: 1px solid var(–bd);
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 4px;
+font-family: var(–fm);
+font-size: 8px;
+letter-spacing: .1em;
+text-transform: uppercase;
+color: var(–faint);
+cursor: pointer;
+transition: all .18s;
+padding: 6px 0;
 }
-.sheet-copy-btn:hover { background: rgba(74,158,114,.2); }
-.sheet-close-btn {
-width: 26px; height: 26px; background: rgba(255,255,255,.05);
-border: none; border-radius: 50%; color: var(–dim);
-font-size: 14px; cursor: pointer; display: flex;
-align-items: center; justify-content: center; transition: all .2s;
-}
-.sheet-close-btn:hover { background: rgba(255,255,255,.1); color: var(–text); }
-.sheet-body {
-overflow-y: auto; padding: 18px 20px;
-font-size: 13.5px; line-height: 1.85; color: var(–text);
-white-space: pre-wrap; font-weight: 300;
-}
+.bn-btn:last-child { border-right: none; }
+.bn-btn:hover { color: var(–dim); background: rgba(255,255,255,.02); }
+.bn-btn.on { color: var(–omega); background: var(–od); }
+.bn-icon { font-size: 18px; line-height: 1; }
 
 /* ================================================================
-PAUSE DIALOG
+SCROLLBAR
 ================================================================ */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(–bd2); border-radius: 2px; }
+
+/* Service banners */
+.svc-banner {
+display: none;
+padding: 9px 16px;
+font-family: var(–fm);
+font-size: 11px;
+letter-spacing: .05em;
+text-align: center;
+flex-shrink: 0;
+}
+.svc-banner.on { display: block; animation: fadeIn .3s ease; }
+.svc-banner.warn { background: rgba(232,168,74,.12); border-bottom: 1px solid rgba(232,168,74,.25); color: var(–warn); }
+.svc-banner.err { background: rgba(217,95,95,.12); border-bottom: 1px solid rgba(217,95,95,.25); color: var(–dngr); }
+
+/* ── HOME OVERLAY ── */
+#sHome {
+position: fixed;
+inset: 0;
+z-index: 1000;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+background: #0a0208;
+transition: opacity .4s ease;
+}
+#sHome.fading { opacity: 0; pointer-events: none; }
+
+.home-galaxy {
+position: absolute; inset: 0; z-index: 0;
+background:
+radial-gradient(ellipse at 20% 50%, rgba(74,20,140,.75) 0%, transparent 50%),
+radial-gradient(ellipse at 80% 20%, rgba(13,71,161,.65) 0%, transparent 45%),
+radial-gradient(ellipse at 60% 80%, rgba(0,96,100,.5) 0%, transparent 40%),
+radial-gradient(ellipse at 50% 50%, rgba(10,12,15,1) 0%, rgba(15,10,30,1) 100%);
+}
+.home-galaxy::before {
+content: ‘’; position: absolute; inset: 0;
+background: url(‘https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1600&q=80&fm=jpg’) center/cover no-repeat;
+opacity: .55; mix-blend-mode: screen;
+}
+.home-ver-tag {
+position: absolute; top: 20px; left: 22px;
+font-family: var(–fm); font-size: 10px;
+letter-spacing: .14em; color: rgba(255,255,255,.22); z-index: 2;
+}
+.home-content {
+position: relative; z-index: 2;
+display: flex; flex-direction: column;
+align-items: center; gap: 36px;
+padding: 32px 24px;
+width: 100%; max-width: 420px;
+animation: homeRise .9s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes homeRise {
+from { opacity: 0; transform: translateY(28px); }
+to   { opacity: 1; transform: none; }
+}
+.home-logo-title {
+font-family: var(–fd);
+font-size: clamp(52px, 14vw, 76px);
+font-weight: 300;
+color: white; line-height: 1; text-align: center;
+text-shadow: 0 0 60px rgba(120,180,255,.35), 0 0 120px rgba(80,100,200,.2);
+}
+.home-logo-title span { color: #5ab8f5; font-style: italic; }
+.home-logo-line {
+width: 60px; height: 1px;
+background: linear-gradient(90deg, transparent, rgba(90,184,245,.5), transparent);
+margin: 12px auto 0;
+}
+.home-logo-sub {
+font-family: var(–fm); font-size: 10px;
+letter-spacing: .22em; text-transform: uppercase;
+color: rgba(255,255,255,.35); margin-top: 8px; text-align: center;
+}
+.home-form { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+.home-field { display: flex; flex-direction: column; gap: 6px; }
+.home-lbl {
+font-family: var(–fm); font-size: 9px;
+letter-spacing: .18em; text-transform: uppercase;
+color: rgba(255,255,255,.35);
+}
+.home-inp {
+width: 100%;
+background: rgba(8,12,22,.72);
+border: 1px solid rgba(90,160,245,.3);
+border-radius: 10px; padding: 15px 18px;
+font-family: var(–ff); font-size: 15px;
+color: white; outline: none;
+transition: border-color .25s, box-shadow .25s;
+backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+-webkit-appearance: none;
+}
+.home-inp::placeholder { color: rgba(255,255,255,.2); }
+.home-inp:focus {
+border-color: rgba(90,184,245,.7);
+box-shadow: 0 0 0 3px rgba(90,184,245,.1);
+}
+.home-err {
+font-family: var(–fm); font-size: 11px;
+color: #f08090; text-align: center; min-height: 14px;
+letter-spacing: .04em; opacity: 0; transition: opacity .2s;
+}
+.home-err.on { opacity: 1; }
+.home-btn {
+width: 100%;
+background: linear-gradient(135deg, rgba(61,122,181,.9), rgba(42,92,151,.9));
+border: 1px solid rgba(90,160,245,.4);
+border-radius: 10px; padding: 16px;
+font-family: var(–ff); font-size: 15px; font-weight: 500;
+color: white; cursor: pointer; letter-spacing: .01em;
+margin-top: 4px; transition: all .25s;
+}
+.home-btn:hover {
+background: linear-gradient(135deg, rgba(71,142,201,1), rgba(52,102,171,1));
+box-shadow: 0 4px 24px rgba(61,122,181,.3);
+}
+.home-btn:active { transform: scale(.98); }
+
+/* V1 overlays needed */
+.stop-tts-btn {
+position: fixed; bottom: 105px; right: 20px; z-index: 35;
+background: rgba(217,95,95,.1); border: 1px solid rgba(217,95,95,.3);
+border-radius: 20px; padding: 7px 14px;
+font-family: var(–fm); font-size: 10px; letter-spacing: .08em;
+text-transform: uppercase; color: var(–dngr); cursor: pointer; display: none;
+}
 .pause-dlg {
 display: none; position: fixed; inset: 0; z-index: 110;
 align-items: center; justify-content: center; padding: 24px;
 background: rgba(0,0,0,.65); backdrop-filter: blur(6px);
 }
 .pause-dlg.on { display: flex; animation: fadeIn .2s ease; }
-
 .pause-card {
 background: linear-gradient(135deg, var(–s1), var(–bg));
-border: 1px solid rgba(232,168,74,.25);
-border-radius: 20px; padding: 28px 24px;
-max-width: 320px; width: 100%; text-align: center;
-box-shadow: 0 16px 50px rgba(0,0,0,.5), 0 0 30px rgba(232,168,74,.05);
-animation: popIn .3s cubic-bezier(.34,1.36,.64,1);
+border: 1px solid rgba(232,168,74,.25); border-radius: 20px;
+padding: 28px 24px; max-width: 320px; width: 100%; text-align: center;
 }
 .pause-card-icon { font-size: 24px; margin-bottom: 12px; opacity: .6; }
 .pause-card-title { font-size: 15px; font-weight: 500; color: var(–text); margin-bottom: 8px; }
@@ -543,130 +1051,6 @@ animation: popIn .3s cubic-bezier(.34,1.36,.64,1);
 .pause-card-body strong { color: var(–warn); }
 .pause-card-btns { display: flex; gap: 10px; }
 .pause-card-btns .btn-sess { flex: 1; text-align: center; }
-
-/* ================================================================
-ARCHIVE & LOG SCREENS (same 2-col layout)
-================================================================ */
-.two-col { flex: 1; display: flex; overflow: hidden; }
-
-.two-col-left {
-width: 220px; flex-shrink: 0;
-border-right: 1px solid var(–border);
-display: flex; flex-direction: column; overflow: hidden;
-}
-.two-col-right { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
-
-.col-hdr {
-padding: 12px 14px; border-bottom: 1px solid var(–border);
-display: flex; align-items: center; gap: 8px; flex-shrink: 0;
-}
-.phase-filter {
-flex: 1; background: var(–s2); border: 1px solid var(–border);
-border-radius: 6px; padding: 5px 8px;
-font-family: var(–fm); font-size: 10px; letter-spacing: .08em;
-color: var(–text); outline: none; cursor: pointer; -webkit-appearance: none;
-}
-
-.sess-list { flex: 1; overflow-y: auto; padding: 8px 0; }
-.sess-item {
-padding: 12px 14px; cursor: pointer; transition: background .15s;
-border-bottom: 1px solid rgba(255,255,255,.03);
-}
-.sess-item:hover { background: rgba(255,255,255,.03); }
-.sess-item.selected { background: var(–omega-d); border-left: 2px solid var(–omega); }
-.sess-item-date { font-family: var(–fm); font-size: 10px; color: var(–dim); margin-bottom: 3px; }
-.sess-item-meta { font-size: 12px; color: var(–text); }
-.sess-item-phase {
-display: inline-block; font-family: var(–fm); font-size: 9px;
-letter-spacing: .1em; text-transform: uppercase;
-background: var(–s3); border-radius: 4px; padding: 2px 6px;
-color: var(–omega); margin-top: 4px;
-}
-
-.content-area { flex: 1; display: flex; flex-direction: column; padding: 16px; gap: 12px; overflow: hidden; }
-.content-hdr { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-.content-title { font-family: var(–fm); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(–dim); }
-.content-acts { display: flex; gap: 8px; }
-
-.content-body {
-flex: 1; overflow-y: auto;
-background: var(–s1); border: 1px solid var(–border);
-border-radius: 10px; padding: 16px;
-font-size: 13.5px; line-height: 1.8; color: var(–text);
-white-space: pre-wrap; font-weight: 300;
-}
-.content-empty {
-display: flex; align-items: center; justify-content: center;
-height: 100%; color: var(–faint);
-font-family: var(–fm); font-size: 11px; letter-spacing: .1em;
-}
-
-/* ================================================================
-CONFIG SCREEN
-================================================================ */
-#sCfg { overflow-y: auto; }
-.cfg-wrap { padding: 20px; max-width: 520px; display: flex; flex-direction: column; gap: 12px; }
-.cfg-sec { border: 1px solid var(–border); border-radius: 10px; overflow: hidden; }
-.cfg-sec-hdr {
-display: flex; align-items: center; justify-content: space-between;
-padding: 12px 16px; cursor: pointer;
-font-family: var(–fm); font-size: 11px; letter-spacing: .1em;
-text-transform: uppercase; color: var(–dim);
-background: var(–s1); transition: background .15s;
-user-select: none;
-}
-.cfg-sec-hdr:hover { background: var(–s2); }
-.cfg-sec-arrow { font-size: 10px; transition: transform .2s; }
-.cfg-sec.open .cfg-sec-arrow { transform: rotate(90deg); }
-.cfg-sec-body { display: none; padding: 14px 16px; border-top: 1px solid var(–border); background: var(–bg); }
-.cfg-sec.open .cfg-sec-body { display: flex; flex-direction: column; gap: 12px; }
-
-.cfg-row { display: flex; flex-direction: column; gap: 5px; }
-.cfg-lbl { font-family: var(–fm); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(–dim); }
-.cfg-inp {
-background: var(–s1); border: 1px solid var(–border);
-border-radius: 6px; padding: 10px 12px;
-font-family: var(–fm); font-size: 13px; color: var(–text);
-outline: none; transition: border-color .2s;
-}
-.cfg-inp:focus { border-color: var(–omega); }
-.cfg-sel {
-background: var(–s1); border: 1px solid var(–border);
-border-radius: 6px; padding: 10px 12px;
-font-family: var(–fm); font-size: 13px; color: var(–text);
-outline: none; cursor: pointer; -webkit-appearance: none;
-}
-.cfg-save-btn {
-background: var(–omega-d); border: 1px solid rgba(74,158,114,.4);
-border-radius: 6px; padding: 10px;
-font-family: var(–fm); font-size: 10px; letter-spacing: .12em;
-text-transform: uppercase; color: var(–omega); cursor: pointer;
-transition: background .2s; margin-top: 4px;
-}
-.cfg-save-btn:hover { background: rgba(74,158,114,.2); }
-.cfg-check-row { display: flex; align-items: center; gap: 10px; }
-.cfg-check { width: 16px; height: 16px; accent-color: var(–omega); cursor: pointer; }
-.cfg-check-lbl { font-family: var(–fm); font-size: 11px; letter-spacing: .06em; color: var(–dim); }
-
-/* ================================================================
-SERVICE ERROR BANNER
-================================================================ */
-.err-banner {
-display: none; position: fixed;
-top: 52px; left: 0; right: 0; z-index: 200;
-padding: 10px 16px;
-font-family: var(–fm); font-size: 11px; letter-spacing: .06em;
-text-align: center; animation: bannerIn .3s ease;
-}
-.err-banner.on { display: block; }
-@keyframes bannerIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:none} }
-.err-banner.groq { background: rgba(232,168,74,.15); border-bottom: 1px solid rgba(232,168,74,.3); color: var(–warn); }
-.err-banner.claude { background: rgba(217,95,95,.15); border-bottom: 1px solid rgba(217,95,95,.3); color: var(–danger); }
-.err-banner.supabase { background: rgba(61,122,181,.15); border-bottom: 1px solid rgba(61,122,181,.3); color: var(–blue); }
-
-/* ================================================================
-CONFIRM DIALOG
-================================================================ */
 .confirm-overlay {
 display: none; position: fixed; inset: 0; z-index: 300;
 background: rgba(0,0,0,.7); backdrop-filter: blur(4px);
@@ -674,80 +1058,125 @@ align-items: center; justify-content: center; padding: 24px;
 }
 .confirm-overlay.on { display: flex; animation: fadeIn .2s ease; }
 .confirm-card {
-background: var(–s1); border: 1px solid var(–border2);
-border-radius: 16px; padding: 24px;
-max-width: 300px; width: 100%; text-align: center;
-animation: popIn .25s cubic-bezier(.34,1.3,.64,1);
+background: var(–s1); border: 1px solid var(–bd2);
+border-radius: 16px; padding: 24px; max-width: 300px;
+width: 100%; text-align: center;
 }
 .confirm-title { font-size: 15px; font-weight: 500; margin-bottom: 8px; }
-.confirm-body { font-size: 13px; color: var(–dim); margin-bottom: 20px; line-height: 1.5; font-weight: 300; }
+.confirm-body { font-size: 13px; color: var(–dim); margin-bottom: 20px; line-height: 1.5; }
 .confirm-btns { display: flex; gap: 10px; }
 .confirm-btns .btn-sess { flex: 1; text-align: center; }
-.btn-ok { background: rgba(217,95,95,.1); border-color: rgba(217,95,95,.3); color: var(–danger); }
-.btn-cancel { background: rgba(255,255,255,.04); border-color: var(–border); color: var(–dim); }
-
-/* ================================================================
-OMEGA HISTORY OVERLAY
-================================================================ */
+.btn-ok { background: rgba(217,95,95,.1); border-color: rgba(217,95,95,.3); color: var(–dngr); }
+.btn-cancel { background: rgba(255,255,255,.04); border-color: var(–bd); color: var(–dim); }
 .history-overlay {
 display: none; position: fixed; inset: 0; z-index: 90;
 background: rgba(0,0,0,.75); backdrop-filter: blur(8px);
 align-items: flex-end; padding: 16px;
 }
 .history-overlay.on { display: flex; animation: fadeIn .2s ease; }
-
-/* ================================================================
-BOTTOM NAV BAR (always visible navigation)
-================================================================ */
-.bottom-nav {
-display: none; /* only shown when logged in */
-flex-shrink: 0;
-height: 52px;
-background: rgba(10,12,15,.95);
-border-top: 1px solid var(–border);
-backdrop-filter: blur(12px);
--webkit-backdrop-filter: blur(12px);
-flex-direction: row;
-align-items: stretch;
-justify-content: space-around;
-z-index: 25;
+.sheet-hdr {
+padding: 14px 18px; border-bottom: 1px solid var(–bd);
+display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
 }
-.bottom-nav.on { display: flex; }
-.bottom-nav-btn {
-flex: 1; background: none; border: none;
-display: flex; flex-direction: column;
-align-items: center; justify-content: center; gap: 3px;
-font-family: var(–fm); font-size: 9px; letter-spacing: .1em;
-text-transform: uppercase; color: var(–dim);
-cursor: pointer; transition: color .2s;
-border-right: 1px solid var(–border);
-padding: 6px 0;
+.sheet-title { font-family: var(–fm); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(–dim); }
+.sheet-acts { display: flex; gap: 8px; }
+.sheet-copy-btn {
+background: var(–od); border: 1px solid rgba(74,158,114,.25);
+border-radius: 6px; padding: 6px 12px;
+font-family: var(–fm); font-size: 10px; letter-spacing: .08em;
+text-transform: uppercase; color: var(–omega); cursor: pointer;
 }
-.bottom-nav-btn:last-child { border-right: none; }
-.bottom-nav-btn:hover { color: var(–text); }
-.bottom-nav-btn.active { color: var(–omega); }
-.bottom-nav-icon { font-size: 16px; line-height: 1; }
-
-/* ================================================================
-SCROLLBAR
-================================================================ */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(–border2); border-radius: 2px; }
-
-/* ================================================================
-UTILITIES
-================================================================ */
+.sheet-close-btn {
+width: 26px; height: 26px; background: rgba(255,255,255,.05);
+border: none; border-radius: 50%; color: var(–dim);
+font-size: 14px; cursor: pointer; display: flex;
+align-items: center; justify-content: center;
+}
+.sheet-body { overflow-y: auto; padding: 18px 20px; font-size: 13.5px; line-height: 1.85; color: var(–text); white-space: pre-wrap; }
+.btn-sess {
+border-radius: 8px; padding: 12px 16px;
+font-family: var(–fm); font-size: 10px; letter-spacing: .1em;
+text-transform: uppercase; cursor: pointer; transition: all .2s;
+border: 1px solid; white-space: nowrap;
+}
 .hidden { display: none !important; }
+.svc-banner { flex-shrink: 0; }
+
+.err-banner {
+display: none; flex-shrink: 0;
+padding: 9px 16px;
+font-family: var(–fm); font-size: 11px; letter-spacing: .05em;
+text-align: center;
+}
+.err-banner.on { display: block; }
+.err-banner.groq { background: rgba(232,168,74,.12); border-bottom: 1px solid rgba(232,168,74,.25); color: var(–warn); }
+.err-banner.claude { background: rgba(217,95,95,.12); border-bottom: 1px solid rgba(217,95,95,.25); color: var(–dngr); }
+.err-banner.supabase { background: rgba(61,122,181,.12); border-bottom: 1px solid rgba(61,122,181,.25); color: var(–blue); }
 </style>
 
 </head>
 <body>
-<div class="app">
 
-  <!-- ============================================================
-       SERVICE ERROR BANNERS
-       ============================================================ -->
+<!-- HOME SCREEN (covers app until login) -->
+
+<div id="sHome">
+  <div class="home-galaxy"></div>
+  <div class="home-ver-tag">v1.1</div>
+  <div class="home-content">
+    <div>
+      <div class="home-logo-title">Super<span>-NOVA</span></div>
+      <div class="home-logo-line"></div>
+      <div class="home-logo-sub">New Operating Model Via AI</div>
+    </div>
+    <div class="home-form">
+      <div class="home-field">
+        <label class="home-lbl">Username</label>
+        <input class="home-inp" id="homeUser" type="text" placeholder="nome utente"
+          autocomplete="off" autocorrect="off" autocapitalize="none"
+          onkeydown="if(event.key==='Enter')document.getElementById('homePsw').focus()">
+      </div>
+      <div class="home-field">
+        <label class="home-lbl">Password</label>
+        <input class="home-inp" id="homePsw" type="password" placeholder="password"
+          autocomplete="current-password"
+          onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div class="home-err" id="homeErr"></div>
+      <button class="home-btn" onclick="doLogin()">Accedi</button>
+    </div>
+  </div>
+</div>
+
+<div class="app" style="visibility:hidden" id="appWrap">
+
+  <!-- HEADER -->
+
+  <header class="hdr" id="mainHdr">
+    <div class="hdr-left">
+      <button class="hmb" id="menuBtn" onclick="togglePanel()" title="Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <span class="hdr-title" id="hdrTitle">Sessione</span>
+    </div>
+    <div class="hdr-right">
+      <select style="display:none" id="phaseSel"><option value="setup">Setup</option><option value="f0">F0</option><option value="f1">F1</option><option value="f2">F2</option></select><div class="phase-chip" id="phaseChip" onclick="togglePhaseDD()">
+        <span id="phaseLabel">Setup</span>
+      </div>
+      <div class="phase-dropdown" id="phaseDD">
+        <div class="phase-opt active" onclick="changePhase('setup')">Setup</div>
+        <div class="phase-opt" onclick="changePhase('f0')">Fase 0</div>
+        <div class="phase-opt" onclick="changePhase('f1')">Fase 1</div>
+        <div class="phase-opt" onclick="changePhase('f2')">Fase 2</div>
+      </div>
+      <button class="btn-logout">Esci</button>
+    </div>
+  </header>
+
+  <!-- SERVICE BANNER (demo) -->
+
+```
+<!-- Service error banners -->
+```
 
   <div class="err-banner groq" id="bannerGroq">
     Groq non raggiungibile -- trascrizione sospesa
@@ -759,204 +1188,186 @@ UTILITIES
     Supabase non raggiungibile -- salvataggio locale attivo
   </div>
 
-  <!-- ============================================================
-       HOME SCREEN
-       ============================================================ -->
+  <!-- MAIN -->
 
-  <div class="screen on" id="sHome">
-    <div class="home-wrap">
-      <div class="home-bg"></div>
-      <div class="home-content">
-        <div style="position:absolute;top:16px;left:20px;font-family:var(--fm);font-size:10px;color:rgba(255,255,255,.25);letter-spacing:.1em">v1.1</div>
-        <div>
-          <div class="home-title">Super<span>-NOVA</span></div>
-          <div class="home-sub">New Operating model Via AI</div>
-        </div>
-        <div class="home-form">
-          <input class="home-inp" id="homeUser" type="text" placeholder="Username"
-            autocomplete="off" autocorrect="off" autocapitalize="none"
-            onkeydown="if(event.key==='Enter')document.getElementById('homePsw').focus()">
-          <input class="home-inp" id="homePsw" type="password" placeholder="Password"
-            autocomplete="current-password"
-            onkeydown="if(event.key==='Enter')doLogin()">
-          <div class="home-err-msg" id="homeErr"></div>
-          <button class="home-btn" onclick="doLogin()">Accedi</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============================================================
-       HEADER (shared, hidden on home)
-       ============================================================ -->
-
-  <header class="hdr hidden" id="mainHdr">
-    <div class="hdr-left">
-      <button class="hmb" id="menuBtn" onclick="togglePanel()">
-        <span></span><span></span><span></span>
-      </button>
-      <span class="hdr-title" id="hdrTitle">Sessione</span>
-    </div>
-    <div class="hdr-right">
-      <select class="phase-sel" id="phaseSel" onchange="changePhase(this.value)">
-        <option value="setup">Setup</option>
-        <option value="f0">Fase 0</option>
-        <option value="f1">Fase 1</option>
-        <option value="f2">Fase 2</option>
-      </select>
-      <button class="btn-sm" onclick="doLogout()">Esci</button>
-    </div>
-  </header>
-
-  <!-- ============================================================
-       SCREENS WITH SIDE PANEL
-       ============================================================ -->
-
-  <div class="main-wrap hidden" id="mainWrap">
-    <!-- Side panel -->
-    <div class="side-panel" id="sidePanel">
-      <nav class="side-nav">
-        <button class="side-link" onclick="navTo('sSess')">Sessione</button>
-        <button class="side-link" onclick="navTo('sArch')">Archivio</button>
-        <button class="side-link" onclick="navTo('sLog')">Log</button>
-        <button class="side-link" onclick="navTo('sCfg')">Config</button>
-      </nav>
-      <button class="side-close-btn" onclick="togglePanel()">chiudi</button>
-    </div>
+  <div class="main" id="mainWrap">
 
 ```
-<!-- ======================= SESSION ======================== -->
+<!-- SIDE PANEL -->
+<aside class="side" id="sidePanel">
+  <nav class="side-nav">
+    <button class="side-link on" id="sl-sess" onclick="nav('sess')">
+      <span class="side-link-icon">&#937;</span> Sessione
+    </button>
+    <button class="side-link" id="sl-arch" onclick="nav('arch')">
+      <span class="side-link-icon">&#9633;</span> Archivio
+    </button>
+    <button class="side-link" id="sl-log" onclick="nav('log')">
+      <span class="side-link-icon">&#8801;</span> Log
+    </button>
+    <button class="side-link" id="sl-cfg" onclick="nav('cfg')">
+      <span class="side-link-icon">&#9881;</span> Config
+    </button>
+  </nav>
+  <div class="side-footer">
+    <div class="side-user">Utente: dino.martin</div>
+    <button class="btn-logout" style="width:100%">Logout</button>
+  </div>
+</aside>
+
+<!-- ══════════ SESSIONE ══════════ -->
 <div class="screen on" id="sSess">
   <canvas id="waveCanvas"></canvas>
-  <div class="sess-content">
-    <div class="omega-center">
-      <div class="omega-sym" id="omegaSym">&#937;</div>
-      <div class="omega-status" id="omegaStatus">pronto</div>
-      <div class="sess-timer" id="sessTimer"></div>
-      <button class="omega-ask-btn" id="omegaAskBtn" onclick="omegaChiedi()" disabled>
-        &#937; Chiedi
-      </button>
+  <div class="sess-body">
+
+    <div class="omega-stage">
+      <div class="omega-glyph" id="omegaSym">&#937;</div>
+      <div class="omega-state" id="omegaStatus">pronto</div>
+      <div class="omega-timer" id="sessTimer"></div>
+      <div class="sess-stats" id="sessInfoStrip">
+        <div class="stat"><span class="stat-lbl">Chunk</span><span class="stat-val" id="sessChunkCount">0</span></div>
+        <div class="stat"><span class="stat-lbl">Parole</span><span class="stat-val" id="sessWordCount">0</span></div>
+        <div class="stat"><span class="stat-lbl">Fase</span><span class="stat-val" id="sessPhaseDisplay">Setup</span></div>
+      </div>
+
+
+      <!-- Demo bubble -->
+      <div class="omega-bubble" id="omegaBubble">
+        <div class="bubble-lbl">Omega — Domanda</div>
+        <button class="bubble-x" onclick="document.getElementById('omegaBubble').classList.remove('on')">&#215;</button>
+        <div class="bubble-text">Qual è l'obiettivo principale di questa attività in termini di riduzione del rischio operativo?</div>
+      </div>
     </div>
 
-    <!-- Message area -->
-    <div class="omega-msg-area" id="omegaMsgArea" style="display:none">
-      <div class="omega-msg-bubble" id="omegaMsgBubble">
-        <div class="omega-msg-lbl">Omega</div>
-        <button class="omega-msg-x" onclick="closeOmegaMsg()">x</button>
-        <span id="omegaMsgText"></span>
+    <!-- Omega message bubble -->
+    <div id="omegaMsgArea" style="display:none;position:absolute;bottom:130px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:500px;z-index:5">
+      <div id="omegaMsgBubble" style="background:linear-gradient(135deg,rgba(74,158,114,.1),rgba(42,100,72,.05));border:1px solid rgba(74,158,114,.2);border-radius:4px 14px 14px 14px;padding:14px 40px 14px 16px;position:relative">
+        <div style="font-family:var(--fm);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--omega);margin-bottom:6px">Omega</div>
+        <button onclick="closeOmegaMsg()" style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,.06);border:none;color:var(--dim);width:24px;height:24px;border-radius:50%;font-size:12px;cursor:pointer">x</button>
+        <span id="omegaMsgText" style="font-size:14px;line-height:1.7;color:var(--text)"></span>
       </div>
-      <button class="omega-history-pill" id="historyPill" onclick="showHistory()">
-        ^ Messaggi precedenti
-      </button>
+      <button id="historyPill" onclick="showHistory()" style="display:none;margin-top:8px;background:none;border:1px solid var(--faint);color:var(--dim);font-family:var(--fm);font-size:10px;letter-spacing:.06em;padding:5px 12px;border-radius:20px;cursor:pointer">^ Messaggi precedenti</button>
     </div>
 
     <div class="sess-controls">
-      <button class="btn-avvia" id="btnAvvia" onclick="sessAvvia()">Avvia</button>
-      <div class="sess-btns" id="sessBtns">
-        <button class="btn-sess btn-pause" id="btnPausa" onclick="sessPausa()">Pausa</button>
-        <button class="btn-sess btn-stop" onclick="sessStop()">Stop</button>
-        <button class="btn-sess btn-tx" onclick="sessShowTx()">Trascrizione</button>
+      <!-- Omega Chiedi — prominent button, shown during recording -->
+      <div class="omega-ask-wrap" id="omegaAskWrap">
+        <button class="omega-ask disabled" id="omegaAskBtn" onclick="showOmegaQ()">
+          <span class="omega-ask-sym">&#937;</span>
+          Chiedi a Omega
+        </button>
+        <span class="omega-ask-hint" id="omegaAskHint">attivo dopo 10 secondi</span>
+      </div>
+      <button class="btn-avvia" id="btnAvvia" onclick="startSess()">Avvia</button>
+      <div class="sess-btn-row" id="sessBtns">
+        <button class="btn-s btn-pause" id="btnPausa" onclick="togglePause()">Pausa</button>
+        <button class="btn-s btn-stop" onclick="stopSess()">&#9724; Stop</button>
+        <button class="btn-s btn-tx" onclick="showTx()">&#8801; Trascrizione</button>
       </div>
     </div>
+
   </div>
 </div>
 
-<!-- ======================= ARCHIVE ======================== -->
-<div class="screen" id="sArch">
-  <div class="col-hdr">
-    <select class="phase-filter" id="archFilter" onchange="renderArch()">
-      <option value="all">Tutte le fasi</option>
-      <option value="setup">Setup</option>
-      <option value="f0">Fase 0</option>
-      <option value="f1">Fase 1</option>
-      <option value="f2">Fase 2</option>
-    </select>
-  </div>
+<!-- ══════════ ARCHIVIO ══════════ -->
+<div class="screen" id="sArch" style="display:none">
   <div class="two-col">
-    <div class="two-col-left">
+    <div class="col-left">
+      <div class="col-left-hdr">
+        <select class="filter-sel" id="archFilter" onchange="renderArch()">
+          <option>Tutte le fasi</option>
+          <option>Setup</option>
+          <option>Fase 0</option>
+          <option>Fase 1</option>
+          <option>Fase 2</option>
+        </select>
+      </div>
       <div class="sess-list" id="archList"></div>
     </div>
-    <div class="two-col-right">
-      <div class="content-area">
-        <div class="content-hdr">
-          <div class="content-title" id="archContentTitle">Seleziona una sessione</div>
-          <div class="content-acts">
-            <button class="sheet-copy-btn hidden" id="archCopyBtn" onclick="archCopy()">Copia</button>
-            <button class="sheet-copy-btn hidden" id="archSynthBtn" onclick="archSynth()" style="background:rgba(61,122,181,.1);border-color:rgba(61,122,181,.25);color:var(--blue)">Sintesi</button>
-            <button class="btn-sm hidden" id="archDelBtn" onclick="archDel()" style="border-color:rgba(217,95,95,.3);color:var(--danger)">Cancella</button>
-          </div>
+    <div class="col-right">
+      <div class="col-right-hdr">
+        <div class="col-right-title" id="archContentTitle">Seleziona una sessione</div>
+        <div class="col-right-acts" id="archActsRow" style="display:none">
+          <button class="act-btn green hidden" id="archCopyBtn" onclick="archCopy()">Copia</button>
+          <button class="act-btn blue hidden" id="archSynthBtn" onclick="archSynth()">Sintesi</button>
+          <button class="act-btn red hidden" id="archDelBtn" onclick="archDel()">Cancella</button>
         </div>
-        <div class="content-body" id="archBody">
-          <div class="content-empty">Seleziona una sessione per vedere il transcript</div>
+      </div>
+      <div class="col-right-body" id="archBody">
+        <div class="empty-state">
+          <div class="empty-icon">&#9633;</div>
+          <div class="empty-text">Seleziona una sessione</div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ======================= LOG ======================== -->
-<div class="screen" id="sLog">
-  <div class="col-hdr">
-    <select class="phase-filter" id="logFilter" onchange="renderLog()">
-      <option value="all">Tutte le fasi</option>
-      <option value="setup">Setup</option>
-      <option value="f0">Fase 0</option>
-      <option value="f1">Fase 1</option>
-      <option value="f2">Fase 2</option>
-    </select>
-  </div>
+<!-- ══════════ LOG ══════════ -->
+<div class="screen" id="sLog" style="display:none">
   <div class="two-col">
-    <div class="two-col-left">
+    <div class="col-left">
+      <div class="col-left-hdr">
+        <select class="filter-sel" id="logFilter" onchange="renderLog()">
+          <option>Tutte le fasi</option>
+          <option>Setup</option>
+          <option>Fase 0</option>
+          <option>Fase 1</option>
+          <option>Fase 2</option>
+        </select>
+      </div>
       <div class="sess-list" id="logList"></div>
     </div>
-    <div class="two-col-right">
-      <div class="content-area">
-        <div class="content-hdr">
-          <div class="content-title" id="logContentTitle">Seleziona una sessione</div>
-          <div class="content-acts">
-            <button class="sheet-copy-btn hidden" id="logCopyBtn" onclick="logCopy()">Copia log</button>
-            <button class="btn-sm hidden" id="logDelBtn" onclick="logDel()" style="border-color:rgba(217,95,95,.3);color:var(--danger)">Cancella log</button>
-          </div>
+    <div class="col-right">
+      <div class="col-right-hdr">
+        <div class="col-right-title" id="logContentTitle">Seleziona una sessione</div>
+        <div class="col-right-acts" id="logActsRow" style="display:none">
+          <button class="act-btn green hidden" id="logCopyBtn" onclick="logCopy()">Copia log</button>
+          <button class="act-btn red hidden" id="logDelBtn" onclick="logDel()">Cancella log</button>
         </div>
-        <div class="content-body" id="logBody">
-          <div class="content-empty">Seleziona una sessione per vedere il log</div>
+      </div>
+      <div class="col-right-body" id="logBody">
+        <div class="empty-state">
+          <div class="empty-icon">&#8801;</div>
+          <div class="empty-text">Seleziona una sessione</div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ======================= CONFIG ======================== -->
-<div class="screen" id="sCfg">
-  <div class="cfg-wrap" id="cfgWrap">
-    <!-- API Keys -->
-    <div class="cfg-sec" id="cfgApiKeys">
-      <div class="cfg-sec-hdr" onclick="toggleCfg('cfgApiKeys')">
-        Chiavi API <span class="cfg-sec-arrow">&rsaquo;</span>
+<!-- ══════════ CONFIG ══════════ -->
+<div class="screen" id="sCfg" style="display:none">
+  <div class="cfg-body">
+
+    <div class="cfg-section" id="cfgApiKeys">
+      <div class="cfg-hdr" onclick="toggleCfg('cfgApiKeys')">
+        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#128273;</span> Chiavi API</div>
+        <span class="cfg-arrow">&#8250;</span>
       </div>
-      <div class="cfg-sec-body">
+      <div class="cfg-body-inner">
         <div class="cfg-row">
           <label class="cfg-lbl">Groq API Key</label>
-          <input class="cfg-inp" id="cfgGroq" type="password" placeholder="gsk_...">
+          <input class="cfg-inp" type="password" id="cfgGroq" placeholder="gsk_...">
         </div>
         <div class="cfg-row">
           <label class="cfg-lbl">Anthropic API Key</label>
-          <input class="cfg-inp" id="cfgAnth" type="password" placeholder="sk-ant-...">
+          <input class="cfg-inp" type="password" id="cfgAnth" placeholder="sk-ant-...">
         </div>
         <div class="cfg-row">
           <label class="cfg-lbl">OpenAI API Key (embedding)</label>
-          <input class="cfg-inp" id="cfgOai" type="password" placeholder="sk-...">
+          <input class="cfg-inp" type="password" id="cfgOai" placeholder="sk-...">
         </div>
-        <button class="cfg-save-btn" onclick="saveCfgKeys()">Salva chiavi</button>
+        <button class="cfg-save">Salva chiavi</button>
       </div>
     </div>
 
-    <!-- Recording -->
-    <div class="cfg-sec" id="cfgRec">
-      <div class="cfg-sec-hdr" onclick="toggleCfg('cfgRec')">
-        Registrazione <span class="cfg-sec-arrow">&rsaquo;</span>
+    <div class="cfg-section" id="cfgRec">
+      <div class="cfg-hdr" onclick="toggleCfg('cfgRec')">
+        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#127908;</span> Registrazione</div>
+        <span class="cfg-arrow">&#8250;</span>
       </div>
-      <div class="cfg-sec-body">
+      <div class="cfg-body-inner">
         <div class="cfg-row">
           <label class="cfg-lbl">Lingua trascrizione</label>
           <select class="cfg-sel" id="cfgLang">
@@ -966,153 +1377,85 @@ UTILITIES
           </select>
         </div>
         <div class="cfg-row">
-          <label class="cfg-lbl">Frase trigger vocale Omega</label>
-          <input class="cfg-inp" id="cfgTrigger" type="text" placeholder="Omega chiedi">
+          <label class="cfg-lbl">Frase trigger Omega</label>
+          <input class="cfg-inp" type="text" id="cfgTrigger" value="Omega chiedi">
         </div>
       </div>
     </div>
 
-    <!-- Omega -->
-    <div class="cfg-sec" id="cfgOmega">
-      <div class="cfg-sec-hdr" onclick="toggleCfg('cfgOmega')">
-        Omega <span class="cfg-sec-arrow">&rsaquo;</span>
+    <div class="cfg-section" id="cfgOmega">
+      <div class="cfg-hdr" onclick="toggleCfg('cfgOmega')">
+        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#937;</span> Omega</div>
+        <span class="cfg-arrow">&#8250;</span>
       </div>
-      <div class="cfg-sec-body">
+      <div class="cfg-body-inner">
         <div class="cfg-check-row">
-          <input class="cfg-check" id="cfgTts" type="checkbox">
+          <input class="cfg-check" type="checkbox" id="cfgTts">
           <label class="cfg-check-lbl" for="cfgTts">Attiva voce Omega (TTS)</label>
         </div>
       </div>
     </div>
 
-    <!-- Account -->
-    <div class="cfg-sec" id="cfgAccount">
-      <div class="cfg-sec-hdr" onclick="toggleCfg('cfgAccount')">
-        Account <span class="cfg-sec-arrow">&rsaquo;</span>
+    <div class="cfg-section" id="cfgAccount">
+      <div class="cfg-hdr" onclick="toggleCfg('cfgAccount')">
+        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#128100;</span> Account</div>
+        <span class="cfg-arrow">&#8250;</span>
       </div>
-      <div class="cfg-sec-body">
+      <div class="cfg-body-inner">
         <div class="cfg-row">
           <label class="cfg-lbl">Utente corrente</label>
           <input class="cfg-inp" id="cfgUser" readonly>
         </div>
-        <button class="btn-sm" onclick="doLogout()" style="margin-top:4px">Logout</button>
+        <button class="cfg-save" style="background:rgba(217,95,95,.08);border-color:rgba(217,95,95,.25);color:var(--dngr)">Logout</button>
       </div>
     </div>
+
   </div>
 </div>
 ```
 
-  </div>
-</div>
+  </div><!-- /main -->
 
-<!-- ============================================================
-     OVERLAYS (global)
-     ============================================================ -->
+  </div><!-- /app -->
 
-<!-- Stop TTS button -->
+<!-- OMEGA QUESTION POPUP -->
 
-<button class="stop-tts-btn" id="stopTtsBtn" onclick="stopTTS()">
-  x Interrompi Omega
-</button>
-
-<!-- Omega has a question popup -->
-
-<div class="omega-question-overlay" id="omegaQOverlay">
-  <div class="omega-question-card">
+<div class="omega-q-overlay" id="omegaQOverlay">
+  <div class="omega-q-card">
     <div class="omega-q-alert">&#11042; Omega ha una domanda</div>
     <div class="omega-q-sym">&#937;</div>
-    <div class="omega-q-text" id="omegaQText"></div>
+    <div class="omega-q-text" id="omegaQText" style="display:none"></div>
     <div class="omega-q-btns" id="omegaQBtns">
-      <button class="omega-q-btn listen" onclick="omegaQListen()">Ascolta</button>
-      <button class="omega-q-btn silence" onclick="omegaQSilence()">Non parlare</button>
-      <button class="omega-q-btn close" onclick="omegaQClose()">Chiudi</button>
+      <button class="q-btn listen" onclick="omegaQListen()">Ascolta</button>
+      <button class="q-btn mute" onclick="omegaQSilence()">Non parlare</button>
+      <button class="q-btn close-q" onclick="omegaQClose()">Chiudi</button>
     </div>
-    <button class="omega-q-btn interrompi" id="omegaQInterrompi" onclick="omegaQInterrompi()">
-      Interrompi
-    </button>
+    <button class="q-btn mute" id="omegaQInterrompi" onclick="omegaQInterrompi()" style="display:none;margin-top:8px">Interrompi</button>
   </div>
 </div>
 
-<!-- Transcript overlay -->
+<!-- TRANSCRIPT OVERLAY -->
 
 <div class="tx-overlay" id="txOverlay">
   <div class="tx-sheet">
-    <div class="sheet-hdr">
-      <div class="sheet-title" id="txTitle">Transcript</div>
-      <div class="sheet-acts">
-        <button class="sheet-copy-btn" onclick="txCopy()">Copia</button>
-        <button class="sheet-close-btn" onclick="txClose()">x</button>
+    <div class="tx-hdr">
+      <div class="tx-title" id="txTitle">Transcript</div>
+      <div class="tx-acts">
+        <button class="tx-copy" onclick="txCopy()">Copia</button>
+        <button class="tx-xbtn" onclick="txClose()">&#215;</button>
       </div>
     </div>
-    <div class="sheet-body" id="txBody"></div>
+    <div class="tx-body" id="txBody">Adesso proveremo a fare il transcript senza pausa che è la modalità più comune. Vediamo se il sistema riesce a catturare tutto quello che viene detto durante la sessione di lavoro.
+
+[Omega]: Qual è l’obiettivo principale di questa attività in termini di riduzione del rischio operativo?
+
+Dunque l’obiettivo principale è quello di ridurre il tempo di elaborazione delle pratiche di sinistro, attualmente stimato in circa tre giorni lavorativi per le pratiche standard. Il problema principale è la frammentazione del processo tra diversi sistemi legacy che non comunicano tra loro.</div>
+
   </div>
-</div>
-
-<!-- Pause dialog -->
-
-<div class="pause-dlg" id="pauseDlg">
-  <div class="pause-card">
-    <div class="pause-card-icon">||</div>
-    <div class="pause-card-title">Sessione in pausa</div>
-    <div class="pause-card-body" id="pauseDlgBody">
-      La sessione e in pausa da <strong>3 minuti</strong>.<br>
-      Vuoi continuare o chiudere?
-    </div>
-    <div class="pause-card-btns">
-      <button class="btn-sess btn-pause" onclick="pauseDlgContinue()">Resta in pausa</button>
-      <button class="btn-sess btn-stop" onclick="pauseDlgStop()">Chiudi e salva</button>
-    </div>
-  </div>
-</div>
-
-<!-- Confirm dialog -->
-
-<div class="confirm-overlay" id="confirmOverlay">
-  <div class="confirm-card">
-    <div class="confirm-title" id="confirmTitle">Conferma</div>
-    <div class="confirm-body" id="confirmBody">Sei sicuro?</div>
-    <div class="confirm-btns">
-      <button class="btn-sess btn-cancel" onclick="confirmNo()">Annulla</button>
-      <button class="btn-sess btn-ok" id="confirmOkBtn">Conferma</button>
-    </div>
-  </div>
-</div>
-
-<!-- Omega history overlay -->
-
-<div class="history-overlay" id="historyOverlay" onclick="if(event.target===this)closeHistory()">
-  <div class="tx-sheet">
-    <div class="sheet-hdr">
-      <div class="sheet-title">Messaggi precedenti</div>
-      <div class="sheet-acts">
-        <button class="sheet-copy-btn" onclick="clearOmegaHistory()" style="background:rgba(217,95,95,.1);border-color:rgba(217,95,95,.25);color:var(--danger)">Cancella</button>
-        <button class="sheet-close-btn" onclick="closeHistory()">x</button>
-      </div>
-    </div>
-    <div class="sheet-body" id="historyBody"></div>
-  </div>
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav hidden" id="bottomNav">
-    <button class="bottom-nav-btn" id="bnSess" onclick="navTo('sSess');updateBottomNav('sSess')">
-      <span class="bottom-nav-icon">&#937;</span>
-      <span>Sessione</span>
-    </button>
-    <button class="bottom-nav-btn" id="bnArch" onclick="navTo('sArch');updateBottomNav('sArch')">
-      <span class="bottom-nav-icon">&#9633;</span>
-      <span>Archivio</span>
-    </button>
-    <button class="bottom-nav-btn" id="bnLog" onclick="navTo('sLog');updateBottomNav('sLog')">
-      <span class="bottom-nav-icon">&#8801;</span>
-      <span>Log</span>
-    </button>
-    <button class="bottom-nav-btn" id="bnCfg" onclick="navTo('sCfg');updateBottomNav('sCfg')">
-      <span class="bottom-nav-icon">&#9881;</span>
-      <span>Config</span>
-    </button>
-  </nav>
 </div>
 
 <script>
+
 'use strict';
 
 /* ================================================================
@@ -1311,9 +1654,10 @@ function doLogin() {
 function loginSuccess(username) {
   STATE.user = username;
   el('homeErr').classList.remove('on');
-  el('sHome').classList.remove('on');
-  el('mainHdr').classList.remove('hidden');
-  el('mainWrap').classList.remove('hidden');
+  var sHome = el('sHome');
+  sHome.classList.add('fading');
+  el('appWrap').style.visibility = '';
+  setTimeout(function(){ sHome.style.display='none'; }, 450);
   el('cfgUser').value = username;
   el('bottomNav').classList.remove('hidden');
   el('bottomNav').classList.add('on');
@@ -1330,10 +1674,10 @@ function doLogout() {
     }); return;
   }
   STATE.user = null;
-  el('mainHdr').classList.add('hidden');
-  el('mainWrap').classList.add('hidden');
-  el('bottomNav').classList.add('hidden');
-  el('bottomNav').classList.remove('on');
+  el('appWrap').style.visibility = 'hidden';
+  var sHome = el('sHome');
+  sHome.style.display = '';
+  sHome.classList.remove('fading');
   el('sHome').classList.add('on');
   el('homeUser').value = '';
   el('homePsw').value = '';
@@ -1364,7 +1708,10 @@ function navTo(screenId) {
   el('hdrTitle').textContent = titles[screenId] || '';
 
   // Update side nav active state
-  document.querySelectorAll('.side-link').forEach(l => l.classList.remove('active'));
+  document.querySelectorAll('.side-link').forEach(l => l.classList.remove('on'));
+  var slMap = { sSess:'sl-sess', sArch:'sl-arch', sLog:'sl-log', sCfg:'sl-cfg' };
+  var slEl = el(slMap[screenId]);
+  if(slEl) slEl.classList.add('on');
 
   if(screenId === 'sArch') { renderArch(); setTimeout(resizeCanvas, 100); }
   if(screenId === 'sLog') renderLog();
@@ -1372,23 +1719,23 @@ function navTo(screenId) {
   updateBottomNav(screenId);
 }
 
-function updateBottomNav(screenId) {
-  const map = { sSess: 'bnSess', sArch: 'bnArch', sLog: 'bnLog', sCfg: 'bnCfg' };
-  document.querySelectorAll('.bottom-nav-btn').forEach(b => b.classList.remove('active'));
-  const active = el(map[screenId]);
-  if(active) active.classList.add('active');
-}
+function updateBottomNav(screenId) { /* no bottom nav */ }
 
 function togglePanel() {
   panelOpen = !panelOpen;
   el('sidePanel').classList.toggle('open', panelOpen);
-  // Auto pause if recording and panel opens
+  el('menuBtn').classList.toggle('open', panelOpen);
   if(panelOpen && STATE.current === 'recording') sessPausa();
   setTimeout(resizeCanvas, 300);
 }
 
 function changePhase(phase) {
   STATE.phase = phase;
+  var labels = {setup:'Setup', f0:'Fase 0', f1:'Fase 1', f2:'Fase 2'};
+  var lbl = el('phaseLabel');
+  if(lbl) lbl.textContent = labels[phase] || phase;
+  var sel = el('phaseSel');
+  if(sel) sel.value = phase;
   updateBuildSys();
 }
 
@@ -2604,7 +2951,78 @@ window.addEventListener('beforeunload', () => {
    INIT
    ================================================================ */
 addLog('SuperNOVA v' + VERSION + ' avviato', 'info');
+
+// Phase dropdown (render UI)
+function togglePhaseDD() {
+  el('phaseDD').classList.toggle('on');
+}
+function setPhaseFromDD(phase, label) {
+  changePhase(phase);
+  document.querySelectorAll('.phase-opt').forEach(o => o.classList.remove('active'));
+  event.target.classList.add('active');
+  el('phaseDD').classList.remove('on');
+}
+document.addEventListener('click', function(e) {
+  if(!e.target.closest('#phaseChip') && !e.target.closest('#phaseDD')) {
+    var dd = el('phaseDD');
+    if(dd) dd.classList.remove('on');
+  }
+  if(!e.target.closest('#sidePanel') && !e.target.closest('#menuBtn') && panelOpen) {
+    togglePanel();
+  }
+});
+
 </script>
+
+  <!-- Stop TTS button -->
+
+<button class="stop-tts-btn" id="stopTtsBtn" onclick="stopTTS()">x Interrompi Omega</button>
+
+  <!-- Pause dialog -->
+
+  <div class="pause-dlg" id="pauseDlg">
+    <div class="pause-card">
+      <div class="pause-card-icon">||</div>
+      <div class="pause-card-title">Sessione in pausa</div>
+      <div class="pause-card-body" id="pauseDlgBody">
+        La sessione e in pausa da <strong>3 minuti</strong>.<br>Vuoi continuare o chiudere?
+      </div>
+      <div class="pause-card-btns">
+        <button class="btn-sess btn-pause" onclick="pauseDlgContinue()">Resta in pausa</button>
+        <button class="btn-sess btn-stop" onclick="pauseDlgStop()">Chiudi e salva</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm dialog -->
+
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-card">
+      <div class="confirm-title" id="confirmTitle">Conferma</div>
+      <div class="confirm-body" id="confirmBody">Sei sicuro?</div>
+      <div class="confirm-btns">
+        <button class="btn-sess btn-cancel" onclick="confirmNo()">Annulla</button>
+        <button class="btn-sess btn-ok" id="confirmOkBtn">Conferma</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Omega history overlay -->
+
+  <div class="history-overlay" id="historyOverlay" onclick="if(event.target===this)closeHistory()">
+    <div class="tx-sheet">
+      <div class="sheet-hdr">
+        <div class="sheet-title">Messaggi precedenti</div>
+        <div class="sheet-acts">
+          <button class="sheet-copy-btn" onclick="clearOmegaHistory()" style="background:rgba(217,95,95,.1);border-color:rgba(217,95,95,.25);color:var(--dngr)">Cancella</button>
+          <button class="sheet-close-btn" onclick="closeHistory()">x</button>
+        </div>
+      </div>
+      <div class="sheet-body" id="historyBody"></div>
+    </div>
+  </div>
+
+  <!-- Omega question overlay (from render, with corrected IDs) -->
 
 </body>
 </html>
