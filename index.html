@@ -1139,7 +1139,7 @@ margin-top: -8px;
   <div id="scHome" class="screen active">
     <div class="home-galaxy"></div>
     <canvas id="homeStars"></canvas>
-    <div class="home-ver">v1.2</div>
+    <div class="home-ver">v1.3</div>
     <div class="home-content">
       <div>
         <div class="home-title">Super<span>NOVA</span></div>
@@ -2683,11 +2683,30 @@ function showOmegaQuestion(text) {
 omegaQListen = function() {
   el('omegaQText').style.display = 'block';
   var cfg = getCfgFull();
-  if(cfg.tts) {
-    // Use stored text (more reliable than reading from DOM on iOS)
-    var ttsText = omegaQPending.replace(/^CHIARIMENTO:\s*"[^"]+"\s*--\s*/, '');
-    speakText(ttsText || el('omegaQText').textContent || el('omegaQText').innerText);
-    el('omegaQInterrompi').style.display = 'block';
+  if(cfg.tts && window.speechSynthesis) {
+    var ttsText = (omegaQPending || '').replace(/^CHIARIMENTO:\s*"[^"]+"\s*--\s*/, '').replace(/<[^>]+>/g,'').trim();
+    if(ttsText) {
+      // iOS: must call speak() synchronously in the gesture handler
+      var utt = new SpeechSynthesisUtterance(ttsText);
+      utt.lang = (cfg.lang || 'it') === 'it' ? 'it-IT' : 'en-US';
+      utt.rate = 0.92;
+      var voice = ttsVoices.find(function(v){ return v.lang && v.lang.startsWith(utt.lang.slice(0,2)); });
+      if(voice) utt.voice = voice;
+      el('stopTtsBtn').style.display = 'block';
+      utt.onend = utt.onerror = function(){
+        el('stopTtsBtn').style.display = 'none';
+        el('omegaQInterrompi').style.display = 'none';
+        // Auto-close after TTS ends
+        if(el('omegaQOverlay').classList.contains('show')) {
+          el('omegaQOverlay').classList.remove('show');
+          el('omegaQText').style.display = 'none';
+          if(window._omegaPausedRecording) { sessRiprendi(); window._omegaPausedRecording = false; }
+        }
+      };
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utt);
+      el('omegaQInterrompi').style.display = 'block';
+    }
   }
   el('omegaQBtns').innerHTML =
     '<button class="omega-q-btn mute" onclick="omegaQSilence()">Non parlare</button>'+
@@ -2696,12 +2715,10 @@ omegaQListen = function() {
   var qText = el('omegaQText').textContent || el('omegaQText').innerText;
   transcript += (transcript ? ' ' : '') + '[Omega]: ' + qText;
   updateHistoryPill();
-  // Close popup and resume recording after TTS (or immediately if no TTS)
-  if(!getCfgFull().tts) {
-    el('omegaQOverlay').classList.remove('show');
-    if(window._omegaPausedRecording) { sessRiprendi(); window._omegaPausedRecording = false; }
-  }
-  // If TTS active, popup stays open until user closes -- handled in omegaQSilence/Close
+  // Popup stays open -- user closes with Chiudi or Non parlare
+  // Update buttons to show only Chiudi after Ascolta
+  el('omegaQBtns').innerHTML =
+    '<button class="omega-q-btn close" onclick="omegaQClose()">Chiudi</button>';
 };
 
 omegaQSilence = function() {
@@ -2741,8 +2758,6 @@ function speakText(text) {
   var cfg = getCfgFull();
   if(!cfg.tts || !window.speechSynthesis) return;
   stopTTS();
-  // NO empty utterance pre-auth here -- it consumes the gesture token on iOS
-  // speakText is always called from a direct user gesture (omegaQListen onclick)
   var clean = text.replace(/<[^>]+>/g,'').trim();
   var utt = new SpeechSynthesisUtterance(clean);
   utt.lang = (cfg.lang || 'it') === 'it' ? 'it-IT' : 'en-US';
@@ -2750,16 +2765,7 @@ function speakText(text) {
   var voice = ttsVoices.find(function(v){ return v.lang && v.lang.startsWith(utt.lang.slice(0,2)); });
   if(voice) utt.voice = voice;
   utt.onstart = function(){ el('stopTtsBtn').style.display = 'block'; };
-  utt.onend = utt.onerror = function(){
-    el('stopTtsBtn').style.display = 'none';
-    // Auto-close popup after TTS ends and resume recording
-    if(el('omegaQOverlay').classList.contains('show')) {
-      el('omegaQOverlay').classList.remove('show');
-      el('omegaQText').style.display = 'none';
-      el('omegaQInterrompi').style.display = 'none';
-      if(window._omegaPausedRecording) { sessRiprendi(); window._omegaPausedRecording = false; }
-    }
-  };
+  utt.onend = utt.onerror = function(){ el('stopTtsBtn').style.display = 'none'; };
   speechSynthesis.speak(utt);
 }
 
