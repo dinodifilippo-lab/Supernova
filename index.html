@@ -78,7 +78,7 @@ radial-gradient(ellipse at 50% 50%, rgba(10,12,15,1) 0%, rgba(15,10,30,1) 100%);
 }
 .home-bg::before {
 content: ‘’; position: absolute; inset: 0;
-background: url(‘https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1600&q=80&fm=jpg’) center/cover no-repeat;
+background: url(‘https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1600&q=80&fm=jpg’) center/cover no-repeat;
 opacity: .45; mix-blend-mode: screen;
 }
 
@@ -276,7 +276,7 @@ align-items: center; justify-content: center; position: relative;
 }
 
 .omega-sym {
-font-family: var(–fm); font-size: clamp(100px, 24vw, 172px);
+font-family: var(–fm); font-size: clamp(110px, 28vw, 200px);
 font-weight: 300; color: var(–text); line-height: 1;
 letter-spacing: -.02em; user-select: none;
 text-shadow: 0 0 40px rgba(74,158,114,.3), 0 0 80px rgba(74,158,114,.1);
@@ -300,11 +300,22 @@ margin-top: 14px; min-height: 14px; transition: color .3s;
 @keyframes statusBlink { 0%,100%{opacity:1} 50%{opacity:.4} }
 
 .sess-timer {
-font-family: var(–fm); font-size: 20px; letter-spacing: .1em;
-color: var(–text); opacity: .5; margin-top: 8px;
-min-height: 26px; transition: opacity .3s;
+font-family: var(–fm); font-size: 26px; letter-spacing: .12em;
+color: var(–text); opacity: .5; margin-top: 10px;
+min-height: 32px; transition: opacity .3s;
 }
-.sess-timer.active { opacity: .8; }
+.sess-timer.active { opacity: .9; }
+
+/* Session info strip */
+.sess-info-strip {
+display: none; flex-direction: row; gap: 24px;
+margin-top: 12px; margin-bottom: 4px;
+font-family: var(–fm); font-size: 10px; letter-spacing: .1em;
+text-transform: uppercase; color: var(–faint);
+}
+.sess-info-strip.on { display: flex; }
+.sess-info-item { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.sess-info-val { font-size: 13px; color: var(–dim); }
 
 /* Omega chiedi button - near symbol */
 .omega-ask-btn {
@@ -326,9 +337,9 @@ align-items: center; gap: 14px; width: 100%;
 
 .btn-avvia {
 background: var(–omega-d); border: 1.5px solid rgba(74,158,114,.5);
-border-radius: 50px; padding: 16px 52px;
-font-family: var(–fm); font-size: 12px;
-letter-spacing: .2em; text-transform: uppercase;
+border-radius: 50px; padding: 18px 60px;
+font-family: var(–fm); font-size: 13px;
+letter-spacing: .22em; text-transform: uppercase;
 color: var(–omega2); cursor: pointer; transition: all .25s;
 }
 .btn-avvia:hover {
@@ -340,7 +351,7 @@ box-shadow: 0 0 30px rgba(74,158,114,.15);
 .sess-btns { display: none; flex-wrap: wrap; justify-content: center; gap: 10px; }
 
 .btn-sess {
-border-radius: 8px; padding: 10px 16px;
+border-radius: 8px; padding: 12px 20px;
 font-family: var(–fm); font-size: 10px; letter-spacing: .1em;
 text-transform: uppercase; cursor: pointer; transition: all .2s;
 border: 1px solid; white-space: nowrap;
@@ -715,7 +726,7 @@ UTILITIES
 
   <div class="screen on" id="sHome">
     <div class="home-bg"></div>
-    <div class="home-ver" style="color:rgba(255,255,255,.3)">v1.0</div>
+    <div class="home-ver" style="color:rgba(255,255,255,.3)">v1.1</div>
     <div class="home-box" style="position:relative;z-index:1">
       <div class="home-logo">
         <div class="home-title">Super<span>NOVA</span></div>
@@ -1051,7 +1062,7 @@ UTILITIES
 /* ================================================================
    CONSTANTS
    ================================================================ */
-const VERSION = '1.0';
+const VERSION = '1.1';
 const SB_URL  = 'https://ygpbozycacpncohdjqft.supabase.co';
 const SB_KEY  = 'sb_publishable_Evfe7sPUsrjIe0TK65k52g_irQA-ifa';
 const ADMIN_USER = 'superNOVA';
@@ -1276,20 +1287,10 @@ document.addEventListener('keydown', e => {
    ================================================================ */
 let panelOpen = false;
 
-function togglePanel() {
-  panelOpen = !panelOpen;
-  el('sidePanel').classList.toggle('open', panelOpen);
-  // Auto pause if recording
-  if(panelOpen && STATE.current === 'recording') sessPausa();
-  setTimeout(resizeCanvas, 300);
-}
+
 
 function navTo(screenId) {
-  // Close panel
-  panelOpen = false;
-  el('sidePanel').classList.remove('open');
-
-  // Pause session if navigating away
+  // Pause session if navigating away from Sessione
   if(screenId !== 'sSess' && STATE.current === 'recording') sessPausa();
 
   // Switch screens
@@ -1304,9 +1305,17 @@ function navTo(screenId) {
   // Update side nav active state
   document.querySelectorAll('.side-link').forEach(l => l.classList.remove('active'));
 
-  if(screenId === 'sArch') renderArch();
+  if(screenId === 'sArch') { renderArch(); setTimeout(resizeCanvas, 100); }
   if(screenId === 'sLog') renderLog();
-  setTimeout(resizeCanvas, 100);
+  if(screenId === 'sSess') setTimeout(resizeCanvas, 100);
+}
+
+function togglePanel() {
+  panelOpen = !panelOpen;
+  el('sidePanel').classList.toggle('open', panelOpen);
+  // Auto pause if recording and panel opens
+  if(panelOpen && STATE.current === 'recording') sessPausa();
+  setTimeout(resizeCanvas, 300);
 }
 
 function changePhase(phase) {
@@ -1891,6 +1900,10 @@ async function processSilentChunk(chunks) {
   STATE.chunkCount++;
   STATE.evalChunks++;
 
+  // Update info strip
+  el('sessChunkCount').textContent = STATE.chunkCount;
+  el('sessWordCount').textContent = STATE.transcript.split(' ').filter(w => w).length;
+
   // Enable omega ask button after first chunk
   if(STATE.chunkCount === 1) {
     el('omegaAskBtn').disabled = false;
@@ -1962,6 +1975,7 @@ function sessUpdateUI(st) {
     el('btnAvvia').style.display = 'block';
     btns.style.display = 'none';
     askBtn.style.display = 'none';
+    el('sessInfoStrip').classList.remove('on');
     closeOmegaMsg();
   } else if(st === 'recording') {
     status.textContent = 'registrazione';
@@ -1972,6 +1986,8 @@ function sessUpdateUI(st) {
     btnPausa.textContent = 'Pausa';
     btnPausa.onclick = sessPausa;
     btnPausa.className = 'btn-sess btn-pause';
+    el('sessInfoStrip').classList.add('on');
+    el('sessPhaseDisplay').textContent = STATE.phase || 'Setup';
   } else if(st === 'paused') {
     status.textContent = 'in pausa';
     timer.className = 'sess-timer active';
