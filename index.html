@@ -2119,10 +2119,15 @@ function sbSafe(path, method, body) {
   return Promise.race([
     fetch(SB_URL+'/rest/v1/'+path, opts).then(function(r){
       setBanner('bannerSupabase', false);
-      if(!r.ok && r.status !== 409) return null;
+      if(!r.ok && r.status !== 409) {
+        return r.text().then(function(txt){
+          dbg('ERROR '+r.status+': '+txt.substring(0,80));
+          return null;
+        });
+      }
       var ct = r.headers.get('content-type')||'';
       if(ct.includes('json')) return r.json();
-      return true; // success but no body (e.g. POST with Prefer:return=minimal)
+      return true;
     }),
     timeout
   ]).catch(function(e){
