@@ -2137,18 +2137,17 @@ function sbSafe(path, method, body) {
 }
 
 function buildSessObj() {
+  var words = transcript ? transcript.split(' ').filter(function(w){return w.length>0;}).length : 0;
   return {
     id:           currentSessId,
-    user:         currentUser || 'unknown',
+    updated_at:   new Date().toISOString(),
+    mode:         currentPhase,
     phase:        currentPhase,
-    date:         new Date().toLocaleString('it-IT'),
-    created_at:   new Date().toISOString(),
-    duration:     timerSec,
+    username:     currentUser || 'unknown',
     duration_sec: timerSec,
     transcript:   transcript || '',
     summary:      '',
-    word_count:   transcript ? transcript.split(' ').filter(function(w){return w.length>0;}).length : 0,
-    mode:         currentPhase,
+    word_count:   words,
     log_entries:  JSON.stringify(sessionLog)
   };
 }
@@ -2266,8 +2265,9 @@ sessStop = function() {
     addLog('Salvataggio sessione: '+transcript.length+' chars');
     var sess = buildSessObj();
     var idx = sessions.findIndex(function(s){ return s.id === currentSessId; });
-    if(idx >= 0) sessions[idx] = sess; else sessions.push(sess);
-    saveSessToSB(sess).then(function(){
+    if(idx >= 0) sessions[idx] = sessLocal; else sessions.push(sessLocal);
+    try { localStorage.setItem('sn_sessions_backup', JSON.stringify(sessions)); } catch(e) {}
+    saveSessToSB(sessSB).then(function(){
       renderArch();
       renderLog();
     });
@@ -2299,7 +2299,7 @@ renderArch = function() {
       +'<div class="sess-item-date">'+(s.date||'')+'</div>'
       +'<div class="sess-item-preview">'+(s.transcript||'').substring(0,60)+'...</div>'
       +'<div class="sess-item-meta"><span class="phase-tag">'+(s.phase||'setup')+'</span>'
-      +'<span class="sess-item-dur">'+fmt(s.duration||0)+' &middot; '+words+' parole</span></div>'
+      +'<span class="sess-item-dur">'+fmt(s.duration_sec||s.duration||0)+' &middot; '+words+' parole</span></div>'
       +'</div>';
   }).join('');
 };
@@ -2353,7 +2353,7 @@ renderLog = function() {
     return '<div class="sess-item'+(selectedLogId===s.id?' active':'')+'" onclick="logSelect('+s.id+')">'
       +'<div class="sess-item-date">'+(s.date||'')+'</div>'
       +'<div class="sess-item-meta"><span class="phase-tag">'+(s.phase||'setup')+'</span>'
-      +'<span class="sess-item-dur">'+fmt(s.duration||0)+'</span></div>'
+      +'<span class="sess-item-dur">'+fmt(s.duration_sec||s.duration||0)+'</span></div>'
       +'</div>';
   }).join('');
 };
