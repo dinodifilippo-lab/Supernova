@@ -1130,7 +1130,7 @@ margin-top: -8px;
   <div id="scHome" class="screen active">
     <div class="home-galaxy"></div>
     <canvas id="homeStars"></canvas>
-    <div class="home-ver">v2.0</div>
+    <div class="home-ver">v2.1</div>
     <div class="home-content">
       <div>
         <div class="home-title">Super<span>NOVA</span></div>
@@ -3014,6 +3014,115 @@ function logDelAll() {
   if(v) v.textContent = v.textContent.replace('v1.6','v1.7');
 })();
 
+
+
+// ═══════════════════════════════════════════════════════════════
+// LAYER 9 — RAG reale con OpenAI embeddings + sn_chunks
+// ═══════════════════════════════════════════════════════════════
+
+// ── Embed testo con text-embedding-3-large (1536 dims) ──
+function embedText(text, oaiKey) {
+  return fetch('https://api.openai.com/v1/embeddings', {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+oaiKey },
+    body: JSON.stringify({
+      model: 'text-embedding-3-large',
+      input: text,
+      dimensions: 1536
+    })
+  }).then(function(r){ return r.json(); })
+    .then(function(d){ return d.data && d.data[0] ? d.data[0].embedding : null; })
+    .catch(function(){ return null; });
+}
+
+// ── Salva chunks dopo sessione completata ──
+function saveChunksForRAG(sessId, fullTranscript, oaiKey) {
+  if(!oaiKey || !fullTranscript || !sessId) return;
+  // Spezza in chunk da ~120 parole con overlap di 20
+  var words = fullTranscript.split(/\s+/).filter(function(w){ return w.length > 0; });
+  var chunkSize = 120, overlap = 20, chunks = [];
+  for(var i = 0; i < words.length; i += chunkSize - overlap) {
+    var chunk = words.slice(i, i + chunkSize).join(' ');
+    if(chunk.length > 30) chunks.push({ index: chunks.length, text: chunk });
+    if(i + chunkSize >= words.length) break;
+  }
+  if(!chunks.length) return;
+  console.log('[L9] Saving', chunks.length, 'chunks for session', sessId);
+  // Delete old chunks for this session first
+  sbSafe('sn_chunks?session_id=eq.'+sessId, 'DELETE').then(function(){
+    // Embed and save each chunk sequentially (avoid rate limits)
+    var idx = 0;
+    function next() {
+      if(idx >= chunks.length) { console.log('[L9] All chunks saved'); return; }
+      var c = chunks[idx++];
+      embedText(c.text, oaiKey).then(function(emb){
+        if(!emb) { next(); return; }
+        sbSafe('sn_chunks', 'POST', {
+          session_id: sessId,
+          chunk_index: c.index,
+          text:        c.text,
+          embedding:   JSON.stringify(emb),
+          created_at:  new Date().toISOString()
+        }).then(next);
+      });
+    }
+    next();
+  });
+}
+
+// ── Ricerca semantica su sn_chunks ──
+function searchChunks(queryText, oaiKey) {
+  if(!oaiKey || !queryText) return Promise.resolve([]);
+  return embedText(queryText, oaiKey).then(function(emb){
+    if(!emb) return [];
+    return sbSafe('rpc/search_chunks', 'POST', {
+      query_embedding: emb,
+      match_threshold:  0.45,
+      match_count:      8
+    }).then(function(rows){
+      return Array.isArray(rows) ? rows : [];
+    });
+  }).catch(function(){ return []; });
+}
+
+// ── Override buildRAGContext con ricerca vettoriale reale ──
+buildRAGContext = function(query) {
+  var cfg = getCfgFull();
+  if(!cfg.oaiKey) {
+    // Fallback: ultime 3 sessioni plain text
+    var recent = sessions.slice(0,3).map(function(s,i){
+      return '[Sessione '+(i+1)+' - '+(s.phase||'setup')+']\n'+(s.transcript||'').substring(0,400);
+    }).join('\n\n');
+    return Promise.resolve(recent ? '\n\nCONTESTOSESSIONIPRECEDENTI:\n'+recent : '');
+  }
+  return searchChunks(query, cfg.oaiKey).then(function(rows){
+    if(!rows.length) return '';
+    var ctx = rows.map(function(r){
+      // Find session phase for context
+      var s = sessions.find(function(x){ return x.id === r.session_id; });
+      var phase = s ? (s.phase||'setup') : '?';
+      return '['+phase+' sim:'+Math.round((r.similarity||0)*100)+'%] '+r.text;
+    }).join('\n\n');
+    return '\n\nCONTESTOSESSIONIPRECEDENTI (RAG):\n'+ctx;
+  });
+};
+
+// ── Hook sessStop per salvare chunks ──
+var _l9_origStop = sessStop;
+sessStop = function() {
+  var cfg = getCfgFull();
+  var snapId = currentSessId;
+  var snapTx = transcript;
+  _l9_origStop.apply(this, arguments);
+  // Save chunks after session ends (async, non-blocking)
+  if(cfg.oaiKey && snapId && snapTx) {
+    setTimeout(function(){
+      saveChunksForRAG(snapId, snapTx, cfg.oaiKey);
+    }, 2000); // small delay to let Supabase session save complete first
+  }
+};
+
+console.log('[L9] RAG layer loaded');
 </script>
 
 </body>
