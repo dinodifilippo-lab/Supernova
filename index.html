@@ -1130,7 +1130,7 @@ margin-top: -8px;
   <div id="scHome" class="screen active">
     <div class="home-galaxy"></div>
     <canvas id="homeStars"></canvas>
-    <div class="home-ver">v1.9</div>
+    <div class="home-ver">v2.0</div>
     <div class="home-content">
       <div>
         <div class="home-title">Super<span>NOVA</span></div>
@@ -1631,7 +1631,7 @@ function doHomeLogin() {
       el('homeBtn').style.pointerEvents = '';
       err.textContent = 'Password non corretta';
       err.classList.add('show');
-      el('inpPass').value = '';
+      el('inpPass').value = 'superNOVA';
       el('inpPass').focus();
     });
 }
@@ -1639,8 +1639,8 @@ function doHomeLogin() {
 function doLogout() {
   el('scApp').style.display = 'none';
   el('scHome').classList.add('active');
-  el('inpUser').value = '';
-  el('inpPass').value = '';
+  el('inpUser').value = 'superNOVA';
+  el('inpPass').value = 'superNOVA';
   el('homeBtn').textContent = 'Accedi';
   el('homeBtn').style.background = '';
   el('homeBtn').style.opacity = '';
