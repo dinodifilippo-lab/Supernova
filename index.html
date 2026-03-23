@@ -1130,7 +1130,7 @@ margin-top: -8px;
   <div id="scHome" class="screen active">
     <div class="home-galaxy"></div>
     <canvas id="homeStars"></canvas>
-    <div class="home-ver">v1.7</div>
+    <div class="home-ver">v1.8</div>
     <div class="home-content">
       <div>
         <div class="home-title">Super<span>NOVA</span></div>
@@ -1580,6 +1580,7 @@ function sbPost(path, body) {
 
 function loginSuccess(u) {
   currentUser = u;
+  try { localStorage.setItem('sn_last_user', u); } catch(e) {}
   el('homeBtn').textContent = 'Accesso effettuato';
   el('homeBtn').style.background = 'linear-gradient(135deg,rgba(74,158,114,.9),rgba(42,120,82,.9))';
   el('homeBtn').style.pointerEvents = 'none';
@@ -2518,7 +2519,9 @@ var CLAUDE_TIMEOUT = 15000;
 
 function getCfgFull() {
   try {
-    var s = localStorage.getItem('sn_cfg_'+(currentUser||'default'));
+    // Try currentUser first, then fallback to last known user
+    var key = 'sn_cfg_'+(currentUser||localStorage.getItem('sn_last_user')||'default');
+    var s = localStorage.getItem(key);
     return s ? JSON.parse(s) : {};
   } catch(e) { return {}; }
 }
@@ -2684,11 +2687,6 @@ function showOmegaQuestion(text) {
 // omegaTTSSpeak: called as FIRST action in onclick - iOS requires speak() to be immediate
 function omegaTTSSpeak() {
   var cfg = getCfgFull();
-  // DIAGNOSTIC — remove after fix
-  alert('TTS debug:\ncfg.tts=' + cfg.tts
-    + '\ncurrentUser=' + currentUser
-    + '\nspeechSynthesis=' + !!window.speechSynthesis
-    + '\nomegaQPending=' + (omegaQPending||'').substring(0,30));
   if(!cfg.tts || !window.speechSynthesis) { omegaShowText(); return; }
   var ttsText = (omegaQPending || '').replace(/^CHIARIMENTO:\s*"[^"]+"\s*--\s*/, '').replace(/<[^>]+>/g,'').trim();
   if(!ttsText) { omegaShowText(); return; }
