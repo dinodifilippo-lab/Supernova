@@ -1712,12 +1712,8 @@ function sessAvvia() {
     el('sessTimer').textContent = fmt(timerSec);
     chunkSec++;
     if(chunkSec >= 10) {
-      chunkSec = 0; chunkCount++;
-      el('sessChunkCount').textContent = chunkCount;
-      if(chunkCount === 1) {
-        el('omegaAskBtn').disabled = false;
-        el('omegaAskHint').textContent = '';
-      }
+      chunkSec = 0;
+      // chunkCount incremented by Groq callback only
     }
   }, 1000);
 }
@@ -2120,14 +2116,18 @@ function sbSafe(path, method, body) {
 
 function buildSessObj() {
   return {
-    id:         currentSessId,
-    user:       currentUser || 'unknown',
-    phase:      currentPhase,
-    date:       new Date().toLocaleString('it-IT'),
-    created_at: new Date().toISOString(),
-    duration:   timerSec,
-    transcript: transcript || '',
-    log_entries: JSON.stringify(sessionLog)
+    id:           currentSessId,
+    user:         currentUser || 'unknown',
+    phase:        currentPhase,
+    date:         new Date().toLocaleString('it-IT'),
+    created_at:   new Date().toISOString(),
+    duration:     timerSec,
+    duration_sec: timerSec,
+    transcript:   transcript || '',
+    summary:      '',
+    word_count:   transcript ? transcript.split(' ').filter(function(w){return w.length>0;}).length : 0,
+    mode:         currentPhase,
+    log_entries:  JSON.stringify(sessionLog)
   };
 }
 
@@ -2183,9 +2183,10 @@ function resetAutoSave() {
 }
 
 function loadSessions() {
-  sbSafe('sn_sessions?user=eq.'+encodeURIComponent(currentUser||'')+'&order=created_at.desc&limit=100', 'GET')
+  // Try to load with user filter first, fallback to all sessions
+  sbSafe('sn_sessions?order=created_at.desc&limit=100', 'GET')
     .then(function(data){
-      if(data) sessions = data;
+      if(data && data.length !== undefined) sessions = data;
       renderArch();
       renderLog();
     });
@@ -2217,13 +2218,17 @@ sessStop = function() {
   clearTimeout(autoSaveTimer);
   addLog('Stop -- durata:'+fmt(timerSec)+' transcript:'+transcript.length+' chars');
   _l4_origStop();
-  var sess = buildSessObj();
-  var idx = sessions.findIndex(function(s){ return s.id === currentSessId; });
-  if(idx >= 0) sessions[idx] = sess; else sessions.push(sess);
-  saveSessToSB(sess).then(function(){
-    renderArch();
-    renderLog();
-  });
+  // Wait for final Groq transcription before saving (up to 5s)
+  setTimeout(function(){
+    addLog('Salvataggio sessione: '+transcript.length+' chars');
+    var sess = buildSessObj();
+    var idx = sessions.findIndex(function(s){ return s.id === currentSessId; });
+    if(idx >= 0) sessions[idx] = sess; else sessions.push(sess);
+    saveSessToSB(sess).then(function(){
+      renderArch();
+      renderLog();
+    });
+  }, 5000);
 };
 
 // ── PATCH loginSuccess to load sessions ──
