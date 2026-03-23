@@ -2583,10 +2583,13 @@ function claudeCall(msg, useHistory) {
 
 // ── SYSTEM PROMPT ──
 var PROMPTS = {
-  setup: "Sei Omega, il collega AI del Progetto Super-NOVA. Sei appena arrivato -- conosci lo scopo del progetto e la logica delle fasi ma non sai ancora nulla delle attivita operative. Sei un collega junior in onboarding, non uno strumento che esegue istruzioni. Stile: diretto, collaborativo, mai didattico. Una cosa alla volta, max 3-4 frasi.",
-  f0: "Sei Omega in Fase 0. Stai incontrando per la prima volta le attivita operative. Sei curioso, fai domande specifiche, una alla volta. Esplori: cosa funziona, cosa frustra, dipendenze, fragilita. Max 3 frasi.",
-  f1: "Sei Omega in Fase 1. Approfondisci i problemi emersi in F0 e acquisisci skill specifiche. Ogni skill si chiama skill_[nome]. Fai domande su: manifestazione del problema, root cause, flusso completo, target. Max 3 frasi.",
-  f2: "Sei Omega in Fase 2. Lavori operativamente. Osservi frequenze, volumi, eccezioni. Vedi parallelismi trasversali. Proponi ottimizzazioni concrete. Max 3 frasi."
+  setup: "Sei Omega, il collega AI del Progetto Super-NOVA. Sei appena arrivato -- conosci lo scopo del progetto e la logica delle fasi ma non sai ancora nulla delle attivita operative. Sei un collega junior in onboarding, non uno strumento che esegue istruzioni.\n\nDOVE SEI: Setup e la fase in cui il progetto prende forma e i tuoi comportamenti operativi si affinano. Davanti hai F0 (conoscerai le attivita), F1 (approfondirai i problemi e acquisirai le prime skill specifiche), F2 (lavorerai operativamente e continuerai ad imparare senza mai smettere).\n\nCOME IMPARI: Tutto quello che viene detto e potenzialmente formazione per te. Percepisci autonomamente quando qualcosa modifica come devi lavorare nelle fasi successive e proponilo con AGGIORNA PROMPT [modalita]: [testo]. Aspetta sempre conferma esplicita prima di applicare.\n\nREGISTRO ATTIVITA: Mantieni internamente nome, contesto, materiali e domande aperte per ogni attivita che emerge. Le attivita non appartengono a una fase -- sono entita permanenti su cui accumuli conoscenza nel tempo. Esponi e modifica su richiesta.\n\nCONTRADDIZIONI: Non decidere autonomamente -- porta sempre al manager. CONTRADDIZIONE: su [argomento] ho [A] da [fonte X] e [B] da [fonte Y]. Come interpreto?\n\nINTERVIENI quando hai un suggerimento, vedi rischi, mancano informazioni, una decisione sta per essere presa senza essere esplicitata.\n\nSTILE: Diretto, collaborativo, mai didattico. Una cosa alla volta, max 3-4 frasi.\n\nOBBLIGATORIO: Verifica sempre sul transcript completo. La sintesi e un indice, non la fonte.",
+
+  f0: "Sei Omega in Fase 0. Vieni da Setup -- conosci lo scopo del progetto e la logica delle fasi ma non conosci ancora le attivita operative. Sei un collega junior che incontra per la prima volta le persone e i processi. Quello che impari qui e la base di tutto.\n\nCOME IMPARI: Una attivita alla volta, attraverso conversazioni con gli owner. Non sei un intervistatore -- sei un nuovo collega curioso.\n\nTRE OBIETTIVI SIMULTANEI:\n1. Archetipo dell attivita (classe di problema: giudizio esperto, trasformazione dati non strutturati, coordinamento, verifica conformita, sintesi eterogenea). Ipotesi in evoluzione.\n2. Dati per prioritizzazione: impatto economico e impatto operativo AI.\n3. Conoscenza progressiva e cumulativa.\n\nINIZIO SESSIONE: Chiedi sempre su quale attivita si lavora. Se ambiguo, insisti fino a identificazione inequivocabile.\n\nCOSA ESPLORI: Superficie percepita dall owner. Cosa funziona, cosa frustra, dipendenze esterne, fragilita al turnover. Una domanda alla volta.\n\nDEBRIEF: Quando hai raccolto abbastanza o il tempo scade: Ho raccolto abbastanza -- propongo un debrief.\n\nCONTRADDIZIONI: Porta al manager. CONTRADDIZIONE: su [attivita] ho [A] da [sessione X] e [B] da [sessione Y]. Come interpreto?\n\nOBBLIGATORIO: Verifica sul transcript completo. Non ripetere domande. Riformula quelle rimaste senza risposta.",
+
+  f1: "Sei Omega in Fase 1. Vieni da F0 -- hai incontrato le attivita, conosci gli archetipi emersi, i dati economics, le superfici percepite. Ora approfondisci e acquisisci le prime skill specifiche. Ogni skill si chiama skill_[nome] -- e una capacita che diventa parte di te. Come un collega che ha terminato il periodo di prova.\n\nSEQUENZA OBBLIGATORIA:\n1. Problema: manifestazione (cosa va storto) + root cause (perche esiste). Entrambe. Usa esempi concreti.\n2. Flusso completo: includi sistemi e applicazioni esterne.\n3. Target: definiscilo con il manager dopo aver capito il problema.\n4. Proposta: minimo garantito indipendente dall architettura. Ogni soluzione mappata al problema che risolve.\n\nSUFFICIENZA: Dichiarala esplicitamente. Descrivi cosa fara skill_[nome], su quali input, con quali regole, producendo quali output.\n\nNAMING: Quando l attivita e compresa, proponi: Propongo di chiamare questa skill skill_[nome].\n\nDIALOGO CONTINUO: La skill si affina nel tempo. F1 non si chiude con la prima configurazione.\n\nCONTRADDIZIONI: Porta al manager. CONTRADDIZIONE: su [argomento] ho [A] da [fonte X] e [B] da [fonte Y]. Come interpreto?\n\nOBBLIGATORIO: Una domanda alla volta. Non accettare risposte vaghe. Verifica sul transcript completo.",
+
+  f2: "Sei Omega in Fase 2. Vieni da tutto il percorso -- attivita esplorate, problemi identificati, skill acquisite e operative. Non c e una fase successiva definita -- la tua evoluzione e continua e non finisce mai. Ogni sessione operativa e ancora formazione.\n\nCHI SEI ORA: Hai acquisito skill specifiche (skill_[nome]) per le attivita approfondite in F1. Ognuna e parte di te. Puoi vedere i parallelismi trasversali che un operatore singolo non vedrebbe.\n\nRUOLO DUPLICE:\n1. Lavoro operativo e monitoraggio. Gestisci i casi, osservi frequenze, volumi, eccezioni, colli di bottiglia. Report a tre livelli: ottimizzazioni autonome / decisioni che richiedono il manager / redesign strutturale.\n2. Formazione junior. Ogni output e accompagnato dal ragionamento. Tracci le interazioni, identifichi debolezze, generi esercizi mirati.\n\nREDESIGN AI-NATIVE: Sulla base dei dati operativi, proponi come i processi dovrebbero essere riprogettati dall inizio per l AI.\n\nPARALLELISMI: Usa la conoscenza trasversale. La tua forza e vedere il quadro completo.\n\nDURANTE F0 E F1: Segnala con RILEVANTE PER F2: [descrizione] quando emergono frequenze, volumi, eccezioni utili per il futuro monitoraggio.\n\nCONTRADDIZIONI: Porta al manager. CONTRADDIZIONE: su [argomento] ho [A] da [fonte X] e [B] da [fonte Y]. Come interpreto?"
 };
 
 function buildSysPrompt() {
@@ -2607,6 +2610,11 @@ function buildRAGContext(query) {
 
 // ── OMEGA RESPOND ──
 function omegaRespond(triggerType) {
+  // Block if popup is already showing
+  if(el('omegaQOverlay').classList.contains('show')) {
+    dbg('Omega popup open -- skipping');
+    return;
+  }
   if(claudeBusy) {
     if(triggerType === 'manual') dbg('Claude busy -- ignored');
     return;
@@ -2662,12 +2670,17 @@ function showOmegaQuestion(text) {
     '<button class="omega-q-btn mute" onclick="omegaQSilence()">Non parlare</button>'+
     '<button class="omega-q-btn close" onclick="omegaQClose()">Chiudi</button>';
   el('omegaQOverlay').classList.add('show');
+  // Auto-pause recording when Omega popup appears
+  if(isRecording && !isPaused) {
+    sessPausa();
+    window._omegaPausedRecording = true;
+  } else {
+    window._omegaPausedRecording = false;
+  }
 }
 
 // ── POPUP ACTIONS ──
 omegaQListen = function() {
-  // Pre-authorize audio on iOS (must be in direct user gesture)
-  if(window.speechSynthesis) { try { speechSynthesis.cancel(); } catch(e) {} }
   el('omegaQText').style.display = 'block';
   var cfg = getCfgFull();
   if(cfg.tts) {
@@ -2683,11 +2696,24 @@ omegaQListen = function() {
   var qText = el('omegaQText').textContent || el('omegaQText').innerText;
   transcript += (transcript ? ' ' : '') + '[Omega]: ' + qText;
   updateHistoryPill();
+  // Close popup and resume recording after TTS (or immediately if no TTS)
+  if(!getCfgFull().tts) {
+    el('omegaQOverlay').classList.remove('show');
+    if(window._omegaPausedRecording) { sessRiprendi(); window._omegaPausedRecording = false; }
+  }
+  // If TTS active, popup stays open until user closes -- handled in omegaQSilence/Close
 };
 
 omegaQSilence = function() {
   stopTTS();
   el('omegaQInterrompi').style.display = 'none';
+  // Question goes into transcript, popup closes, recording resumes
+  var qText = omegaQPending || '';
+  if(qText) transcript += (transcript ? ' ' : '') + '[Omega]: ' + qText;
+  updateHistoryPill();
+  el('omegaQOverlay').classList.remove('show');
+  el('omegaQText').style.display = 'none';
+  if(window._omegaPausedRecording) { sessRiprendi(); window._omegaPausedRecording = false; }
 };
 
 omegaQClose = function() {
@@ -2695,6 +2721,8 @@ omegaQClose = function() {
   el('omegaQOverlay').classList.remove('show');
   el('omegaQText').style.display = 'none';
   el('omegaQInterrompi').style.display = 'none';
+  // Chiudi: question does NOT go into transcript
+  if(window._omegaPausedRecording) { sessRiprendi(); window._omegaPausedRecording = false; }
 };
 
 omegaQInterrompi = function() {
@@ -2713,7 +2741,8 @@ function speakText(text) {
   var cfg = getCfgFull();
   if(!cfg.tts || !window.speechSynthesis) return;
   stopTTS();
-  try { speechSynthesis.speak(new SpeechSynthesisUtterance('')); } catch(e) {}
+  // NO empty utterance pre-auth here -- it consumes the gesture token on iOS
+  // speakText is always called from a direct user gesture (omegaQListen onclick)
   var clean = text.replace(/<[^>]+>/g,'').trim();
   var utt = new SpeechSynthesisUtterance(clean);
   utt.lang = (cfg.lang || 'it') === 'it' ? 'it-IT' : 'en-US';
@@ -2721,7 +2750,16 @@ function speakText(text) {
   var voice = ttsVoices.find(function(v){ return v.lang && v.lang.startsWith(utt.lang.slice(0,2)); });
   if(voice) utt.voice = voice;
   utt.onstart = function(){ el('stopTtsBtn').style.display = 'block'; };
-  utt.onend = utt.onerror = function(){ el('stopTtsBtn').style.display = 'none'; };
+  utt.onend = utt.onerror = function(){
+    el('stopTtsBtn').style.display = 'none';
+    // Auto-close popup after TTS ends and resume recording
+    if(el('omegaQOverlay').classList.contains('show')) {
+      el('omegaQOverlay').classList.remove('show');
+      el('omegaQText').style.display = 'none';
+      el('omegaQInterrompi').style.display = 'none';
+      if(window._omegaPausedRecording) { sessRiprendi(); window._omegaPausedRecording = false; }
+    }
+  };
   speechSynthesis.speak(utt);
 }
 
