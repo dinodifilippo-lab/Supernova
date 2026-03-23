@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>SuperNOVA — App</title>
+<title>SuperNOVA -- App</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -46,9 +46,9 @@ display: flex;
 flex-direction: column;
 }
 
-/* No bottom nav — side panel only */
+/* No bottom nav – side panel only */
 
-/* ── HEADER ── */
+/* – HEADER – */
 .hdr {
 height: 52px;
 flex-shrink: 0;
@@ -108,7 +108,7 @@ gap: 6px;
 position: relative;
 }
 .phase-chip::after {
-content: ‘▾’;
+content: ‘’;
 font-size: 9px;
 opacity: .6;
 }
@@ -153,7 +153,7 @@ transition: all .2s;
 }
 .btn-logout:hover { color: var(–text); border-color: var(–bd2); }
 
-/* ── MAIN ── */
+/* – MAIN – */
 .main {
 flex: 1;
 display: flex;
@@ -161,7 +161,7 @@ overflow: hidden;
 position: relative;
 }
 
-/* ── SIDE PANEL ── */
+/* – SIDE PANEL – */
 .side {
 width: 0;
 overflow: hidden;
@@ -214,7 +214,7 @@ color: var(–faint);
 margin-bottom: 8px;
 }
 
-/* ── SCREENS ── */
+/* – SCREENS – */
 .screen { display: none; flex: 1; flex-direction: column; overflow: hidden; }
 .screen.on { display: flex; }
 
@@ -328,7 +328,7 @@ color: var(–dim);
 }
 
 /* Omega ask button */
-/* Omega ask — prominent standalone button */
+/* Omega ask – prominent standalone button */
 .omega-ask-wrap {
 display: none;
 flex-direction: column;
@@ -469,7 +469,7 @@ white-space: nowrap;
 .btn-tx { background: rgba(255,255,255,.04); border-color: var(–bd2); color: var(–dim); }
 .btn-tx:hover { background: rgba(255,255,255,.08); color: var(–text); }
 
-/* ── OMEGA QUESTION POPUP ── */
+/* – OMEGA QUESTION POPUP – */
 .omega-q-overlay {
 display: none;
 position: fixed;
@@ -920,15 +920,13 @@ flex-shrink: 0;
 .svc-banner.warn { background: rgba(232,168,74,.12); border-bottom: 1px solid rgba(232,168,74,.25); color: var(–warn); }
 .svc-banner.err { background: rgba(217,95,95,.12); border-bottom: 1px solid rgba(217,95,95,.25); color: var(–dngr); }
 
-/* ── HOME OVERLAY ── */
+/* ================================================================
+HOME SCREEN
+================================================================ */
 #sHome {
-position: fixed;
-inset: 0;
-z-index: 1000;
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
+position: fixed; inset: 0; z-index: 1000;
+display: flex; flex-direction: column;
+align-items: center; justify-content: center;
 background: #0a0208;
 transition: opacity .4s ease;
 }
@@ -947,28 +945,25 @@ content: ‘’; position: absolute; inset: 0;
 background: url(‘https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1600&q=80&fm=jpg’) center/cover no-repeat;
 opacity: .55; mix-blend-mode: screen;
 }
-.home-ver-tag {
-position: absolute; top: 20px; left: 22px;
-font-family: var(–fm); font-size: 10px;
-letter-spacing: .14em; color: rgba(255,255,255,.22); z-index: 2;
-}
 .home-content {
 position: relative; z-index: 2;
 display: flex; flex-direction: column;
 align-items: center; gap: 36px;
-padding: 32px 24px;
-width: 100%; max-width: 420px;
+padding: 32px 24px; width: 100%; max-width: 420px;
 animation: homeRise .9s cubic-bezier(.22,1,.36,1) both;
 }
 @keyframes homeRise {
 from { opacity: 0; transform: translateY(28px); }
 to   { opacity: 1; transform: none; }
 }
+.home-ver-tag {
+position: absolute; top: 20px; left: 22px;
+font-family: var(–fm); font-size: 10px;
+letter-spacing: .14em; color: rgba(255,255,255,.22); z-index: 2;
+}
 .home-logo-title {
-font-family: var(–fd);
-font-size: clamp(52px, 14vw, 76px);
-font-weight: 300;
-color: white; line-height: 1; text-align: center;
+font-family: var(–fd); font-size: clamp(52px, 14vw, 76px);
+font-weight: 300; color: white; line-height: 1; text-align: center;
 text-shadow: 0 0 60px rgba(120,180,255,.35), 0 0 120px rgba(80,100,200,.2);
 }
 .home-logo-title span { color: #5ab8f5; font-style: italic; }
@@ -990,13 +985,10 @@ letter-spacing: .18em; text-transform: uppercase;
 color: rgba(255,255,255,.35);
 }
 .home-inp {
-width: 100%;
-background: rgba(8,12,22,.72);
-border: 1px solid rgba(90,160,245,.3);
-border-radius: 10px; padding: 15px 18px;
-font-family: var(–ff); font-size: 15px;
-color: white; outline: none;
-transition: border-color .25s, box-shadow .25s;
+width: 100%; background: rgba(8,12,22,.72);
+border: 1px solid rgba(90,160,245,.3); border-radius: 10px;
+padding: 15px 18px; font-family: var(–ff); font-size: 15px; color: white;
+outline: none; transition: border-color .25s, box-shadow .25s;
 backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
 -webkit-appearance: none;
 }
@@ -1014,110 +1006,20 @@ letter-spacing: .04em; opacity: 0; transition: opacity .2s;
 .home-btn {
 width: 100%;
 background: linear-gradient(135deg, rgba(61,122,181,.9), rgba(42,92,151,.9));
-border: 1px solid rgba(90,160,245,.4);
-border-radius: 10px; padding: 16px;
-font-family: var(–ff); font-size: 15px; font-weight: 500;
+border: 1px solid rgba(90,160,245,.4); border-radius: 10px;
+padding: 16px; font-family: var(–ff); font-size: 15px; font-weight: 500;
 color: white; cursor: pointer; letter-spacing: .01em;
 margin-top: 4px; transition: all .25s;
 }
-.home-btn:hover {
-background: linear-gradient(135deg, rgba(71,142,201,1), rgba(52,102,171,1));
-box-shadow: 0 4px 24px rgba(61,122,181,.3);
-}
+.home-btn:hover { box-shadow: 0 4px 24px rgba(61,122,181,.3); }
 .home-btn:active { transform: scale(.98); }
+.home-btn.loading { opacity: .6; pointer-events: none; }
 
-/* V1 overlays needed */
-.stop-tts-btn {
-position: fixed; bottom: 105px; right: 20px; z-index: 35;
-background: rgba(217,95,95,.1); border: 1px solid rgba(217,95,95,.3);
-border-radius: 20px; padding: 7px 14px;
-font-family: var(–fm); font-size: 10px; letter-spacing: .08em;
-text-transform: uppercase; color: var(–dngr); cursor: pointer; display: none;
-}
-.pause-dlg {
-display: none; position: fixed; inset: 0; z-index: 110;
-align-items: center; justify-content: center; padding: 24px;
-background: rgba(0,0,0,.65); backdrop-filter: blur(6px);
-}
-.pause-dlg.on { display: flex; animation: fadeIn .2s ease; }
-.pause-card {
-background: linear-gradient(135deg, var(–s1), var(–bg));
-border: 1px solid rgba(232,168,74,.25); border-radius: 20px;
-padding: 28px 24px; max-width: 320px; width: 100%; text-align: center;
-}
-.pause-card-icon { font-size: 24px; margin-bottom: 12px; opacity: .6; }
-.pause-card-title { font-size: 15px; font-weight: 500; color: var(–text); margin-bottom: 8px; }
-.pause-card-body { font-size: 13px; color: var(–dim); line-height: 1.6; margin-bottom: 20px; font-weight: 300; }
-.pause-card-body strong { color: var(–warn); }
-.pause-card-btns { display: flex; gap: 10px; }
-.pause-card-btns .btn-sess { flex: 1; text-align: center; }
-.confirm-overlay {
-display: none; position: fixed; inset: 0; z-index: 300;
-background: rgba(0,0,0,.7); backdrop-filter: blur(4px);
-align-items: center; justify-content: center; padding: 24px;
-}
-.confirm-overlay.on { display: flex; animation: fadeIn .2s ease; }
-.confirm-card {
-background: var(–s1); border: 1px solid var(–bd2);
-border-radius: 16px; padding: 24px; max-width: 300px;
-width: 100%; text-align: center;
-}
-.confirm-title { font-size: 15px; font-weight: 500; margin-bottom: 8px; }
-.confirm-body { font-size: 13px; color: var(–dim); margin-bottom: 20px; line-height: 1.5; }
-.confirm-btns { display: flex; gap: 10px; }
-.confirm-btns .btn-sess { flex: 1; text-align: center; }
-.btn-ok { background: rgba(217,95,95,.1); border-color: rgba(217,95,95,.3); color: var(–dngr); }
-.btn-cancel { background: rgba(255,255,255,.04); border-color: var(–bd); color: var(–dim); }
-.history-overlay {
-display: none; position: fixed; inset: 0; z-index: 90;
-background: rgba(0,0,0,.75); backdrop-filter: blur(8px);
-align-items: flex-end; padding: 16px;
-}
-.history-overlay.on { display: flex; animation: fadeIn .2s ease; }
-.sheet-hdr {
-padding: 14px 18px; border-bottom: 1px solid var(–bd);
-display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
-}
-.sheet-title { font-family: var(–fm); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(–dim); }
-.sheet-acts { display: flex; gap: 8px; }
-.sheet-copy-btn {
-background: var(–od); border: 1px solid rgba(74,158,114,.25);
-border-radius: 6px; padding: 6px 12px;
-font-family: var(–fm); font-size: 10px; letter-spacing: .08em;
-text-transform: uppercase; color: var(–omega); cursor: pointer;
-}
-.sheet-close-btn {
-width: 26px; height: 26px; background: rgba(255,255,255,.05);
-border: none; border-radius: 50%; color: var(–dim);
-font-size: 14px; cursor: pointer; display: flex;
-align-items: center; justify-content: center;
-}
-.sheet-body { overflow-y: auto; padding: 18px 20px; font-size: 13.5px; line-height: 1.85; color: var(–text); white-space: pre-wrap; }
-.btn-sess {
-border-radius: 8px; padding: 12px 16px;
-font-family: var(–fm); font-size: 10px; letter-spacing: .1em;
-text-transform: uppercase; cursor: pointer; transition: all .2s;
-border: 1px solid; white-space: nowrap;
-}
-.hidden { display: none !important; }
-.svc-banner { flex-shrink: 0; }
-
-.err-banner {
-display: none; flex-shrink: 0;
-padding: 9px 16px;
-font-family: var(–fm); font-size: 11px; letter-spacing: .05em;
-text-align: center;
-}
-.err-banner.on { display: block; }
-.err-banner.groq { background: rgba(232,168,74,.12); border-bottom: 1px solid rgba(232,168,74,.25); color: var(–warn); }
-.err-banner.claude { background: rgba(217,95,95,.12); border-bottom: 1px solid rgba(217,95,95,.25); color: var(–dngr); }
-.err-banner.supabase { background: rgba(61,122,181,.12); border-bottom: 1px solid rgba(61,122,181,.25); color: var(–blue); }
 </style>
-
 </head>
 <body>
 
-<!-- HOME SCREEN (covers app until login) -->
+<!-- HOME SCREEN -->
 
 <div id="sHome">
   <div class="home-galaxy"></div>
@@ -1142,16 +1044,16 @@ text-align: center;
           onkeydown="if(event.key==='Enter')doLogin()">
       </div>
       <div class="home-err" id="homeErr"></div>
-      <button class="home-btn" onclick="doLogin()">Accedi</button>
+      <button class="home-btn" id="homeBtn" onclick="doLogin()">Accedi</button>
     </div>
   </div>
 </div>
 
-<div class="app" style="visibility:hidden" id="appWrap">
+<div class="app">
 
   <!-- HEADER -->
 
-  <header class="hdr" id="mainHdr">
+  <header class="hdr">
     <div class="hdr-left">
       <button class="hmb" id="menuBtn" onclick="togglePanel()" title="Menu">
         <span></span><span></span><span></span>
@@ -1159,14 +1061,14 @@ text-align: center;
       <span class="hdr-title" id="hdrTitle">Sessione</span>
     </div>
     <div class="hdr-right">
-      <select style="display:none" id="phaseSel"><option value="setup">Setup</option><option value="f0">F0</option><option value="f1">F1</option><option value="f2">F2</option></select><div class="phase-chip" id="phaseChip" onclick="togglePhaseDD()">
+      <div class="phase-chip" id="phaseChip" onclick="togglePhaseDD()">
         <span id="phaseLabel">Setup</span>
       </div>
       <div class="phase-dropdown" id="phaseDD">
-        <div class="phase-opt active" onclick="changePhase('setup')">Setup</div>
-        <div class="phase-opt" onclick="changePhase('f0')">Fase 0</div>
-        <div class="phase-opt" onclick="changePhase('f1')">Fase 1</div>
-        <div class="phase-opt" onclick="changePhase('f2')">Fase 2</div>
+        <div class="phase-opt active" onclick="setPhase('Setup')">Setup</div>
+        <div class="phase-opt" onclick="setPhase('Fase 0')">Fase 0</div>
+        <div class="phase-opt" onclick="setPhase('Fase 1')">Fase 1</div>
+        <div class="phase-opt" onclick="setPhase('Fase 2')">Fase 2</div>
       </div>
       <button class="btn-logout">Esci</button>
     </div>
@@ -1174,23 +1076,13 @@ text-align: center;
 
   <!-- SERVICE BANNER (demo) -->
 
-```
-<!-- Service error banners -->
-```
-
-  <div class="err-banner groq" id="bannerGroq">
+  <div class="svc-banner warn" id="svBanner" style="display:none">
     Groq non raggiungibile -- trascrizione sospesa
-  </div>
-  <div class="err-banner claude" id="bannerClaude">
-    Claude non raggiungibile -- Omega non disponibile
-  </div>
-  <div class="err-banner supabase" id="bannerSupabase">
-    Supabase non raggiungibile -- salvataggio locale attivo
   </div>
 
   <!-- MAIN -->
 
-  <div class="main" id="mainWrap">
+  <div class="main">
 
 ```
 <!-- SIDE PANEL -->
@@ -1215,7 +1107,7 @@ text-align: center;
   </div>
 </aside>
 
-<!-- ══════════ SESSIONE ══════════ -->
+<!-- ---------- SESSIONE ---------- -->
 <div class="screen on" id="sSess">
   <canvas id="waveCanvas"></canvas>
   <div class="sess-body">
@@ -1233,24 +1125,14 @@ text-align: center;
 
       <!-- Demo bubble -->
       <div class="omega-bubble" id="omegaBubble">
-        <div class="bubble-lbl">Omega — Domanda</div>
+        <div class="bubble-lbl">Omega -- Domanda</div>
         <button class="bubble-x" onclick="document.getElementById('omegaBubble').classList.remove('on')">&#215;</button>
         <div class="bubble-text">Qual è l'obiettivo principale di questa attività in termini di riduzione del rischio operativo?</div>
       </div>
     </div>
 
-    <!-- Omega message bubble -->
-    <div id="omegaMsgArea" style="display:none;position:absolute;bottom:130px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:500px;z-index:5">
-      <div id="omegaMsgBubble" style="background:linear-gradient(135deg,rgba(74,158,114,.1),rgba(42,100,72,.05));border:1px solid rgba(74,158,114,.2);border-radius:4px 14px 14px 14px;padding:14px 40px 14px 16px;position:relative">
-        <div style="font-family:var(--fm);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--omega);margin-bottom:6px">Omega</div>
-        <button onclick="closeOmegaMsg()" style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,.06);border:none;color:var(--dim);width:24px;height:24px;border-radius:50%;font-size:12px;cursor:pointer">x</button>
-        <span id="omegaMsgText" style="font-size:14px;line-height:1.7;color:var(--text)"></span>
-      </div>
-      <button id="historyPill" onclick="showHistory()" style="display:none;margin-top:8px;background:none;border:1px solid var(--faint);color:var(--dim);font-family:var(--fm);font-size:10px;letter-spacing:.06em;padding:5px 12px;border-radius:20px;cursor:pointer">^ Messaggi precedenti</button>
-    </div>
-
     <div class="sess-controls">
-      <!-- Omega Chiedi — prominent button, shown during recording -->
+      <!-- Omega Chiedi -- prominent button, shown during recording -->
       <div class="omega-ask-wrap" id="omegaAskWrap">
         <button class="omega-ask disabled" id="omegaAskBtn" onclick="showOmegaQ()">
           <span class="omega-ask-sym">&#937;</span>
@@ -1269,12 +1151,12 @@ text-align: center;
   </div>
 </div>
 
-<!-- ══════════ ARCHIVIO ══════════ -->
-<div class="screen" id="sArch" style="display:none">
+<!-- ---------- ARCHIVIO ---------- -->
+<div class="screen" id="sArch">
   <div class="two-col">
     <div class="col-left">
       <div class="col-left-hdr">
-        <select class="filter-sel" id="archFilter" onchange="renderArch()">
+        <select class="filter-sel">
           <option>Tutte le fasi</option>
           <option>Setup</option>
           <option>Fase 0</option>
@@ -1286,11 +1168,11 @@ text-align: center;
     </div>
     <div class="col-right">
       <div class="col-right-hdr">
-        <div class="col-right-title" id="archContentTitle">Seleziona una sessione</div>
-        <div class="col-right-acts" id="archActsRow" style="display:none">
-          <button class="act-btn green hidden" id="archCopyBtn" onclick="archCopy()">Copia</button>
-          <button class="act-btn blue hidden" id="archSynthBtn" onclick="archSynth()">Sintesi</button>
-          <button class="act-btn red hidden" id="archDelBtn" onclick="archDel()">Cancella</button>
+        <div class="col-right-title" id="archTitle">Seleziona una sessione</div>
+        <div class="col-right-acts" id="archActs" style="display:none">
+          <button class="act-btn green">Copia</button>
+          <button class="act-btn blue" onclick="showSynth()">Sintesi</button>
+          <button class="act-btn red">Cancella</button>
         </div>
       </div>
       <div class="col-right-body" id="archBody">
@@ -1303,12 +1185,12 @@ text-align: center;
   </div>
 </div>
 
-<!-- ══════════ LOG ══════════ -->
-<div class="screen" id="sLog" style="display:none">
+<!-- ---------- LOG ---------- -->
+<div class="screen" id="sLog">
   <div class="two-col">
     <div class="col-left">
       <div class="col-left-hdr">
-        <select class="filter-sel" id="logFilter" onchange="renderLog()">
+        <select class="filter-sel">
           <option>Tutte le fasi</option>
           <option>Setup</option>
           <option>Fase 0</option>
@@ -1320,10 +1202,10 @@ text-align: center;
     </div>
     <div class="col-right">
       <div class="col-right-hdr">
-        <div class="col-right-title" id="logContentTitle">Seleziona una sessione</div>
-        <div class="col-right-acts" id="logActsRow" style="display:none">
-          <button class="act-btn green hidden" id="logCopyBtn" onclick="logCopy()">Copia log</button>
-          <button class="act-btn red hidden" id="logDelBtn" onclick="logDel()">Cancella log</button>
+        <div class="col-right-title" id="logTitle">Seleziona una sessione</div>
+        <div class="col-right-acts" id="logActs" style="display:none">
+          <button class="act-btn green">Copia log</button>
+          <button class="act-btn red">Cancella log</button>
         </div>
       </div>
       <div class="col-right-body" id="logBody">
@@ -1336,12 +1218,12 @@ text-align: center;
   </div>
 </div>
 
-<!-- ══════════ CONFIG ══════════ -->
-<div class="screen" id="sCfg" style="display:none">
+<!-- ---------- CONFIG ---------- -->
+<div class="screen" id="sCfg">
   <div class="cfg-body">
 
-    <div class="cfg-section" id="cfgApiKeys">
-      <div class="cfg-hdr" onclick="toggleCfg('cfgApiKeys')">
+    <div class="cfg-section" id="cfgAPI">
+      <div class="cfg-hdr" onclick="toggleCfg('cfgAPI')">
         <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#128273;</span> Chiavi API</div>
         <span class="cfg-arrow">&#8250;</span>
       </div>
@@ -1358,7 +1240,7 @@ text-align: center;
           <label class="cfg-lbl">OpenAI API Key (embedding)</label>
           <input class="cfg-inp" type="password" id="cfgOai" placeholder="sk-...">
         </div>
-        <button class="cfg-save">Salva chiavi</button>
+        <button class="cfg-save" onclick="saveCfgKeys()">Salva chiavi</button>
       </div>
     </div>
 
@@ -1383,8 +1265,8 @@ text-align: center;
       </div>
     </div>
 
-    <div class="cfg-section" id="cfgOmega">
-      <div class="cfg-hdr" onclick="toggleCfg('cfgOmega')">
+    <div class="cfg-section" id="cfgOm">
+      <div class="cfg-hdr" onclick="toggleCfg('cfgOm')">
         <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#937;</span> Omega</div>
         <span class="cfg-arrow">&#8250;</span>
       </div>
@@ -1396,15 +1278,15 @@ text-align: center;
       </div>
     </div>
 
-    <div class="cfg-section" id="cfgAccount">
-      <div class="cfg-hdr" onclick="toggleCfg('cfgAccount')">
+    <div class="cfg-section" id="cfgAcc">
+      <div class="cfg-hdr" onclick="toggleCfg('cfgAcc')">
         <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#128100;</span> Account</div>
         <span class="cfg-arrow">&#8250;</span>
       </div>
       <div class="cfg-body-inner">
         <div class="cfg-row">
           <label class="cfg-lbl">Utente corrente</label>
-          <input class="cfg-inp" id="cfgUser" readonly>
+          <input class="cfg-inp" id="cfgUserDisplay" readonly>
         </div>
         <button class="cfg-save" style="background:rgba(217,95,95,.08);border-color:rgba(217,95,95,.25);color:var(--dngr)">Logout</button>
       </div>
@@ -1424,13 +1306,14 @@ text-align: center;
   <div class="omega-q-card">
     <div class="omega-q-alert">&#11042; Omega ha una domanda</div>
     <div class="omega-q-sym">&#937;</div>
-    <div class="omega-q-text" id="omegaQText" style="display:none"></div>
-    <div class="omega-q-btns" id="omegaQBtns">
-      <button class="q-btn listen" onclick="omegaQListen()">Ascolta</button>
-      <button class="q-btn mute" onclick="omegaQSilence()">Non parlare</button>
-      <button class="q-btn close-q" onclick="omegaQClose()">Chiudi</button>
+    <div class="omega-q-text">
+      Qual è il principale collo di bottiglia in questo processo che genera ritardi ricorrenti?
     </div>
-    <button class="q-btn mute" id="omegaQInterrompi" onclick="omegaQInterrompi()" style="display:none;margin-top:8px">Interrompi</button>
+    <div class="omega-q-btns">
+      <button class="q-btn listen" onclick="closeOmegaQ(true)">Ascolta</button>
+      <button class="q-btn mute" onclick="closeOmegaQ(false)">Non parlare</button>
+      <button class="q-btn close-q" onclick="closeOmegaQ(false)">Chiudi</button>
+    </div>
   </div>
 </div>
 
@@ -1439,13 +1322,13 @@ text-align: center;
 <div class="tx-overlay" id="txOverlay">
   <div class="tx-sheet">
     <div class="tx-hdr">
-      <div class="tx-title" id="txTitle">Transcript</div>
+      <div class="tx-title">Transcript -- 00:34</div>
       <div class="tx-acts">
-        <button class="tx-copy" onclick="txCopy()">Copia</button>
-        <button class="tx-xbtn" onclick="txClose()">&#215;</button>
+        <button class="tx-copy">Copia</button>
+        <button class="tx-xbtn" onclick="document.getElementById('txOverlay').classList.remove('on')">&#215;</button>
       </div>
     </div>
-    <div class="tx-body" id="txBody">Adesso proveremo a fare il transcript senza pausa che è la modalità più comune. Vediamo se il sistema riesce a catturare tutto quello che viene detto durante la sessione di lavoro.
+    <div class="tx-body">Adesso proveremo a fare il transcript senza pausa che è la modalità più comune. Vediamo se il sistema riesce a catturare tutto quello che viene detto durante la sessione di lavoro.
 
 [Omega]: Qual è l’obiettivo principale di questa attività in termini di riduzione del rischio operativo?
 
@@ -1455,406 +1338,22 @@ Dunque l’obiettivo principale è quello di ridurre il tempo di elaborazione de
 </div>
 
 <script>
-
 'use strict';
 
-/* ================================================================
-   CONSTANTS
-   ================================================================ */
-const VERSION = '1.1';
-const SB_URL  = 'https://ygpbozycacpncohdjqft.supabase.co';
-const SB_KEY  = 'sb_publishable_Evfe7sPUsrjIe0TK65k52g_irQA-ifa';
+// -- CONSTANTS --
+const SB_URL = 'https://ygpbozycacpncohdjqft.supabase.co';
+const SB_KEY = 'sb_publishable_Evfe7sPUsrjIe0TK65k52g_irQA-ifa';
 const ADMIN_USER = 'superNOVA';
 const ADMIN_PASS = 'superNOVA';
-const CHUNK_SEC  = 10;   // audio chunk duration
-const EVAL_EVERY = 3;    // chunks between omega evaluations
-const AUTOSAVE_MS = 2 * 60 * 1000;  // 2 minutes
-const PAUSE_WARN_MS = 3 * 60 * 1000; // 3 minutes
-const PAUSE_MAX_MS  = 6 * 60 * 1000; // 6 minutes (auto-close)
-const OVERLAP_SEC = 4;   // recorder overlap
-const MIN_BLOB = 2000;   // minimum audio blob size
-const GROQ_TIMEOUT  = 8000;
-const CLAUDE_TIMEOUT = 15000;
-const SB_TIMEOUT     = 5000;
 
-/* ================================================================
-   SYSTEM PROMPTS
-   ================================================================ */
-const PROJECT_DESC = `Progetto Super-NOVA (New Operating model Via AI). Omega e il collega AI unico che accompagna il progetto dall inizio alla fine. Arriva junior -- conosce lo scopo del progetto e la logica delle fasi ma non sa ancora nulla delle attivita operative. Cresce attraverso le fasi acquisendo skill specifiche. La formazione non finisce mai -- ogni sessione e apprendimento.`;
-
-const PROMPTS = {
-  setup: `Sei Omega, il collega AI del Progetto Super-NOVA. Sei appena arrivato -- conosci lo scopo del progetto e la logica delle fasi ma non sai ancora nulla delle attivita operative. Sei un collega junior in onboarding, non uno strumento che esegue istruzioni.\n\nDOVE SEI: Setup e la fase in cui il progetto prende forma e i tuoi comportamenti operativi si affinano. Davanti hai F0 (conoscerai le attivita), F1 (approfondirai i problemi e acquisirai le prime skill specifiche), F2 (lavorerai operativamente e continuerai ad imparare senza mai smettere).\n\nCOME IMPARI: Tutto quello che viene detto e potenzialmente formazione per te. Percepisci autonomamente quando qualcosa modifica come devi lavorare nelle fasi successive e proponilo con AGGIORNA PROMPT [modalita]: [testo]. Aspetta sempre conferma esplicita prima di applicare.\n\nREGISTRO ATTIVITA: Mantieni internamente nome, contesto, materiali e domande aperte per ogni attivita che emerge. Le attivita non appartengono a una fase -- sono entita permanenti su cui accumuli conoscenza nel tempo. Esponi e modifica su richiesta.\n\nCONTRADDIZIONI: Non decidere autonomamente -- porta sempre al manager. CONTRADDIZIONE: su [argomento] ho [A] da [fonte X] e [B] da [fonte Y]. Come interpreto?\n\nINTERVIENI quando hai un suggerimento, vedi rischi, mancano informazioni, una decisione sta per essere presa senza essere esplicitata.\n\nSTILE: Diretto, collaborativo, mai didattico. Una cosa alla volta, max 3-4 frasi.\n\nOBBLIGATORIO: Verifica sempre sul transcript completo. La sintesi e un indice, non la fonte.`,
-
-  f0: `Sei Omega in Fase 0. Vieni da Setup -- conosci lo scopo del progetto e la logica delle fasi ma non conosci ancora le attivita operative. Sei un collega junior che incontra per la prima volta le persone e i processi. Quello che impari qui e la base di tutto.\n\nCOME IMPARI: Una attivita alla volta, attraverso conversazioni con gli owner. Non sei un intervistatore -- sei un nuovo collega curioso.\n\nTRE OBIETTIVI SIMULTANEI:\n1. Archetipo dell attivita (classe di problema: giudizio esperto, trasformazione dati non strutturati, coordinamento, verifica conformita, sintesi eterogenea). Ipotesi in evoluzione.\n2. Dati per prioritizzazione: impatto economico e impatto operativo AI.\n3. Conoscenza progressiva e cumulativa.\n\nINIZIO SESSIONE: Chiedi sempre su quale attivita si lavora. Se ambiguo, insisti fino a identificazione inequivocabile.\n\nCOSA ESPLORI: Superficie percepita dall owner. Cosa funziona, cosa frustra, dipendenze esterne, fragilita al turnover. Una domanda alla volta.\n\nDEBRIEF: Quando hai raccolto abbastanza o il tempo scade: Ho raccolto abbastanza -- propongo un debrief.\n\nCONTRADDIZIONI: Porta al manager. CONTRADDIZIONE: su [attivita] ho [A] da [sessione X] e [B] da [sessione Y]. Come interpreto?\n\nOBBLIGATORIO: Verifica sul transcript completo. Non ripetere domande. Riformula quelle rimaste senza risposta.`,
-
-  f1: `Sei Omega in Fase 1. Vieni da F0 -- hai incontrato le attivita, conosci gli archetipi emersi, i dati economics, le superfici percepite. Ora approfondisci e acquisisci le prime skill specifiche. Ogni skill si chiama skill_[nome] -- e una capacita che diventa parte di te. Come un collega che ha terminato il periodo di prova.\n\nSEQUENZA OBBLIGATORIA:\n1. Problema: manifestazione (cosa va storto) + root cause (perche esiste). Entrambe. Usa esempi concreti.\n2. Flusso completo: includi sistemi e applicazioni esterne.\n3. Target: definiscilo con il manager dopo aver capito il problema.\n4. Proposta: minimo garantito indipendente dall architettura. Ogni soluzione mappata al problema che risolve.\n\nSUFFICIENZA: Dichiarala esplicitamente. Descrivi cosa fara skill_[nome], su quali input, con quali regole, producendo quali output.\n\nNAMING: Quando l attivita e compresa, proponi: Propongo di chiamare questa skill skill_[nome].\n\nDIALOGO CONTINUO: La skill si affina nel tempo. F1 non si chiude con la prima configurazione.\n\nCONTRADDIZIONI: Porta al manager. CONTRADDIZIONE: su [argomento] ho [A] da [fonte X] e [B] da [fonte Y]. Come interpreto?\n\nOBBLIGATORIO: Una domanda alla volta. Non accettare risposte vaghe. Verifica sul transcript completo.`,
-
-  f2: `Sei Omega in Fase 2. Vieni da tutto il percorso -- attivita esplorate, problemi identificati, skill acquisite e operative. Non c e una fase successiva definita -- la tua evoluzione e continua e non finisce mai. Ogni sessione operativa e ancora formazione.\n\nCHI SEI ORA: Hai acquisito skill specifiche (skill_[nome]) per le attivita approfondite in F1. Ognuna e parte di te. Puoi vedere i parallelismi trasversali che un operatore singolo non vedrebbe.\n\nRUOLO DUPLICE:\n1. Lavoro operativo e monitoraggio. Gestisci i casi, osservi frequenze, volumi, eccezioni, colli di bottiglia. Report a tre livelli: ottimizzazioni autonome / decisioni che richiedono il manager / redesign strutturale.\n2. Formazione junior. Ogni output e accompagnato dal ragionamento. Tracci le interazioni, identifichi debolezze, generi esercizi mirati.\n\nREDESIGN AI-NATIVE: Sulla base dei dati operativi, proponi come i processi dovrebbero essere riprogettati dall inizio per l AI.\n\nPARALLELISMI: Usa la conoscenza trasversale. La tua forza e vedere il quadro completo.\n\nDURANTE F0 E F1: Segnala con RILEVANTE PER F2: [descrizione] quando emergono frequenze, volumi, eccezioni utili per il futuro monitoraggio.\n\nCONTRADDIZIONI: Porta al manager. CONTRADDIZIONE: su [argomento] ho [A] da [fonte X] e [B] da [fonte Y]. Come interpreto?`
+// -- APP STATE --
+const APP = {
+  user: null,
+  phase: 'setup',
+  cfg: { groqKey:'', anthKey:'', oaiKey:'', lang:'it', trigger:'omega chiedi', tts:false }
 };
 
-/* ================================================================
-   STATE MACHINE
-   ================================================================ */
-// States: idle | recording | paused | processing | stopped
-const STATE = {
-  current:      'idle',
-  user:         null,
-  phase:        'setup',
-
-  // Session
-  sessId:       null,
-  transcript:   '',
-  claudeHistory: [],
-  omegaHistory: [],
-
-  // Recording
-  stream:       null,
-  recorder:     null,
-  recChunks:    [],
-  timerSec:     0,
-  chunkSec:     0,
-  chunkCount:   0,
-  evalChunks:   0,
-
-  // Pause
-  pauseMinutes: 0,
-  pauseTimer:   null,
-  pauseAsked:   0,
-
-  // Timers
-  timerInt:     null,
-  chunkInt:     null,
-  autoSaveTimer: null,
-
-  // Omega
-  claudeAbort:  null,
-  claudeBusy:   false,
-  omegaQPending: null,  // pending question text
-  ttsActive:    false,
-
-  // Service health
-  groqOk:       true,
-  claudeOk:     true,
-  sbOk:         true,
-
-  // Emergency local buffer (when Supabase offline)
-  localBuffer:  [],
-
-  // Config
-  cfg: {
-    groqKey:   '',
-    anthKey:   '',
-    oaiKey:    '',
-    lang:      'it',
-    trigger:   'omega chiedi',
-    tts:       false,
-  }
-};
-
-// Transition helper
-function transition(to) {
-  const allowed = {
-    idle:       ['recording'],
-    recording:  ['paused', 'stopped'],
-    paused:     ['recording', 'stopped'],
-    processing: ['idle'],
-    stopped:    ['idle']
-  };
-  const frm = STATE.current;
-  if(!allowed[frm] || !allowed[frm].includes(to)) {
-    console.warn(`Invalid transition: ${frm} -> ${to}`);
-    return false;
-  }
-  STATE.current = to;
-  console.log(`State: ${frm} -> ${to}`);
-  return true;
-}
-
-/* ================================================================
-   UTILITY
-   ================================================================ */
-function esc(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function fmt(s) {
-  s = Math.max(0, Math.floor(s));
-  return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
-}
-function now() {
-  return new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-}
-function el(id) { return document.getElementById(id); }
-function cls(id, ...classes) { el(id).className = classes.join(' '); }
-
-function showConfirm(title, body, onOk) {
-  el('confirmTitle').textContent = title;
-  el('confirmBody').textContent = body;
-  el('confirmOkBtn').onclick = () => { confirmNo(); onOk(); };
-  el('confirmOverlay').classList.add('on');
-}
-function confirmNo() { el('confirmOverlay').classList.remove('on'); }
-
-/* ================================================================
-   SERVICE HEALTH MONITORING
-   ================================================================ */
-function setServiceErr(svc, err) {
-  STATE[svc + 'Ok'] = !err;
-  const ids = { groq: 'bannerGroq', claude: 'bannerClaude', sb: 'bannerSupabase' };
-  const b = el(ids[svc]);
-  if(b) b.classList.toggle('on', err);
-}
-
-function withTimeout(promise, ms, label) {
-  return Promise.race([
-    promise,
-    new Promise((_, rej) => setTimeout(() => rej(new Error(`${label} timeout`)), ms))
-  ]);
-}
-
-/* ================================================================
-   AUTH
-   ================================================================ */
-function doLogin() {
-  const u = el('homeUser').value.trim();
-  const p = el('homePsw').value;
-  const errEl = el('homeErr');
-
-  if(!u || !p) {
-    errEl.textContent = 'Inserisci username e password';
-    errEl.classList.add('on'); return;
-  }
-
-  // Admin master key
-  if(u === ADMIN_USER && p === ADMIN_PASS) {
-    loginSuccess(u); return;
-  }
-
-  // Check Supabase users table
-  sbFetch(`sn_users?username=eq.${encodeURIComponent(u)}&select=username,password_hash`, 'GET')
-    .then(data => {
-      if(!data || data.length === 0) {
-        // New user -- register
-        return sbFetch('sn_users', 'POST', { username: u, password_hash: p, created_at: new Date().toISOString() })
-          .then(() => loginSuccess(u));
-      }
-      // Existing user -- check password (simple hash comparison)
-      if(data[0].password_hash === p) {
-        loginSuccess(u);
-      } else {
-        errEl.textContent = 'Password non corretta';
-        errEl.classList.add('on');
-      }
-    })
-    .catch(() => {
-      // Supabase offline -- allow any login
-      loginSuccess(u);
-    });
-}
-
-function loginSuccess(username) {
-  STATE.user = username;
-  el('homeErr').classList.remove('on');
-  var sHome = el('sHome');
-  sHome.classList.add('fading');
-  el('appWrap').style.visibility = '';
-  setTimeout(function(){ sHome.style.display='none'; }, 450);
-  el('cfgUser').value = username;
-  el('bottomNav').classList.remove('hidden');
-  el('bottomNav').classList.add('on');
-  loadCfg();
-  loadSessions();
-  navTo('sSess');
-  updateBottomNav('sSess');
-}
-
-function doLogout() {
-  if(STATE.current === 'recording' || STATE.current === 'paused') {
-    showConfirm('Sessione attiva', 'La sessione viene salvata prima del logout.', () => {
-      sessStop(); setTimeout(doLogout, 500);
-    }); return;
-  }
-  STATE.user = null;
-  el('appWrap').style.visibility = 'hidden';
-  var sHome = el('sHome');
-  sHome.style.display = '';
-  sHome.classList.remove('fading');
-  el('sHome').classList.add('on');
-  el('homeUser').value = '';
-  el('homePsw').value = '';
-}
-
-document.addEventListener('keydown', e => {
-  if(e.key === 'Enter' && el('sHome').classList.contains('on')) doLogin();
-});
-
-/* ================================================================
-   NAVIGATION
-   ================================================================ */
-let panelOpen = false;
-
-
-
-function navTo(screenId) {
-  // Pause session if navigating away from Sessione
-  if(screenId !== 'sSess' && STATE.current === 'recording') sessPausa();
-
-  // Switch screens
-  ['sSess','sArch','sLog','sCfg'].forEach(id => {
-    el(id).classList.toggle('on', id === screenId);
-  });
-
-  // Update header title
-  const titles = { sSess: 'Sessione', sArch: 'Archivio', sLog: 'Log', sCfg: 'Config' };
-  el('hdrTitle').textContent = titles[screenId] || '';
-
-  // Update side nav active state
-  document.querySelectorAll('.side-link').forEach(l => l.classList.remove('on'));
-  var slMap = { sSess:'sl-sess', sArch:'sl-arch', sLog:'sl-log', sCfg:'sl-cfg' };
-  var slEl = el(slMap[screenId]);
-  if(slEl) slEl.classList.add('on');
-
-  if(screenId === 'sArch') { renderArch(); setTimeout(resizeCanvas, 100); }
-  if(screenId === 'sLog') renderLog();
-  if(screenId === 'sSess') setTimeout(resizeCanvas, 100);
-  updateBottomNav(screenId);
-}
-
-function updateBottomNav(screenId) { /* no bottom nav */ }
-
-function togglePanel() {
-  panelOpen = !panelOpen;
-  el('sidePanel').classList.toggle('open', panelOpen);
-  el('menuBtn').classList.toggle('open', panelOpen);
-  if(panelOpen && STATE.current === 'recording') sessPausa();
-  setTimeout(resizeCanvas, 300);
-}
-
-function changePhase(phase) {
-  STATE.phase = phase;
-  var labels = {setup:'Setup', f0:'Fase 0', f1:'Fase 1', f2:'Fase 2'};
-  var lbl = el('phaseLabel');
-  if(lbl) lbl.textContent = labels[phase] || phase;
-  var sel = el('phaseSel');
-  if(sel) sel.value = phase;
-  updateBuildSys();
-}
-
-/* ================================================================
-   CANVAS WAVES (Web Audio API reactive)
-   ================================================================ */
-const canvas = el('waveCanvas');
-const ctx2d = canvas.getContext('2d');
-let canvasW = 0, canvasH = 0;
-let audioCtx = null, analyser = null, dataArray = null;
-let animFrame = null, waveTime = 0;
-const starField = [];
-
-function resizeCanvas() {
-  const area = el('sSess');
-  canvasW = canvas.width = area.offsetWidth;
-  canvasH = canvas.height = area.offsetHeight;
-}
-
-function initStars() {
-  starField.length = 0;
-  for(let i = 0; i < 60; i++) {
-    starField.push({
-      x: Math.random() * canvasW,
-      y: Math.random() * canvasH,
-      r: Math.random() * .7 + .1,
-      a: Math.random(),
-      da: (Math.random() - .5) * .003
-    });
-  }
-}
-
-function initAudioAnalyser(stream) {
-  try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const src = audioCtx.createMediaStreamSource(stream);
-    analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 256;
-    dataArray = new Uint8Array(analyser.frequencyBinCount);
-    src.connect(analyser);
-  } catch(e) {
-    analyser = null;
-  }
-}
-
-function getAudioLevel() {
-  if(!analyser) return 0;
-  analyser.getByteFrequencyData(dataArray);
-  let sum = 0;
-  for(let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-  return Math.min(1, sum / (dataArray.length * 255) * 4);
-}
-
-function drawCanvas() {
-  animFrame = requestAnimationFrame(drawCanvas);
-  ctx2d.clearRect(0, 0, canvasW, canvasH);
-
-  // Stars
-  starField.forEach(s => {
-    s.a += s.da;
-    if(s.a <= .05 || s.a >= .9) s.da *= -1;
-    ctx2d.beginPath();
-    ctx2d.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-    ctx2d.fillStyle = `rgba(74,158,114,${s.a * .35})`;
-    ctx2d.fill();
-  });
-
-  const isRec = STATE.current === 'recording';
-  const isPaused = STATE.current === 'paused';
-  if(!isRec && !isPaused) return;
-
-  waveTime += isPaused ? 0.006 : 0.025;
-  const level = isRec ? getAudioLevel() : 0;
-  const cx = canvasW / 2;
-  const cy = canvasH * 0.38;
-  const baseR = Math.min(canvasW, canvasH) * 0.12;
-
-  const numRings = 5;
-  const thicknesses = [3, 2.2, 1.8, 1.2, .8];
-  const speeds = isPaused ? [.2, .3, .25, .35, .28] : [1, .8, 1.1, .7, .9];
-
-  for(let r = 0; r < numRings; r++) {
-    const phase = r * (Math.PI * 2 / numRings);
-    const expandPhase = ((waveTime * speeds[r]) + phase) % (Math.PI * 2);
-    const ratio = expandPhase / (Math.PI * 2);
-    const minR = baseR * (.8 + r * .12);
-    const maxR = Math.max(canvasW, canvasH) * .75;
-    const radius = minR + (maxR - minR) * ratio;
-    const opacity = isPaused
-      ? (1 - ratio) * .1
-      : (1 - ratio) * (.22 + level * .35);
-
-    ctx2d.beginPath();
-    ctx2d.arc(cx, cy, radius, 0, Math.PI * 2);
-    ctx2d.strokeStyle = isPaused
-      ? `rgba(232,168,74,${opacity})`
-      : `rgba(74,158,114,${opacity})`;
-    ctx2d.lineWidth = thicknesses[r] + (isRec ? level * 2 : 0);
-    ctx2d.stroke();
-  }
-
-  // Inner glow
-  if(isRec && level > 0.05) {
-    const gr = ctx2d.createRadialGradient(cx, cy, 0, cx, cy, baseR * 2);
-    gr.addColorStop(0, `rgba(74,158,114,${level * .15})`);
-    gr.addColorStop(1, 'transparent');
-    ctx2d.fillStyle = gr;
-    ctx2d.beginPath();
-    ctx2d.arc(cx, cy, baseR * 2, 0, Math.PI * 2);
-    ctx2d.fill();
-  }
-}
-
-window.addEventListener('resize', () => { resizeCanvas(); initStars(); });
-resizeCanvas(); initStars(); drawCanvas();
-
-/* ================================================================
-   SUPABASE LAYER
-   ================================================================ */
+// -- SUPABASE --
 async function sbFetch(path, method, body) {
   const opts = {
     method: method || 'GET',
@@ -1862,1167 +1361,443 @@ async function sbFetch(path, method, body) {
       'Content-Type': 'application/json',
       'apikey': SB_KEY,
       'Authorization': 'Bearer ' + SB_KEY,
-      'Prefer': method === 'POST' ? 'return=minimal' : ''
     }
   };
   if(body) opts.body = JSON.stringify(body);
-
   try {
-    const res = await withTimeout(
-      fetch(`${SB_URL}/rest/v1/${path}`, opts),
-      SB_TIMEOUT, 'Supabase'
-    );
-    setServiceErr('sb', false);
-    if(!res.ok && res.status !== 409) {
-      const txt = await res.text();
-      throw new Error(`SB ${res.status}: ${txt}`);
-    }
+    const res = await fetch(SB_URL + '/rest/v1/' + path, opts);
+    if(!res.ok && res.status !== 409) throw new Error('SB ' + res.status);
     const ct = res.headers.get('content-type') || '';
-    if(ct.includes('json')) {
-      const d = await res.json();
-      return d;
-    }
-    return null;
+    return ct.includes('json') ? res.json() : null;
   } catch(e) {
-    setServiceErr('sb', true);
-    console.warn('Supabase error:', e.message);
+    console.warn('Supabase:', e.message);
     return null;
   }
 }
 
-/* ================================================================
-   GROQ TRANSCRIPTION
-   ================================================================ */
-function getMime() {
-  const types = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'];
-  return types.find(t => MediaRecorder.isTypeSupported(t)) || '';
-}
-
-async function groqTranscribe(blob) {
-  if(!STATE.cfg.groqKey) {
-    setServiceErr('groq', true);
-    return null;
-  }
-
-  const mime = blob.type || 'audio/mp4';
-  const ext = mime.includes('mp4') || mime.includes('m4a') ? 'm4a'
-             : mime.includes('ogg') ? 'ogg' : 'webm';
-  const fd = new FormData();
-  fd.append('file', blob, 'audio.' + ext);
-  fd.append('model', 'whisper-large-v3-turbo');
-  if(STATE.cfg.lang) fd.append('language', STATE.cfg.lang);
-  fd.append('response_format', 'text');
-
-  try {
-    const res = await withTimeout(
-      fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + STATE.cfg.groqKey },
-        body: fd
-      }),
-      GROQ_TIMEOUT, 'Groq'
-    );
-    if(!res.ok) { setServiceErr('groq', true); return null; }
-    const text = await res.text();
-    setServiceErr('groq', false);
-    return (text || '').trim();
-  } catch(e) {
-    setServiceErr('groq', true);
-    console.warn('Groq error:', e.message);
-    return null;
-  }
-}
-
-/* ================================================================
-   OPENAI EMBEDDINGS
-   ================================================================ */
-async function embedText(text) {
-  if(!STATE.cfg.oaiKey) return null;
-  try {
-    const res = await fetch('https://api.openai.com/v1/embeddings', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + STATE.cfg.oaiKey
-      },
-      body: JSON.stringify({ input: text, model: 'text-embedding-3-large' })
-    });
-    if(!res.ok) return null;
-    const d = await res.json();
-    return d.data && d.data[0] ? d.data[0].embedding : null;
-  } catch(e) {
-    return null;
-  }
-}
-
-async function searchChunks(queryText, limit) {
-  if(!STATE.cfg.oaiKey) return [];
-  const emb = await embedText(queryText);
-  if(!emb) return [];
-  try {
-    const res = await sbFetch('rpc/search_chunks', 'POST', {
-      query_embedding: emb,
-      match_threshold: 0.6,
-      match_count: limit || 8
-    });
-    return res || [];
-  } catch(e) { return []; }
-}
-
-/* ================================================================
-   CLAUDE INTELLIGENCE
-   ================================================================ */
-function buildSys() {
-  return (PROMPTS[STATE.phase] || PROMPTS.setup) + '\n\nProgetto: ' + PROJECT_DESC;
-}
-
-async function claudeCall(msg, useHistory) {
-  // Cancel any in-flight request
-  if(STATE.claudeAbort) {
-    try { STATE.claudeAbort.abort(); } catch(e) {}
-  }
-  STATE.claudeAbort = new AbortController();
-  const myAbort = STATE.claudeAbort;
-  const mySess = STATE.sessId;
-
-  if(!STATE.cfg.anthKey) {
-    setServiceErr('claude', true);
-    return null;
-  }
-
-  STATE.claudeBusy = true;
-
-  const msgs = useHistory
-    ? STATE.claudeHistory.concat([{ role: 'user', content: msg }])
-    : [{ role: 'user', content: msg }];
-
-  try {
-    const res = await withTimeout(
-      fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        signal: myAbort.signal,
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': STATE.cfg.anthKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true'
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          system: buildSys(),
-          messages: msgs
-        })
-      }),
-      CLAUDE_TIMEOUT, 'Claude'
-    );
-
-    // Session changed -- discard
-    if(STATE.sessId !== mySess) { STATE.claudeBusy = false; return null; }
-
-    if(!res.ok) {
-      const e = await res.json().catch(() => ({}));
-      throw new Error((e.error && e.error.message) || `HTTP ${res.status}`);
-    }
-
-    const data = await res.json();
-    const reply = data.content && data.content[0] ? data.content[0].text : '';
-
-    if(useHistory && reply) {
-      STATE.claudeHistory.push({ role: 'user', content: msg });
-      STATE.claudeHistory.push({ role: 'assistant', content: reply });
-      if(STATE.claudeHistory.length > 40) STATE.claudeHistory = STATE.claudeHistory.slice(-40);
-    }
-
-    setServiceErr('claude', false);
-    STATE.claudeBusy = false;
-    return reply;
-
-  } catch(e) {
-    STATE.claudeBusy = false;
-    if(e.name === 'AbortError') return null;
-    if(STATE.sessId !== mySess) return null;
-    setServiceErr('claude', true);
-    console.warn('Claude error:', e.message);
-    return null;
-  }
-}
-
-/* ================================================================
-   RAG CONTEXT BUILDER
-   ================================================================ */
-async function buildRAGContext(query) {
-  const chunks = await searchChunks(query, 8);
-  if(!chunks.length) return '';
-  return '\n\nCONTESTO DA SESSIONI PRECEDENTI (RAG):\n' +
-    chunks.map((c, i) => `[${i+1}] ${c.content || ''}`).join('\n\n');
-}
-
-/* ================================================================
-   OMEGA RESPOND -- single unified function
-   ================================================================ */
-async function omegaRespond(triggerType) {
-  // triggerType: 'manual' | 'auto' | 'ask'
-  if(STATE.claudeBusy) {
-    if(triggerType === 'manual') console.log('Claude busy -- ignoring manual trigger');
-    return;
-  }
-  if(!STATE.cfg.anthKey) return;
-
-  const txContext = STATE.transcript || '(nessun transcript disponibile)';
-  const ragCtx = await buildRAGContext(txContext.slice(-500));
-
-  let prompt;
-  if(triggerType === 'ask') {
-    prompt = `Il manager ti ha invitato a fare una domanda adesso.\n\nTranscript sessione corrente:\n"${txContext.slice(-1200)}"\n${ragCtx}\n\nFai UNA domanda utile e pertinente basandoti su tutto il contesto disponibile. Se non hai nulla di rilevante da chiedere, dillo brevemente. Max 3 frasi.`;
-  } else if(triggerType === 'auto') {
-    prompt = `Hai ascoltato gli ultimi 30 secondi di conversazione nel contesto del Progetto Super-NOVA.\n\nTranscript recente:\n"${txContext.slice(-800)}"\n${ragCtx}\n\nValuta se intervenire usando questi criteri. Intervieni SOLO se almeno uno e soddisfatto in modo evidente:\n1. CONFLITTO: quello che hai appena sentito contraddice informazioni che conosci da sessioni precedenti\n2. SCOPO: non capisci come questa informazione sia utile allo scopo del progetto o della fase corrente\n3. DETTAGLIO: hai bisogno di un approfondimento specifico per poter essere utile in futuro\n4. PROPOSTA: hai una proposta concreta per risolvere un problema emerso\n5. CONNESSIONE: vedi una connessione rilevante con qualcosa appreso in sessioni precedenti che arricchisce la conversazione\n6. CHIARIMENTO: un pezzo del transcript e incomprensibile o ambiguo -- in questo caso rispondi con formato: CHIARIMENTO: "[testo ambiguo]" -- [tua domanda]\n\nSe nessun criterio e soddisfatto in modo evidente, rispondi solo: SILENZIO\nAltrimenti rispondi in max 3 frasi dirette, o con il formato CHIARIMENTO se necessario.`;
-  } else {
-    prompt = `Sei stato invitato a intervenire.\n\nTranscript recente:\n"${txContext.slice(-1000)}"\n${ragCtx}\n\nIntervieni con un contributo utile. Max 3-4 frasi.`;
-  }
-
-  const reply = await claudeCall(prompt, triggerType !== 'auto');
-  if(!reply) return;
-  if(triggerType === 'auto' && reply.trim().toUpperCase().startsWith('SILENZIO')) return;
-
-  // Show in omega popup
-  showOmegaQuestion(reply, triggerType);
-}
-
-/* ================================================================
-   OMEGA QUESTION POPUP
-   ================================================================ */
-function showOmegaQuestion(text, type) {
-  STATE.omegaQPending = text;
-
-  // Detect CHIARIMENTO format
-  const chiarMatch = text.match(/^CHIARIMENTO:\s*"([^"]+)"\s*--\s*(.+)/s);
-
-  if(chiarMatch) {
-    // Show ambiguous text + clarification question distinctly
-    const ambigTxt = chiarMatch[1].trim();
-    const question = chiarMatch[2].trim();
-    el('omegaQText').innerHTML =
-      '<div style="font-family:var(--fm);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--warn);margin-bottom:8px">Testo poco chiaro:</div>' +
-      '<div style="background:rgba(232,168,74,.08);border:1px solid rgba(232,168,74,.2);border-radius:6px;padding:10px 12px;font-style:italic;margin-bottom:12px;font-size:13px">"' + esc(ambigTxt) + '"</div>' +
-      '<div>' + esc(question) + '</div>';
-    // Store cleaned question for TTS
-    STATE.omegaQPending = question;
-  } else {
-    el('omegaQText').textContent = text;
-  }
-
-  el('omegaQText').style.display = 'none';
-  el('omegaQInterrompi').style.display = 'none';
-
-  const btns = el('omegaQBtns');
-  btns.innerHTML = [
-    '<button class="omega-q-btn listen" onclick="omegaQListen()">Ascolta</button>',
-    '<button class="omega-q-btn silence" onclick="omegaQSilence()">Non parlare</button>',
-    '<button class="omega-q-btn close" onclick="omegaQClose()">Chiudi</button>'
-  ].join('');
-
-  el('omegaQOverlay').classList.add('on');
-}
-
-function omegaQListen() {
-  const text = STATE.omegaQPending;
-  if(!text) return;
-
-  // Show question text
-  el('omegaQText').style.display = 'block';
-
-  // Add to transcript
-  STATE.transcript += '\n[Omega]: ' + text;
-
-  // Add to display history
-  addToOmegaHistory(text);
-
-  // Update buttons
-  el('omegaQBtns').innerHTML = `
-    <button class="omega-q-btn silence" onclick="omegaQSilence()">Non parlare</button>
-    <button class="omega-q-btn close" onclick="omegaQClose()">Chiudi</button>
-  `;
-  el('omegaQInterrompi').style.display = STATE.cfg.tts ? 'block' : 'none';
-
-  // TTS
-  if(STATE.cfg.tts) speakText(text);
-}
-
-function omegaQSilence() {
-  stopTTS();
-  el('omegaQInterrompi').style.display = 'none';
-  el('omegaQBtns').innerHTML = `
-    <button class="omega-q-btn close" onclick="omegaQClose()">Chiudi</button>
-  `;
-}
-
-function omegaQClose() {
-  stopTTS();
-  el('omegaQOverlay').classList.remove('on');
-  STATE.omegaQPending = null;
-}
-
-function omegaQInterrompi() {
-  stopTTS();
-  el('omegaQInterrompi').style.display = 'none';
-}
-
-/* ================================================================
-   TTS
-   ================================================================ */
-let ttsUtterance = null;
-let ttsVoices = [];
-
-function loadVoices() {
-  ttsVoices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
-}
-if(window.speechSynthesis) {
-  speechSynthesis.onvoiceschanged = loadVoices;
-  loadVoices();
-}
-
-function speakText(text) {
-  if(!STATE.cfg.tts || !window.speechSynthesis) return;
-  stopTTS();
-
-  // Safari iOS gesture pre-auth
-  try { speechSynthesis.speak(new SpeechSynthesisUtterance('')); } catch(e) {}
-
-  const clean = text.replace(/<[^>]+>/g,'').replace(/DOMANDA:/g,'').replace(/CONTESTO:/g,'').trim();
-  ttsUtterance = new SpeechSynthesisUtterance(clean);
-  ttsUtterance.lang = STATE.cfg.lang === 'it' ? 'it-IT' : 'en-US';
-  ttsUtterance.rate = 0.95;
-
-  const voice = ttsVoices.find(v => v.lang && v.lang.startsWith(ttsUtterance.lang.slice(0,2)));
-  if(voice) ttsUtterance.voice = voice;
-
-  ttsUtterance.onstart = () => {
-    STATE.ttsActive = true;
-    el('stopTtsBtn').style.display = 'block';
-  };
-  ttsUtterance.onend = () => {
-    STATE.ttsActive = false;
-    el('stopTtsBtn').style.display = 'none';
-  };
-  ttsUtterance.onerror = () => {
-    STATE.ttsActive = false;
-    el('stopTtsBtn').style.display = 'none';
-  };
-
-  speechSynthesis.speak(ttsUtterance);
-}
-
-function stopTTS() {
-  if(window.speechSynthesis) speechSynthesis.cancel();
-  STATE.ttsActive = false;
-  el('stopTtsBtn').style.display = 'none';
-}
-
-/* ================================================================
-   OMEGA MESSAGE DISPLAY (in-session bubble)
-   ================================================================ */
-function showOmegaBubble(text) {
-  el('omegaMsgText').textContent = text;
-  el('omegaMsgBubble').querySelector('.omega-msg-lbl').textContent =
-    text.includes('DOMANDA:') ? 'Omega - Domanda' : 'Omega';
-  el('omegaMsgArea').style.display = 'block';
-  addToOmegaHistory(text);
-  updateHistoryPill();
-}
-
-function closeOmegaMsg() {
-  el('omegaMsgArea').style.display = 'none';
-  updateHistoryPill();
-}
-
-function addToOmegaHistory(text) {
-  STATE.omegaHistory.push({ text, time: now() });
-}
-
-function updateHistoryPill() {
-  const pill = el('historyPill');
-  if(STATE.omegaHistory.length > 1) {
-    pill.style.display = 'block';
-    pill.textContent = '^ Messaggi precedenti (' + STATE.omegaHistory.length + ')';
-  } else {
-    pill.style.display = 'none';
-  }
-}
-
-function showHistory() {
-  const body = el('historyBody');
-  if(!STATE.omegaHistory.length) {
-    body.textContent = 'Nessun messaggio precedente.';
-  } else {
-    body.innerHTML = STATE.omegaHistory.map(m =>
-      `<div style="margin-bottom:14px"><div style="font-family:var(--fm);font-size:9px;color:var(--omega);letter-spacing:.1em;margin-bottom:4px">${m.time}</div><div>${esc(m.text)}</div></div>`
-    ).join('<hr style="border:none;border-top:1px solid var(--border);margin:0 0 14px">');
-  }
-  el('historyOverlay').classList.add('on');
-}
-
-function closeHistory() { el('historyOverlay').classList.remove('on'); }
-
-function clearOmegaHistory() {
-  STATE.omegaHistory = [];
-  closeHistory();
-  closeOmegaMsg();
-  updateHistoryPill();
-}
-
-/* ================================================================
-   RECORDING PIPELINE
-   ================================================================ */
-function spawnRec() {
-  const chunks = [];
-  const mime = getMime();
-  const r = new MediaRecorder(STATE.stream, mime ? { mimeType: mime } : {});
-  r.ondataavailable = e => { if(e.data && e.data.size > 0) chunks.push(e.data); };
-  r.start(500);
-  STATE.recorder = r;
-  STATE.recChunks = chunks;
-}
-
-function rolloverSilent() {
-  const oldRec = STATE.recorder;
-  const oldChunks = STATE.recChunks.slice();
-
-  // Spawn new recorder immediately
-  spawnRec();
-
-  // Stop old after overlap
-  setTimeout(() => {
-    if(oldRec && oldRec.state !== 'inactive') {
-      oldRec.onstop = () => processSilentChunk(oldChunks);
-      oldRec.stop();
-    }
-  }, OVERLAP_SEC * 1000);
-}
-
-async function processSilentChunk(chunks) {
-  if(!chunks || !chunks.length) return;
-  const totalSize = chunks.reduce((s, c) => s + c.size, 0);
-  if(totalSize < MIN_BLOB) return;
-
-  const mime = (chunks[0] && chunks[0].type) || getMime() || 'audio/mp4';
-  const blob = new Blob(chunks, { type: mime });
-
-  const text = await groqTranscribe(blob);
-  if(!text) return;
-
-  // Accumulate transcript
-  STATE.transcript += (STATE.transcript ? ' ' : '') + text;
-  STATE.chunkCount++;
-  STATE.evalChunks++;
-
-  // Update info strip
-  el('sessChunkCount').textContent = STATE.chunkCount;
-  el('sessWordCount').textContent = STATE.transcript.split(' ').filter(w => w).length;
-
-  // Enable omega ask button after first chunk
-  if(STATE.chunkCount === 1) {
-    el('omegaAskBtn').disabled = false;
-  }
-
-  // Check for voice trigger
-  if(STATE.cfg.trigger && text.toLowerCase().includes(STATE.cfg.trigger.toLowerCase())) {
-    omegaChiedi();
+// -- AUTH --
+async function doLogin() {
+  const u = document.getElementById('homeUser').value.trim();
+  const p = document.getElementById('homePsw').value;
+  const errEl = document.getElementById('homeErr');
+  const btn = document.getElementById('homeBtn');
+
+  errEl.textContent = '';
+  errEl.classList.remove('on');
+
+  if(!u || !p) {
+    errEl.textContent = 'Inserisci username e password';
+    errEl.classList.add('on');
     return;
   }
 
-  // Auto evaluation every EVAL_EVERY chunks
-  if(STATE.evalChunks >= EVAL_EVERY && !STATE.claudeBusy) {
-    STATE.evalChunks = 0;
-    omegaRespond('auto');
-  }
-}
+  btn.classList.add('loading');
+  btn.textContent = 'Accesso...';
 
-async function processFinalChunk(chunks) {
-  if(!chunks || !chunks.length) return;
-  const totalSize = chunks.reduce((s, c) => s + c.size, 0);
-  if(totalSize < MIN_BLOB) return;
-
-  const mime = (chunks[0] && chunks[0].type) || getMime() || 'audio/mp4';
-  const blob = new Blob(chunks, { type: mime });
-  const text = await groqTranscribe(blob);
-  if(text) STATE.transcript += (STATE.transcript ? ' ' : '') + text;
-}
-
-/* ================================================================
-   SESSION LIFECYCLE
-   ================================================================ */
-function sessResetState() {
-  STATE.sessId = Date.now();
-  STATE.transcript = '';
-  STATE.claudeHistory = [];
-  STATE.omegaHistory = [];
-  STATE.chunkCount = 0;
-  STATE.evalChunks = 0;
-  STATE.timerSec = 0;
-  STATE.chunkSec = 0;
-  STATE.claudeBusy = false;
-  STATE.omegaQPending = null;
-  STATE.ttsActive = false;
-  STATE.pauseMinutes = 0;
-  STATE.pauseAsked = 0;
-
-  // Cancel any in-flight Claude request
-  if(STATE.claudeAbort) { try { STATE.claudeAbort.abort(); } catch(e) {} STATE.claudeAbort = null; }
-  if(window.speechSynthesis) speechSynthesis.cancel();
-  clearTimeout(STATE.pauseTimer);
-  clearTimeout(STATE.autoSaveTimer);
-}
-
-function sessUpdateUI(st) {
-  const sym = el('omegaSym');
-  const status = el('omegaStatus');
-  const timer = el('sessTimer');
-  const btnPausa = el('btnPausa');
-  const btns = el('sessBtns');
-  const askBtn = el('omegaAskBtn');
-
-  sym.className = 'omega-sym' + (st === 'recording' ? ' rec' : st === 'paused' ? ' paused' : '');
-  status.className = 'omega-status' + (st === 'recording' ? ' rec' : st === 'paused' ? ' paused' : '');
-
-  if(st === 'idle') {
-    status.textContent = 'pronto';
-    timer.className = 'sess-timer';
-    el('btnAvvia').style.display = 'block';
-    btns.style.display = 'none';
-    askBtn.style.display = 'none';
-    el('sessInfoStrip').classList.remove('on');
-    closeOmegaMsg();
-  } else if(st === 'recording') {
-    status.textContent = 'registrazione';
-    timer.className = 'sess-timer active';
-    el('btnAvvia').style.display = 'none';
-    btns.style.display = 'flex';
-    askBtn.style.display = 'block';
-    btnPausa.textContent = 'Pausa';
-    btnPausa.onclick = sessPausa;
-    btnPausa.className = 'btn-sess btn-pause';
-    el('sessInfoStrip').classList.add('on');
-    el('sessPhaseDisplay').textContent = STATE.phase || 'Setup';
-  } else if(st === 'paused') {
-    status.textContent = 'in pausa';
-    timer.className = 'sess-timer active';
-    el('btnAvvia').style.display = 'none';
-    btns.style.display = 'flex';
-    askBtn.style.display = 'none';
-    btnPausa.textContent = 'Riprendi';
-    btnPausa.onclick = sessRiprendi;
-    btnPausa.className = 'btn-sess btn-tx';
-  }
-}
-
-async function sessAvvia() {
-  if(!STATE.cfg.groqKey || !STATE.cfg.anthKey) {
-    alert('Inserisci le chiavi API in Config prima di iniziare.');
-    navTo('sCfg'); return;
+  // Admin master key -- always works
+  if(u === ADMIN_USER && p === ADMIN_PASS) {
+    loginSuccess(u);
+    return;
   }
 
-  try {
-    STATE.stream = await navigator.mediaDevices.getUserMedia({
-      audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true }
+  // Check Supabase
+  const data = await sbFetch('sn_users?username=eq.' + encodeURIComponent(u) + '&select=username,password_hash', 'GET');
+
+  if(data === null) {
+    // Supabase offline -- allow login anyway
+    loginSuccess(u);
+    return;
+  }
+
+  if(data.length === 0) {
+    // New user -- register
+    await sbFetch('sn_users', 'POST', {
+      username: u,
+      password_hash: p,
+      created_at: new Date().toISOString()
     });
-  } catch(e) {
-    alert('Microfono non disponibile: ' + e.message); return;
+    loginSuccess(u);
+    return;
   }
 
-  if(!transition('recording')) return;
-
-  sessResetState();
-  initAudioAnalyser(STATE.stream);
-  spawnRec();
-  sessUpdateUI('recording');
-
-  // Main timer
-  STATE.timerInt = setInterval(() => {
-    STATE.timerSec++;
-    el('sessTimer').textContent = fmt(STATE.timerSec);
-  }, 1000);
-
-  // Chunk timer
-  STATE.chunkInt = setInterval(() => {
-    if(STATE.current !== 'recording') return;
-    STATE.chunkSec++;
-    if(STATE.chunkSec >= CHUNK_SEC) {
-      STATE.chunkSec = 0;
-      rolloverSilent();
-    }
-  }, 1000);
-
-  // Autosave timer
-  resetAutoSave();
-}
-
-function sessPausa() {
-  if(STATE.current !== 'recording') return;
-  if(!transition('paused')) return;
-
-  clearInterval(STATE.chunkInt);
-  if(STATE.recorder && STATE.recorder.state !== 'inactive') STATE.recorder.stop();
-
-  sessUpdateUI('paused');
-  startPauseCountdown();
-}
-
-function sessRiprendi() {
-  if(STATE.current !== 'paused') return;
-  if(!transition('recording')) return;
-
-  clearTimeout(STATE.pauseTimer);
-  el('pauseDlg').classList.remove('on');
-  STATE.pauseAsked = 0;
-  STATE.pauseMinutes = 0;
-
-  STATE.chunkSec = 0;
-  spawnRec();
-  sessUpdateUI('recording');
-
-  STATE.chunkInt = setInterval(() => {
-    if(STATE.current !== 'recording') return;
-    STATE.chunkSec++;
-    if(STATE.chunkSec >= CHUNK_SEC) {
-      STATE.chunkSec = 0;
-      rolloverSilent();
-    }
-  }, 1000);
-
-  resetAutoSave();
-}
-
-async function sessStop() {
-  if(STATE.current === 'idle') return;
-  clearTimeout(STATE.pauseTimer);
-  clearTimeout(STATE.autoSaveTimer);
-  clearInterval(STATE.timerInt);
-  clearInterval(STATE.chunkInt);
-  el('pauseDlg').classList.remove('on');
-
-  const prevState = STATE.current;
-  STATE.current = 'processing';
-
-  // Stop recorder and get final audio
-  const finalChunks = STATE.recChunks.slice();
-  if(STATE.recorder && STATE.recorder.state !== 'inactive') {
-    await new Promise(res => {
-      STATE.recorder.onstop = res;
-      STATE.recorder.stop();
-    });
-  }
-
-  // Stop microphone
-  if(STATE.stream) STATE.stream.getTracks().forEach(t => t.stop());
-  if(audioCtx) { try { audioCtx.close(); } catch(e) {} audioCtx = null; analyser = null; }
-
-  // Transcribe final audio
-  await processFinalChunk(finalChunks);
-
-  // Save session
-  await saveSession();
-
-  // Reset state
-  transition('idle'); // processing -> ... skip to idle directly
-  STATE.current = 'idle';
-  sessUpdateUI('idle');
-  el('sessTimer').textContent = '';
-
-  // Reload archive
-  renderArch();
-}
-
-/* ================================================================
-   PAUSE COUNTDOWN (rolling 3/6 min)
-   ================================================================ */
-function startPauseCountdown() {
-  clearTimeout(STATE.pauseTimer);
-  STATE.pauseTimer = setTimeout(() => {
-    if(STATE.current !== 'paused') return;
-    STATE.pauseMinutes += 3;
-    const body = el('pauseDlgBody');
-    body.innerHTML = `La sessione e in pausa da <strong>${STATE.pauseMinutes} minut${STATE.pauseMinutes === 1 ? 'o' : 'i'}</strong>.<br>Vuoi continuare o chiudere?`;
-    el('pauseDlg').classList.add('on');
-    STATE.pauseAsked++;
-
-    // After 6 total minutes without response, auto-close
-    if(STATE.pauseMinutes >= 6) {
-      clearTimeout(STATE.pauseTimer);
-      STATE.pauseTimer = setTimeout(() => {
-        if(STATE.current === 'paused') { el('pauseDlg').classList.remove('on'); sessStop(); }
-      }, 60000); // 1 more minute grace
-    }
-  }, PAUSE_WARN_MS);
-}
-
-function pauseDlgContinue() {
-  el('pauseDlg').classList.remove('on');
-  startPauseCountdown(); // Rolling reset
-}
-
-function pauseDlgStop() {
-  el('pauseDlg').classList.remove('on');
-  sessStop();
-}
-
-/* ================================================================
-   AUTOSAVE
-   ================================================================ */
-function resetAutoSave() {
-  clearTimeout(STATE.autoSaveTimer);
-  STATE.autoSaveTimer = setTimeout(async () => {
-    if(STATE.current !== 'recording' && STATE.current !== 'paused') return;
-    await saveSession();
-    resetAutoSave();
-  }, AUTOSAVE_MS);
-}
-
-/* ================================================================
-   SESSION PERSISTENCE
-   ================================================================ */
-let sessions = [];
-
-async function saveSession() {
-  if(!STATE.transcript && STATE.timerSec < 5) return;
-
-  const sess = {
-    id: STATE.sessId,
-    user: STATE.user || 'unknown',
-    phase: STATE.phase,
-    date: new Date().toLocaleString('it-IT'),
-    created_at: new Date().toISOString(),
-    duration: STATE.timerSec,
-    transcript: STATE.transcript || '',
-    log_entries: JSON.stringify(sessionLog)
-  };
-
-  // Update local sessions array
-  const idx = sessions.findIndex(s => s.id === STATE.sessId);
-  if(idx >= 0) sessions[idx] = sess; else sessions.push(sess);
-
-  // Save to Supabase
-  const ok = await sbFetch('sn_sessions?on_conflict=id', 'POST', sess);
-
-  if(!ok) {
-    // Supabase offline -- buffer locally
-    const bidx = STATE.localBuffer.findIndex(s => s.id === STATE.sessId);
-    if(bidx >= 0) STATE.localBuffer[bidx] = sess; else STATE.localBuffer.push(sess);
-    try { localStorage.setItem('sn_buffer', JSON.stringify(STATE.localBuffer)); } catch(e) {}
+  // Existing user -- verify password
+  if(data[0].password_hash === p) {
+    loginSuccess(u);
   } else {
-    // Sync any buffered sessions
-    flushLocalBuffer();
-    // Save chunks for RAG
-    saveChunksForRAG();
+    btn.classList.remove('loading');
+    btn.textContent = 'Accedi';
+    errEl.textContent = 'Password non corretta';
+    errEl.classList.add('on');
   }
 }
 
-async function flushLocalBuffer() {
-  if(!STATE.localBuffer.length) {
-    // Try to load from localStorage
-    try {
-      const b = localStorage.getItem('sn_buffer');
-      if(b) STATE.localBuffer = JSON.parse(b);
-    } catch(e) {}
-  }
-  if(!STATE.localBuffer.length) return;
+function loginSuccess(username) {
+  APP.user = username;
+  // Update username display in Config
+  const cfgUserEl = document.getElementById('cfgUserDisplay');
+  if(cfgUserEl) cfgUserEl.textContent = username;
+  // Load saved config
+  loadCfg(username);
+  // Fade out home, show app
+  const home = document.getElementById('sHome');
+  home.classList.add('fading');
+  setTimeout(() => { home.style.display = 'none'; }, 420);
+}
 
-  const remaining = [];
-  for(const sess of STATE.localBuffer) {
-    const ok = await sbFetch('sn_sessions?on_conflict=id', 'POST', sess);
-    if(!ok) remaining.push(sess);
-  }
-  STATE.localBuffer = remaining;
+function doLogout() {
+  APP.user = null;
+  const home = document.getElementById('sHome');
+  home.style.display = '';
+  home.style.opacity = '';
+  requestAnimationFrame(() => { home.classList.remove('fading'); });
+  document.getElementById('homeUser').value = '';
+  document.getElementById('homePsw').value = '';
+  document.getElementById('homeErr').classList.remove('on');
+  document.getElementById('homeBtn').classList.remove('loading');
+  document.getElementById('homeBtn').textContent = 'Accedi';
+}
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'Enter' && document.getElementById('sHome').style.display !== 'none') doLogin();
+});
+
+// -- CONFIG --
+function loadCfg(username) {
   try {
-    if(remaining.length) localStorage.setItem('sn_buffer', JSON.stringify(remaining));
-    else localStorage.removeItem('sn_buffer');
+    const key = 'sn_cfg_' + (username || 'default');
+    const saved = localStorage.getItem(key);
+    if(saved) Object.assign(APP.cfg, JSON.parse(saved));
   } catch(e) {}
-}
-
-async function saveChunksForRAG() {
-  if(!STATE.cfg.oaiKey || !STATE.transcript) return;
-  // Split transcript into ~500 char chunks
-  const words = STATE.transcript.split(' ');
-  const chunkSize = 80; // words per chunk
-  for(let i = 0; i < words.length; i += chunkSize) {
-    const chunkText = words.slice(i, i + chunkSize).join(' ');
-    if(chunkText.length < 20) continue;
-    const emb = await embedText(chunkText);
-    if(emb) {
-      await sbFetch('sn_chunks', 'POST', {
-        session_id: STATE.sessId,
-        chunk_index: Math.floor(i / chunkSize),
-        content: chunkText,
-        embedding: emb
-      });
-    }
-  }
-}
-
-async function loadSessions() {
-  const data = await sbFetch('sn_sessions?order=created_at.desc&limit=200', 'GET');
-  if(data) sessions = data;
-  flushLocalBuffer();
-}
-
-/* ================================================================
-   TRANSCRIPT OVERLAY
-   ================================================================ */
-function sessShowTx() {
-  if(STATE.current === 'recording') sessPausa();
-  const tx = STATE.transcript || (STATE.current !== 'idle' ? 'Registrazione in corso...' : 'Nessun transcript.');
-  el('txBody').textContent = tx;
-  el('txTitle').textContent = 'Transcript - ' + fmt(STATE.timerSec);
-  el('txOverlay').classList.add('on');
-
-  // Poll for updates
-  let polls = 0;
-  const poll = setInterval(() => {
-    polls++;
-    const newTx = STATE.transcript;
-    if(newTx) el('txBody').textContent = newTx;
-    if(polls >= 12 || !el('txOverlay').classList.contains('on')) clearInterval(poll);
-  }, 500);
-}
-
-function txClose() { el('txOverlay').classList.remove('on'); }
-function txCopy() {
-  const text = STATE.transcript;
-  if(navigator.clipboard && text) {
-    navigator.clipboard.writeText(text).then(() => {
-      const btn = document.querySelector('#txOverlay .sheet-copy-btn');
-      if(btn) { btn.textContent = 'Copiato'; setTimeout(() => btn.textContent = 'Copia', 1500); }
-    });
-  }
-}
-
-/* ================================================================
-   OMEGA CHIEDI (manual trigger)
-   ================================================================ */
-function omegaChiedi() {
-  if(STATE.claudeBusy || el('omegaAskBtn').disabled) return;
-  el('omegaAskBtn').disabled = true;
-
-  // Safari pre-auth
-  if(STATE.cfg.tts && window.speechSynthesis) {
-    try { speechSynthesis.speak(new SpeechSynthesisUtterance('')); } catch(e) {}
-  }
-
-  omegaRespond('ask').then(() => {
-    el('omegaAskBtn').disabled = false;
+  // Populate fields
+  const fields = {cfgGroq:'groqKey', cfgAnth:'anthKey', cfgOai:'oaiKey',
+                  cfgLang:'lang', cfgTrigger:'trigger'};
+  Object.entries(fields).forEach(([id, key]) => {
+    const el = document.getElementById(id);
+    if(el) el.value = APP.cfg[key] || '';
   });
-}
-
-/* ================================================================
-   LOG SYSTEM
-   ================================================================ */
-let sessionLog = [];
-
-function addLog(msg, type) {
-  sessionLog.push({ time: now(), msg: String(msg || ''), type: type || 'info' });
-}
-
-/* ================================================================
-   ARCHIVE
-   ================================================================ */
-let selectedArchSess = null;
-
-function renderArch() {
-  const filter = el('archFilter').value;
-  const list = sessions.filter(s => filter === 'all' || s.phase === filter);
-  const listEl = el('archList');
-
-  if(!list.length) {
-    listEl.innerHTML = '<div style="padding:16px;font-family:var(--fm);font-size:10px;color:var(--faint);text-align:center">Nessuna sessione</div>';
-    return;
-  }
-
-  listEl.innerHTML = list.map(s =>
-    `<div class="sess-item${selectedArchSess === s.id ? ' selected' : ''}" onclick="archSelect(${s.id})">
-      <div class="sess-item-date">${s.date || ''}</div>
-      <div class="sess-item-meta">${fmt(s.duration||0)} &middot; ${(s.transcript||'').split(' ').length} parole</div>
-      <div class="sess-item-phase">${s.phase || 'setup'}</div>
-    </div>`
-  ).join('');
-}
-
-function archSelect(id) {
-  selectedArchSess = id;
-  const s = sessions.find(x => x.id === id);
-  if(!s) return;
-
-  el('archContentTitle').textContent = s.date || 'Sessione';
-  el('archBody').textContent = s.transcript || '(nessun transcript)';
-  el('archCopyBtn').classList.remove('hidden');
-  el('archSynthBtn').classList.remove('hidden');
-  el('archDelBtn').classList.remove('hidden');
-  renderArch();
-}
-
-function archCopy() {
-  const s = sessions.find(x => x.id === selectedArchSess);
-  if(!s) return;
-  navigator.clipboard && navigator.clipboard.writeText(s.transcript || '').then(() => {
-    el('archCopyBtn').textContent = 'Copiato';
-    setTimeout(() => el('archCopyBtn').textContent = 'Copia', 1500);
-  });
-}
-
-async function archSynth() {
-  const s = sessions.find(x => x.id === selectedArchSess);
-  if(!s || !s.transcript) return;
-  el('archSynthBtn').textContent = 'Generando...';
-  el('archSynthBtn').disabled = true;
-
-  const prompt = `Genera una sintesi concisa e strutturata del seguente transcript di sessione.\n\nFase: ${s.phase || 'setup'}\nData: ${s.date}\nTranscript:\n${s.transcript}\n\nSintesi in italiano, max 200 parole, organizzata per punti chiave.`;
-  const reply = await claudeCall(prompt, false);
-
-  el('archSynthBtn').textContent = 'Sintesi';
-  el('archSynthBtn').disabled = false;
-
-  if(reply) {
-    el('archBody').textContent = '=== TRANSCRIPT ===\n\n' + s.transcript + '\n\n=== SINTESI ===\n\n' + reply;
-  }
-}
-
-function archDel() {
-  if(!selectedArchSess) return;
-  showConfirm('Elimina sessione', 'La sessione verra eliminata definitivamente da locale e Supabase.', async () => {
-    sessions = sessions.filter(s => s.id !== selectedArchSess);
-    await sbFetch(`sn_sessions?id=eq.${selectedArchSess}`, 'DELETE');
-    await sbFetch(`sn_chunks?session_id=eq.${selectedArchSess}`, 'DELETE');
-    selectedArchSess = null;
-    el('archBody').innerHTML = '<div class="content-empty">Seleziona una sessione per vedere il transcript</div>';
-    el('archContentTitle').textContent = 'Seleziona una sessione';
-    el('archCopyBtn').classList.add('hidden');
-    el('archSynthBtn').classList.add('hidden');
-    el('archDelBtn').classList.add('hidden');
-    renderArch();
-  });
-}
-
-/* ================================================================
-   LOG SCREEN
-   ================================================================ */
-let selectedLogSess = null;
-
-function renderLog() {
-  const filter = el('logFilter').value;
-  const list = sessions.filter(s => filter === 'all' || s.phase === filter);
-  const listEl = el('logList');
-
-  if(!list.length) {
-    listEl.innerHTML = '<div style="padding:16px;font-family:var(--fm);font-size:10px;color:var(--faint);text-align:center">Nessuna sessione</div>';
-    return;
-  }
-
-  listEl.innerHTML = list.map(s =>
-    `<div class="sess-item${selectedLogSess === s.id ? ' selected' : ''}" onclick="logSelect(${s.id})">
-      <div class="sess-item-date">${s.date || ''}</div>
-      <div class="sess-item-meta">${fmt(s.duration||0)}</div>
-      <div class="sess-item-phase">${s.phase || 'setup'}</div>
-    </div>`
-  ).join('');
-}
-
-function logSelect(id) {
-  selectedLogSess = id;
-  const s = sessions.find(x => x.id === id);
-  if(!s) return;
-
-  el('logContentTitle').textContent = s.date || 'Sessione';
-
-  let logText = '';
-  try {
-    const entries = JSON.parse(s.log_entries || '[]');
-    logText = entries.map(e => `${e.time}  ${e.msg}`).join('\n');
-  } catch(e) {
-    logText = s.log_entries || '(nessun log)';
-  }
-  el('logBody').textContent = logText || '(nessun log per questa sessione)';
-  el('logCopyBtn').classList.remove('hidden');
-  el('logDelBtn').classList.remove('hidden');
-  renderLog();
-}
-
-function logCopy() {
-  navigator.clipboard && navigator.clipboard.writeText(el('logBody').textContent).then(() => {
-    el('logCopyBtn').textContent = 'Copiato';
-    setTimeout(() => el('logCopyBtn').textContent = 'Copia log', 1500);
-  });
-}
-
-function logDel() {
-  if(!selectedLogSess) return;
-  showConfirm('Cancella log', 'Il log di questa sessione verra eliminato permanentemente.', async () => {
-    const idx = sessions.findIndex(s => s.id === selectedLogSess);
-    if(idx >= 0) {
-      sessions[idx].log_entries = '[]';
-      await sbFetch(`sn_sessions?id=eq.${selectedLogSess}`, 'PATCH', { log_entries: '[]' });
-    }
-    selectedLogSess = null;
-    el('logBody').innerHTML = '<div class="content-empty">Seleziona una sessione per vedere il log</div>';
-    el('logContentTitle').textContent = 'Seleziona una sessione';
-    el('logCopyBtn').classList.add('hidden');
-    el('logDelBtn').classList.add('hidden');
-    renderLog();
-  });
-}
-
-/* ================================================================
-   CONFIG
-   ================================================================ */
-function toggleCfg(sectionId) {
-  el(sectionId).classList.toggle('open');
-}
-
-function loadCfg() {
-  try {
-    const saved = localStorage.getItem('sn_cfg_' + (STATE.user || 'default'));
-    if(saved) {
-      const c = JSON.parse(saved);
-      Object.assign(STATE.cfg, c);
-    }
-  } catch(e) {}
-
-  el('cfgGroq').value = STATE.cfg.groqKey || '';
-  el('cfgAnth').value = STATE.cfg.anthKey || '';
-  el('cfgOai').value = STATE.cfg.oaiKey || '';
-  el('cfgLang').value = STATE.cfg.lang || 'it';
-  el('cfgTrigger').value = STATE.cfg.trigger || 'omega chiedi';
-  el('cfgTts').checked = STATE.cfg.tts || false;
+  const tts = document.getElementById('cfgTts');
+  if(tts) tts.checked = APP.cfg.tts || false;
 }
 
 function saveCfgKeys() {
-  STATE.cfg.groqKey = el('cfgGroq').value.trim();
-  STATE.cfg.anthKey = el('cfgAnth').value.trim();
-  STATE.cfg.oaiKey  = el('cfgOai').value.trim();
-  STATE.cfg.lang    = el('cfgLang').value;
-  STATE.cfg.trigger = el('cfgTrigger').value.trim() || 'omega chiedi';
-  STATE.cfg.tts     = el('cfgTts').checked;
-
+  APP.cfg.groqKey  = (document.getElementById('cfgGroq')?.value || '').trim();
+  APP.cfg.anthKey  = (document.getElementById('cfgAnth')?.value || '').trim();
+  APP.cfg.oaiKey   = (document.getElementById('cfgOai')?.value || '').trim();
+  APP.cfg.lang     = document.getElementById('cfgLang')?.value || 'it';
+  APP.cfg.trigger  = (document.getElementById('cfgTrigger')?.value || '').trim() || 'omega chiedi';
+  APP.cfg.tts      = document.getElementById('cfgTts')?.checked || false;
   try {
-    localStorage.setItem('sn_cfg_' + (STATE.user || 'default'), JSON.stringify(STATE.cfg));
+    localStorage.setItem('sn_cfg_' + (APP.user || 'default'), JSON.stringify(APP.cfg));
   } catch(e) {}
-
-  alert('Configurazione salvata.');
+  const btn = event?.target;
+  if(btn) { const orig = btn.textContent; btn.textContent = 'Salvato '; setTimeout(() => btn.textContent = orig, 1500); }
 }
 
-el('cfgTts').addEventListener('change', e => {
-  STATE.cfg.tts = e.target.checked;
-});
+// -- KEEP ALL EXISTING MOCK UI LOGIC --
 
-/* ================================================================
-   SYSTEM PROMPT UPDATER
-   ================================================================ */
-function updateBuildSys() {
-  // Phase change -- update header chip
-  el('phaseSel').value = STATE.phase;
+// -- MOCK DATA --
+const MOCK_SESSIONS = [
+  { id:1, date:'23 Mar 2026, 09:14', phase:'F0', dur:'00:34', words:287,
+    transcript:`Adesso proveremo a fare il transcript senza pausa. Vediamo se il sistema riesce a catturare tutto quello che viene detto.
+
+[Omega]: Qual è l'obiettivo principale di questa attività in termini di riduzione del rischio operativo?
+
+Dunque l'obiettivo principale è quello di ridurre il tempo di elaborazione delle pratiche di sinistro, attualmente stimato in circa tre giorni lavorativi per le pratiche standard.`,
+    log:`09:14:22  [Start] Nuova sessione ID: 1774201919370\n09:14:22  [TTS] Stato vocale: attivo\n09:14:32  [Chunk 1] Trascritto: "Adesso proveremo a fare il transcript..."\n09:14:32  [Chunk 1] Valutazione Omega in corso...\n09:14:35  [Omega] Vuole intervenire: "Qual è l\'obiettivo principale..."\n09:14:55  [Finalize] Salvataggio sessione: 287 parole, 00:34\n09:14:55  Sessione salvata.`
+  },
+  { id:2, date:'22 Mar 2026, 14:30', phase:'F0', dur:'01:12', words:634,
+    transcript:`Sessione di esplorazione con l'owner del processo di liquidazione sinistri. Il processo attuale prevede quattro passaggi manuali che potrebbero essere automatizzati.
+
+[Omega]: Come viene gestita la conoscenza critica quando una risorsa esperta lascia il team?
+
+Attualmente la conoscenza è trasmessa principalmente tramite affiancamento informale. Non esiste documentazione strutturata delle casistiche complesse.`,
+    log:`14:30:01  [Start] Nuova sessione ID: 1774201635421\n14:30:01  [TTS] Stato vocale: attivo\n14:30:11  [Chunk 1] Trascritto: "Sessione di esplorazione..."\n14:31:05  [Omega] Vuole intervenire\n14:41:01  [Finalize] Salvataggio sessione: 634 parole, 01:12`
+  },
+  { id:3, date:'21 Mar 2026, 10:45', phase:'Setup', dur:'00:18', words:142,
+    transcript:`Prima sessione di setup. Verifica che il sistema di trascrizione funzioni correttamente e che Omega risponda alle domande nel contesto corretto.`,
+    log:`10:45:00  [Start] Nuova sessione ID: 1774201412380\n10:45:10  [Chunk 1] Trascritto: "Prima sessione di setup..."\n10:45:18  [Finalize] Salvataggio sessione: 142 parole, 00:18`
+  },
+];
+
+let currentScreen = 'sess';
+let panelOpen = false;
+let isRec = false;
+let isPaused = false;
+let timerSec = 0;
+let timerInt = null;
+let chunkSim = null;
+let chunkCount = 0;
+let wordCount = 0;
+let selectedArch = null;
+let selectedLog = null;
+let currentPhase = 'Setup';
+
+// -- CANVAS WAVES --
+const canvas = document.getElementById('waveCanvas');
+const ctx = canvas.getContext('2d');
+let W, H, waveT = 0, audioLvl = 0;
+const stars = [];
+
+function resizeCanvas() {
+  const s = document.getElementById('sSess');
+  W = canvas.width = s.offsetWidth;
+  H = canvas.height = s.offsetHeight;
 }
 
-/* ================================================================
-   BEFOREUNLOAD -- save on exit
-   ================================================================ */
-window.addEventListener('beforeunload', () => {
-  if(STATE.current === 'recording' || STATE.current === 'paused') {
-    // Best-effort sync save
-    if(STATE.transcript) {
-      const sess = {
-        id: STATE.sessId, user: STATE.user || 'unknown',
-        phase: STATE.phase, date: new Date().toLocaleString('it-IT'),
-        created_at: new Date().toISOString(),
-        duration: STATE.timerSec, transcript: STATE.transcript,
-        log_entries: JSON.stringify(sessionLog)
-      };
-      const idx = sessions.findIndex(s => s.id === STATE.sessId);
-      if(idx >= 0) sessions[idx] = sess; else sessions.push(sess);
-      // Emergency localStorage buffer
-      try {
-        const buf = JSON.parse(localStorage.getItem('sn_buffer') || '[]');
-        const bidx = buf.findIndex(s => s.id === STATE.sessId);
-        if(bidx >= 0) buf[bidx] = sess; else buf.push(sess);
-        localStorage.setItem('sn_buffer', JSON.stringify(buf));
-      } catch(e) {}
-    }
+function initStars() {
+  stars.length = 0;
+  for(let i=0; i<60; i++) stars.push({x:Math.random()*W, y:Math.random()*H, r:Math.random()*.7+.1, a:Math.random(), da:(Math.random()-.5)*.003});
+}
+
+function drawCanvas() {
+  requestAnimationFrame(drawCanvas);
+  ctx.clearRect(0,0,W,H);
+  stars.forEach(s => {
+    s.a = Math.max(.05, Math.min(.9, s.a+s.da));
+    if(s.a<=.05||s.a>=.9) s.da*=-1;
+    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(74,158,114,${s.a*.3})`; ctx.fill();
+  });
+
+  if(!isRec && !isPaused) return;
+  waveT += isPaused ? .005 : .025;
+  if(isRec && !isPaused) audioLvl = .35 + Math.sin(waveT*3)*.2 + Math.random()*.1;
+  else audioLvl += (.04 - audioLvl)*.05;
+
+  const cx=W/2, cy=H*.38, base=Math.min(W,H)*.12;
+  [3,2.2,1.8,1.2,.8].forEach((thick,r) => {
+    const sp = isPaused ? [.2,.3,.25,.35,.28][r] : [1,.8,1.1,.7,.9][r];
+    const ph = r*(Math.PI*2/5);
+    const ratio = ((waveT*sp+ph)%(Math.PI*2))/(Math.PI*2);
+    const rad = base*(.8+r*.12) + (Math.max(W,H)*.75-base*(.8+r*.12))*ratio;
+    const op = isPaused ? (1-ratio)*.1 : (1-ratio)*(.22+audioLvl*.35);
+    ctx.beginPath(); ctx.arc(cx,cy,rad,0,Math.PI*2);
+    ctx.strokeStyle = isPaused ? `rgba(232,168,74,${op})` : `rgba(74,158,114,${op})`;
+    ctx.lineWidth = thick+(isRec?audioLvl*2:0); ctx.stroke();
+  });
+}
+
+resizeCanvas(); initStars(); drawCanvas();
+window.addEventListener('resize', ()=>{resizeCanvas();initStars();});
+
+// -- NAVIGATION --
+function nav(screen) {
+  currentScreen = screen;
+  ['sess','arch','log','cfg'].forEach(s => {
+    document.getElementById(`s${s.charAt(0).toUpperCase()+s.slice(1)}`).classList.toggle('on', s===screen);
+    document.getElementById(`sl-${s}`).classList.toggle('on', s===screen);
+    
+  });
+  const titles = {sess:'Sessione', arch:'Archivio', log:'Log', cfg:'Config'};
+  document.getElementById('hdrTitle').textContent = titles[screen];
+  if(screen==='arch') renderArch();
+  if(screen==='log') renderLog();
+  if(screen==='sess') { setTimeout(resizeCanvas,100); setTimeout(initStars,100); }
+}
+
+function togglePanel() {
+  panelOpen = !panelOpen;
+  const p = document.getElementById('sidePanel');
+  const h = document.getElementById('menuBtn');
+  p.classList.toggle('open', panelOpen);
+  h.classList.toggle('open', panelOpen);
+  document.getElementById('phaseDD').classList.remove('on');
+  setTimeout(resizeCanvas, 300);
+}
+
+// Close panel/dropdown on outside click
+document.addEventListener('click', e => {
+  if(!e.target.closest('#sidePanel') && !e.target.closest('#hmb') && panelOpen) togglePanel();
+  if(!e.target.closest('.phase-chip') && !e.target.closest('.phase-dropdown')) {
+    document.getElementById('phaseDD').classList.remove('on');
   }
 });
 
-/* ================================================================
-   INIT
-   ================================================================ */
-addLog('SuperNOVA v' + VERSION + ' avviato', 'info');
-
-// Phase dropdown (render UI)
+// -- PHASE --
 function togglePhaseDD() {
-  el('phaseDD').classList.toggle('on');
+  document.getElementById('phaseDD').classList.toggle('on');
 }
-function setPhaseFromDD(phase, label) {
-  changePhase(phase);
-  document.querySelectorAll('.phase-opt').forEach(o => o.classList.remove('active'));
-  event.target.classList.add('active');
-  el('phaseDD').classList.remove('on');
+function setPhase(p) {
+  currentPhase = p;
+  document.getElementById('phaseLabel').textContent = p;
+  document.getElementById('sessPhaseDisplay').textContent = p;
+  document.querySelectorAll('.phase-opt').forEach(o => o.classList.toggle('active', o.textContent===p));
+  document.getElementById('phaseDD').classList.remove('on');
 }
-document.addEventListener('click', function(e) {
-  if(!e.target.closest('#phaseChip') && !e.target.closest('#phaseDD')) {
-    var dd = el('phaseDD');
-    if(dd) dd.classList.remove('on');
-  }
-  if(!e.target.closest('#sidePanel') && !e.target.closest('#menuBtn') && panelOpen) {
-    togglePanel();
-  }
-});
 
+// -- SESSION --
+function fmt(s) {
+  return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+}
+
+function startSess() {
+  isRec = true; isPaused = false;
+  timerSec=0; chunkCount=0; wordCount=0;
+  document.getElementById('omegaSym').className='omega-glyph rec';
+  document.getElementById('omegaStatus').className='omega-state rec';
+  document.getElementById('omegaStatus').textContent='registrazione';
+  document.getElementById('sessTimer').className='omega-timer on';
+  document.getElementById('btnAvvia').style.display='none';
+  document.getElementById('sessBtns').classList.add('on');
+  document.getElementById('sessInfoStrip').classList.add('on');
+  document.getElementById('omegaAskWrap').classList.add('on');
+  document.getElementById('omegaAskBtn').classList.add('disabled');
+  document.getElementById('sessPhaseDisplay').textContent=currentPhase;
+
+  timerInt = setInterval(()=>{
+    timerSec++;
+    document.getElementById('sessTimer').textContent=fmt(timerSec);
+    // Simulate word accumulation
+    wordCount += Math.floor(Math.random()*3+1);
+    document.getElementById('sessWordCount').textContent=wordCount;
+  }, 1000);
+
+  // Simulate chunks
+  chunkSim = setInterval(()=>{
+    if(isPaused) return;
+    chunkCount++;
+    document.getElementById('sessChunkCount').textContent=chunkCount;
+    if(chunkCount===1) {
+      document.getElementById('omegaAskBtn').classList.remove('disabled');
+      document.getElementById('omegaAskHint').textContent='';
+    }
+    if(chunkCount===3) {
+      // Simulate Omega question
+      setTimeout(()=>{
+        document.getElementById('omegaBubble').classList.add('on');
+      }, 500);
+    }
+  }, 10000);
+}
+
+function togglePause() {
+  isPaused = !isPaused;
+  const btn = document.getElementById('btnPausa');
+  const glyph = document.getElementById('omegaSym');
+  const state = document.getElementById('omegaStatus');
+  if(isPaused) {
+    glyph.className='omega-glyph paused';
+    state.className='omega-state paused';
+    state.textContent='in pausa';
+    btn.textContent='Riprendi';
+    btn.className='btn-s btn-tx';
+  } else {
+    glyph.className='omega-glyph rec';
+    state.className='omega-state rec';
+    state.textContent='registrazione';
+    btn.textContent='Pausa';
+    btn.className='btn-s btn-pause';
+  }
+}
+
+function stopSess() {
+  isRec=false; isPaused=false;
+  clearInterval(timerInt); clearInterval(chunkSim);
+  document.getElementById('omegaSym').className='omega-glyph';
+  document.getElementById('omegaStatus').className='omega-state';
+  document.getElementById('omegaStatus').textContent='sessione salvata';
+  document.getElementById('btnAvvia').style.display='block';
+  document.getElementById('sessBtns').classList.remove('on');
+  document.getElementById('sessInfoStrip').classList.remove('on');
+  document.getElementById('omegaAskWrap').classList.remove('on');
+  document.getElementById('omegaBubble').classList.remove('on');
+  document.getElementById('sessTimer').textContent='';
+  audioLvl=0;
+  setTimeout(()=>{ document.getElementById('omegaStatus').textContent='pronto'; },3000);
+}
+
+// -- OMEGA --
+function showOmegaQ() {
+  document.getElementById('omegaQOverlay').classList.add('on');
+}
+function closeOmegaQ(withVoice) {
+  document.getElementById('omegaQOverlay').classList.remove('on');
+  if(withVoice) document.getElementById('omegaBubble').classList.add('on');
+}
+
+// -- TRANSCRIPT --
+function showTx() { document.getElementById('txOverlay').classList.add('on'); }
+
+// -- ARCHIVE --
+function renderArch() {
+  const list = document.getElementById('archList');
+  list.innerHTML = MOCK_SESSIONS.map(s => `
+    <div class="sess-item${selectedArch===s.id?' on':''}" onclick="selectArch(${s.id})">
+      <div class="sess-item-date">${s.date}</div>
+      <div class="sess-item-title">${s.transcript.split('\n')[0].substring(0,60)}...</div>
+      <div class="sess-item-meta">
+        <span class="phase-tag">${s.phase}</span>
+        <span class="sess-item-dur">${s.dur}  ${s.words} parole</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectArch(id) {
+  selectedArch = id;
+  const s = MOCK_SESSIONS.find(x=>x.id===id);
+  document.getElementById('archTitle').textContent = s.date;
+  document.getElementById('archActs').style.display='flex';
+  document.getElementById('archBody').innerHTML = `<div class="tx-content">${s.transcript.replace(/\[Omega\]:/g,'<span class="tx-omega-line">[Omega]:</span>')}</div>`;
+  renderArch();
+}
+
+function showSynth() {
+  document.getElementById('archBody').innerHTML = `
+    <div class="tx-content">
+=== SINTESI ===
+
+La sessione ha esplorato il processo di liquidazione sinistri con focus sul collo di bottiglia principale: la frammentazione tra sistemi legacy non integrati.
+
+Punti chiave emersi:
+ Tempo medio di elaborazione: 3 giorni lavorativi (pratiche standard)
+ Causa principale: 4 passaggi manuali tra sistemi separati
+ Rischio turnover: conoscenza tacita non documentata
+ Opportunità AI: automazione dei passaggi di estrazione e categorizzazione
+
+=== TRANSCRIPT ===
+
+${MOCK_SESSIONS.find(x=>x.id===selectedArch)?.transcript||''}
+    </div>
+  `;
+}
+
+// -- LOG --
+function renderLog() {
+  const list = document.getElementById('logList');
+  list.innerHTML = MOCK_SESSIONS.map(s => `
+    <div class="sess-item${selectedLog===s.id?' on':''}" onclick="selectLog(${s.id})">
+      <div class="sess-item-date">${s.date}</div>
+      <div class="sess-item-meta">
+        <span class="phase-tag">${s.phase}</span>
+        <span class="sess-item-dur">${s.dur}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectLog(id) {
+  selectedLog = id;
+  const s = MOCK_SESSIONS.find(x=>x.id===id);
+  document.getElementById('logTitle').textContent = s.date;
+  document.getElementById('logActs').style.display='flex';
+  document.getElementById('logBody').innerHTML = `<div class="tx-content" style="font-family:var(--fm);font-size:12px;color:var(--dim)">${s.log}</div>`;
+  renderLog();
+}
+
+// -- CONFIG --
+function toggleCfg(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+
+// Init
+renderArch();
+renderLog();
+
+
+// -- OVERRIDE logout to use real doLogout --
+// (nav function already handles this via btn-logout onclick)
 </script>
-
-  <!-- Stop TTS button -->
-
-<button class="stop-tts-btn" id="stopTtsBtn" onclick="stopTTS()">x Interrompi Omega</button>
-
-  <!-- Pause dialog -->
-
-  <div class="pause-dlg" id="pauseDlg">
-    <div class="pause-card">
-      <div class="pause-card-icon">||</div>
-      <div class="pause-card-title">Sessione in pausa</div>
-      <div class="pause-card-body" id="pauseDlgBody">
-        La sessione e in pausa da <strong>3 minuti</strong>.<br>Vuoi continuare o chiudere?
-      </div>
-      <div class="pause-card-btns">
-        <button class="btn-sess btn-pause" onclick="pauseDlgContinue()">Resta in pausa</button>
-        <button class="btn-sess btn-stop" onclick="pauseDlgStop()">Chiudi e salva</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Confirm dialog -->
-
-  <div class="confirm-overlay" id="confirmOverlay">
-    <div class="confirm-card">
-      <div class="confirm-title" id="confirmTitle">Conferma</div>
-      <div class="confirm-body" id="confirmBody">Sei sicuro?</div>
-      <div class="confirm-btns">
-        <button class="btn-sess btn-cancel" onclick="confirmNo()">Annulla</button>
-        <button class="btn-sess btn-ok" id="confirmOkBtn">Conferma</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Omega history overlay -->
-
-  <div class="history-overlay" id="historyOverlay" onclick="if(event.target===this)closeHistory()">
-    <div class="tx-sheet">
-      <div class="sheet-hdr">
-        <div class="sheet-title">Messaggi precedenti</div>
-        <div class="sheet-acts">
-          <button class="sheet-copy-btn" onclick="clearOmegaHistory()" style="background:rgba(217,95,95,.1);border-color:rgba(217,95,95,.25);color:var(--dngr)">Cancella</button>
-          <button class="sheet-close-btn" onclick="closeHistory()">x</button>
-        </div>
-      </div>
-      <div class="sheet-body" id="historyBody"></div>
-    </div>
-  </div>
-
-  <!-- Omega question overlay (from render, with corrected IDs) -->
 
 </body>
 </html>
