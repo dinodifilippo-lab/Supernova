@@ -1139,7 +1139,7 @@ margin-top: -8px;
   <div id="scHome" class="screen active">
     <div class="home-galaxy"></div>
     <canvas id="homeStars"></canvas>
-    <div class="home-ver">v1.1</div>
+    <div class="home-ver">v1.2</div>
     <div class="home-content">
       <div>
         <div class="home-title">Super<span>NOVA</span></div>
@@ -2064,6 +2064,8 @@ sessAvvia = function() {
     spawnRecorder();
     // Hide loading, start recording
     if(loadEl) loadEl.classList.remove('show');
+    var avviaBtnEl = document.getElementById('btnAvvia');
+    if(avviaBtnEl) { avviaBtnEl.textContent = 'Avvia'; avviaBtnEl.style.opacity = ''; avviaBtnEl.style.pointerEvents = ''; }
     _origSessAvvia();
     // Chunk timer
     chunkSec = 0;
@@ -2637,7 +2639,10 @@ function omegaRespond(triggerType) {
 }
 
 // ── SHOW OMEGA QUESTION POPUP ──
+var omegaQPending = '';
+
 function showOmegaQuestion(text) {
+  omegaQPending = text; // Store for TTS use
   var chiarMatch = text.match(/^CHIARIMENTO:\s*"([^"]+)"\s*--\s*(.+)/s);
   var qEl = el('omegaQText');
   if(chiarMatch) {
@@ -2661,10 +2666,14 @@ function showOmegaQuestion(text) {
 
 // ── POPUP ACTIONS ──
 omegaQListen = function() {
+  // Pre-authorize audio on iOS (must be in direct user gesture)
+  if(window.speechSynthesis) { try { speechSynthesis.cancel(); } catch(e) {} }
   el('omegaQText').style.display = 'block';
   var cfg = getCfgFull();
   if(cfg.tts) {
-    speakText(el('omegaQText').textContent || el('omegaQText').innerText);
+    // Use stored text (more reliable than reading from DOM on iOS)
+    var ttsText = omegaQPending.replace(/^CHIARIMENTO:\s*"[^"]+"\s*--\s*/, '');
+    speakText(ttsText || el('omegaQText').textContent || el('omegaQText').innerText);
     el('omegaQInterrompi').style.display = 'block';
   }
   el('omegaQBtns').innerHTML =
@@ -2756,7 +2765,6 @@ omegaChiedi = function() {
   if(!isRecording) return;
   var cfg = getCfgFull();
   if(!cfg.anthKey) { alert('Inserisci la chiave Anthropic in Config.'); navTo('scCfg','Config','sl-cfg'); return; }
-  if(cfg.tts && window.speechSynthesis) { try { speechSynthesis.speak(new SpeechSynthesisUtterance('')); } catch(e) {} }
   dbg('Omega: trigger manuale');
   omegaRespond('manual');
 };
