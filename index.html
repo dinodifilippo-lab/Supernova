@@ -2110,8 +2110,10 @@ function sbSafe(path, method, body) {
   return Promise.race([
     fetch(SB_URL+'/rest/v1/'+path, opts).then(function(r){
       setBanner('bannerSupabase', false);
+      if(!r.ok && r.status !== 409) return null;
       var ct = r.headers.get('content-type')||'';
-      return ct.includes('json') ? r.json() : null;
+      if(ct.includes('json')) return r.json();
+      return true; // success but no body (e.g. POST with Prefer:return=minimal)
     }),
     timeout
   ]).catch(function(e){
@@ -2139,7 +2141,7 @@ function buildSessObj() {
 
 function saveSessToSB(sess) {
   return sbSafe('sn_sessions?on_conflict=id', 'POST', sess).then(function(ok){
-    if(ok === null) {
+    if(ok === null || ok === false) {
       // Offline — buffer locally
       var idx = localBuffer.findIndex(function(s){ return s.id === sess.id; });
       if(idx >= 0) localBuffer[idx] = sess; else localBuffer.push(sess);
@@ -2147,6 +2149,8 @@ function saveSessToSB(sess) {
       addLog('Sessione salvata localmente (SB offline)');
     } else {
       addLog('Sessione salvata su Supabase');
+      // Update local backup with all sessions
+      try { localStorage.setItem('sn_sessions_backup', JSON.stringify(sessions)); } catch(e) {}
       flushBuffer();
     }
   });
