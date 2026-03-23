@@ -1384,10 +1384,7 @@ UTILITY
               <label class="cfg-label">Utente corrente</label>
               <input class="cfg-input" id="cfgUser" readonly>
             </div>
-            <button class="cfg-save-btn" onclick="doLogout()"
-              style="background:rgba(217,95,95,.08);border-color:rgba(217,95,95,.25);color:#d95f5f">
-              Logout
-            </button>
+
           </div>
         </div>
 
@@ -2082,6 +2079,274 @@ var _origDrawWave = null;
     else window.realAudioLevel = 0;
   }, 50);
 })();
+
+
+// ================================================================
+// LAYER 4 — SUPABASE SESSION SAVE + ARCHIVE + LOG
+// ================================================================
+
+var SB_TIMEOUT   = 5000;
+var AUTOSAVE_MS  = 2 * 60 * 1000;
+var sessions     = [];
+var sessionLog   = [];
+var currentSessId = null;
+var autoSaveTimer = null;
+var localBuffer  = [];
+
+function addLog(msg) {
+  var entry = { time: new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'}), msg: String(msg) };
+  sessionLog.push(entry);
+}
+
+function sbSafe(path, method, body) {
+  var opts = {
+    method: method || 'GET',
+    headers: { 'Content-Type':'application/json', 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY, 'Prefer': method==='POST'?'return=minimal':'' }
+  };
+  if(body) opts.body = JSON.stringify(body);
+  var timeout = new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('timeout')); }, SB_TIMEOUT); });
+  return Promise.race([
+    fetch(SB_URL+'/rest/v1/'+path, opts).then(function(r){
+      setBanner('bannerSupabase', false);
+      var ct = r.headers.get('content-type')||'';
+      return ct.includes('json') ? r.json() : null;
+    }),
+    timeout
+  ]).catch(function(e){
+    setBanner('bannerSupabase', true);
+    return null;
+  });
+}
+
+function buildSessObj() {
+  return {
+    id:         currentSessId,
+    user:       currentUser || 'unknown',
+    phase:      currentPhase,
+    date:       new Date().toLocaleString('it-IT'),
+    created_at: new Date().toISOString(),
+    duration:   timerSec,
+    transcript: transcript || '',
+    log_entries: JSON.stringify(sessionLog)
+  };
+}
+
+function saveSessToSB(sess) {
+  return sbSafe('sn_sessions?on_conflict=id', 'POST', sess).then(function(ok){
+    if(ok === null) {
+      // Offline — buffer locally
+      var idx = localBuffer.findIndex(function(s){ return s.id === sess.id; });
+      if(idx >= 0) localBuffer[idx] = sess; else localBuffer.push(sess);
+      try { localStorage.setItem('sn_buffer', JSON.stringify(localBuffer)); } catch(e) {}
+      addLog('Sessione salvata localmente (SB offline)');
+    } else {
+      addLog('Sessione salvata su Supabase');
+      flushBuffer();
+    }
+  });
+}
+
+function flushBuffer() {
+  if(!localBuffer.length) {
+    try {
+      var b = localStorage.getItem('sn_buffer');
+      if(b) localBuffer = JSON.parse(b);
+    } catch(e) {}
+  }
+  if(!localBuffer.length) return;
+  var remaining = [];
+  var promises = localBuffer.map(function(sess){
+    return sbSafe('sn_sessions?on_conflict=id', 'POST', sess).then(function(ok){
+      if(ok === null) remaining.push(sess);
+    });
+  });
+  Promise.all(promises).then(function(){
+    localBuffer = remaining;
+    try {
+      if(remaining.length) localStorage.setItem('sn_buffer', JSON.stringify(remaining));
+      else localStorage.removeItem('sn_buffer');
+    } catch(e) {}
+  });
+}
+
+function resetAutoSave() {
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(function(){
+    if(!isRecording && !isPaused) return;
+    addLog('Autosave...');
+    var sess = buildSessObj();
+    var idx = sessions.findIndex(function(s){ return s.id === currentSessId; });
+    if(idx >= 0) sessions[idx] = sess; else sessions.push(sess);
+    saveSessToSB(sess);
+    resetAutoSave();
+  }, AUTOSAVE_MS);
+}
+
+function loadSessions() {
+  sbSafe('sn_sessions?user=eq.'+encodeURIComponent(currentUser||'')+'&order=created_at.desc&limit=100', 'GET')
+    .then(function(data){
+      if(data) sessions = data;
+      renderArch();
+      renderLog();
+    });
+}
+
+// beforeunload save
+window.addEventListener('beforeunload', function(){
+  if(isRecording || isPaused) {
+    var sess = buildSessObj();
+    var idx = sessions.findIndex(function(s){ return s.id === currentSessId; });
+    if(idx >= 0) sessions[idx] = sess; else sessions.push(sess);
+    try { localStorage.setItem('sn_buffer', JSON.stringify([sess])); } catch(e) {}
+  }
+});
+
+// ── PATCH sessAvvia to init session id and log ──
+var _l4_origAvvia = sessAvvia;
+sessAvvia = function() {
+  currentSessId = Date.now();
+  sessionLog = [];
+  addLog('Sessione avviata ID:'+currentSessId);
+  _l4_origAvvia();
+  resetAutoSave();
+};
+
+// ── PATCH sessStop to save session ──
+var _l4_origStop = sessStop;
+sessStop = function() {
+  clearTimeout(autoSaveTimer);
+  addLog('Stop -- durata:'+fmt(timerSec)+' transcript:'+transcript.length+' chars');
+  _l4_origStop();
+  var sess = buildSessObj();
+  var idx = sessions.findIndex(function(s){ return s.id === currentSessId; });
+  if(idx >= 0) sessions[idx] = sess; else sessions.push(sess);
+  saveSessToSB(sess).then(function(){
+    renderArch();
+    renderLog();
+  });
+};
+
+// ── PATCH loginSuccess to load sessions ──
+var _l4_origLoginSuccess = loginSuccess;
+loginSuccess = function(u) {
+  _l4_origLoginSuccess(u);
+  setTimeout(function(){ loadSessions(); }, 800);
+};
+
+// ── ARCHIVE ──
+var selectedArchId = null;
+
+renderArch = function() {
+  var filter = el('archFilter') ? el('archFilter').value : 'all';
+  var list   = sessions.filter(function(s){ return filter==='all' || s.phase===filter; });
+  var listEl = el('archList');
+  if(!listEl) return;
+  if(!list.length) {
+    listEl.innerHTML = '<div class="empty-state" style="height:200px"><div class="empty-icon">&#9633;</div><div class="empty-text">Nessuna sessione</div></div>';
+    return;
+  }
+  listEl.innerHTML = list.map(function(s){
+    var words = (s.transcript||'').split(' ').filter(function(w){return w.length>0;}).length;
+    return '<div class="sess-item'+(selectedArchId===s.id?' active':'')+'" onclick="archSelect('+s.id+')">'
+      +'<div class="sess-item-date">'+(s.date||'')+'</div>'
+      +'<div class="sess-item-preview">'+(s.transcript||'').substring(0,60)+'...</div>'
+      +'<div class="sess-item-meta"><span class="phase-tag">'+(s.phase||'setup')+'</span>'
+      +'<span class="sess-item-dur">'+fmt(s.duration||0)+' &middot; '+words+' parole</span></div>'
+      +'</div>';
+  }).join('');
+};
+
+function archSelect(id) {
+  selectedArchId = id;
+  var s = sessions.find(function(x){ return x.id===id; });
+  if(!s) return;
+  el('archContentTitle').textContent = s.date || 'Sessione';
+  el('archBody').innerHTML = '<div style="white-space:pre-wrap;line-height:1.85;font-size:14px">'+(s.transcript||'(nessun transcript)')+'</div>';
+  el('archCopyBtn').classList.remove('hidden');
+  el('archSynthBtn').classList.remove('hidden');
+  el('archDelBtn').classList.remove('hidden');
+  renderArch();
+}
+
+archCopy = function() {
+  var s = sessions.find(function(x){ return x.id===selectedArchId; });
+  if(!s) return;
+  navigator.clipboard && navigator.clipboard.writeText(s.transcript||'');
+  var btn = el('archCopyBtn'); if(btn){var o=btn.textContent;btn.textContent='Copiato';setTimeout(function(){btn.textContent=o;},1500);}
+};
+
+archDel = function() {
+  if(!selectedArchId) return;
+  var id = selectedArchId;
+  sessions = sessions.filter(function(s){ return s.id!==id; });
+  sbSafe('sn_sessions?id=eq.'+id, 'DELETE');
+  selectedArchId = null;
+  el('archContentTitle').textContent = 'Seleziona una sessione';
+  el('archBody').innerHTML = '<div class="empty-state"><div class="empty-icon">&#9633;</div><div class="empty-text">Seleziona una sessione per vedere il transcript</div></div>';
+  el('archCopyBtn').classList.add('hidden');
+  el('archSynthBtn').classList.add('hidden');
+  el('archDelBtn').classList.add('hidden');
+  renderArch();
+};
+
+// ── LOG ──
+var selectedLogId = null;
+
+renderLog = function() {
+  var filter = el('logFilter') ? el('logFilter').value : 'all';
+  var list   = sessions.filter(function(s){ return filter==='all' || s.phase===filter; });
+  var listEl = el('logList');
+  if(!listEl) return;
+  if(!list.length) {
+    listEl.innerHTML = '<div class="empty-state" style="height:200px"><div class="empty-icon">&#8801;</div><div class="empty-text">Nessuna sessione</div></div>';
+    return;
+  }
+  listEl.innerHTML = list.map(function(s){
+    return '<div class="sess-item'+(selectedLogId===s.id?' active':'')+'" onclick="logSelect('+s.id+')">'
+      +'<div class="sess-item-date">'+(s.date||'')+'</div>'
+      +'<div class="sess-item-meta"><span class="phase-tag">'+(s.phase||'setup')+'</span>'
+      +'<span class="sess-item-dur">'+fmt(s.duration||0)+'</span></div>'
+      +'</div>';
+  }).join('');
+};
+
+function logSelect(id) {
+  selectedLogId = id;
+  var s = sessions.find(function(x){ return x.id===id; });
+  if(!s) return;
+  el('logContentTitle').textContent = s.date || 'Sessione';
+  var entries = [];
+  try { entries = JSON.parse(s.log_entries||'[]'); } catch(e) {}
+  el('logBody').innerHTML = '<div style="font-family:DM Mono,monospace;font-size:12px;line-height:1.8;color:#7a8694">'
+    + (entries.length ? entries.map(function(e){ return e.time+'  '+e.msg; }).join('\n') : '(nessun log)')
+    + '</div>';
+  el('logCopyBtn').classList.remove('hidden');
+  el('logDelBtn').classList.remove('hidden');
+  renderLog();
+}
+
+logCopy = function() {
+  var s = sessions.find(function(x){ return x.id===selectedLogId; });
+  if(!s) return;
+  var entries = [];
+  try { entries = JSON.parse(s.log_entries||'[]'); } catch(e) {}
+  var text = entries.map(function(e){ return e.time+'  '+e.msg; }).join('\n');
+  navigator.clipboard && navigator.clipboard.writeText(text);
+  var btn = el('logCopyBtn'); if(btn){var o=btn.textContent;btn.textContent='Copiato';setTimeout(function(){btn.textContent=o;},1500);}
+};
+
+logDel = function() {
+  if(!selectedLogId) return;
+  var id = selectedLogId;
+  var idx = sessions.findIndex(function(s){ return s.id===id; });
+  if(idx>=0) { sessions[idx].log_entries='[]'; sbSafe('sn_sessions?id=eq.'+id,'PATCH',{log_entries:'[]'}); }
+  selectedLogId = null;
+  el('logContentTitle').textContent = 'Seleziona una sessione';
+  el('logBody').innerHTML = '<div class="empty-state"><div class="empty-icon">&#8801;</div><div class="empty-text">Seleziona una sessione per vedere il log</div></div>';
+  el('logCopyBtn').classList.add('hidden');
+  el('logDelBtn').classList.add('hidden');
+  renderLog();
+};
 
 </script>
 
