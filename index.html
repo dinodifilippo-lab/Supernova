@@ -1075,15 +1075,6 @@ UTILITY
 ============================================================ */
 .hidden { display: none !important; }
 
-#dbgPanel {
-position: fixed; bottom: 10px; left: 10px; z-index: 9999;
-background: rgba(0,0,0,.92); border: 1px solid #4a9e72;
-border-radius: 8px; padding: 10px 14px;
-font-family: DM Mono, monospace; font-size: 10px;
-color: #4aaf7a; max-width: 60vw; max-height: 30vh;
-overflow-y: auto; line-height: 1.6; word-break: break-all;
-}
-
 /* Mic loading overlay */
 #micLoading {
 display: none;
@@ -1139,7 +1130,7 @@ margin-top: -8px;
   <div id="scHome" class="screen active">
     <div class="home-galaxy"></div>
     <canvas id="homeStars"></canvas>
-    <div class="home-ver">v1.4</div>
+    <div class="home-ver">v1.5</div>
     <div class="home-content">
       <div>
         <div class="home-title">Super<span>NOVA</span></div>
@@ -2361,9 +2352,9 @@ sessStop = function() {
 var _l4_origLoginSuccess = loginSuccess;
 loginSuccess = function(u) {
   _l4_origLoginSuccess(u);
-  // Clear stale buffer that may have old schema fields
-  try { localStorage.removeItem('sn_buffer'); } catch(e) {}
-  setTimeout(function(){ loadSessions(); }, 800);
+  // Flush any buffered sessions to Supabase BEFORE loading
+  setTimeout(function(){ flushBuffer(); }, 200);
+  setTimeout(function(){ loadSessions(); }, 1200);
 };
 
 // ── ARCHIVE ──
@@ -2482,25 +2473,9 @@ logDel = function() {
 };
 
 
-var dbgLines = [];
-function dbg(msg) {
-  var t = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  dbgLines.push(t+' '+msg);
-  if(dbgLines.length > 20) dbgLines = dbgLines.slice(-20);
-  var p = document.getElementById('dbgPanel');
-  if(p) p.innerHTML = dbgLines.join('<br>');
-}
+function dbg(msg) { console.log('[SN]', msg); }
 
-// Patch sbSafe to log every call
-var _origSbSafe = sbSafe;
-sbSafe = function(path, method, body) {
-  dbg((method||'GET')+' '+path.substring(0,30));
-  return _origSbSafe(path, method, body).then(function(result) {
-    if(Array.isArray(result)) dbg('-> '+result.length+' rows');
-    else dbg('-> '+(result===null?'NULL':result===true?'OK':JSON.stringify(result).substring(0,30)));
-    return result;
-  });
-};
+
 
 
 // ================================================================
@@ -2665,9 +2640,10 @@ function showOmegaQuestion(text) {
   }
   qEl.style.display = 'none';
   el('omegaQInterrompi').style.display = 'none';
+  var cfg2 = getCfgFull();
   el('omegaQBtns').innerHTML =
-    '<button class="omega-q-btn listen" onclick="omegaQListen()">Ascolta</button>'+
-    '<button class="omega-q-btn mute" onclick="omegaQSilence()">Non parlare</button>'+
+    (cfg2.tts ? '<button class="omega-q-btn listen" onclick="omegaTTSSpeak()">Ascolta</button>' : '')+
+    '<button class="omega-q-btn mute" onclick="omegaQListen()">Leggi</button>'+
     '<button class="omega-q-btn close" onclick="omegaQClose()">Chiudi</button>';
   el('omegaQOverlay').classList.add('show');
   // Auto-pause recording when Omega popup appears
@@ -2680,41 +2656,46 @@ function showOmegaQuestion(text) {
 }
 
 // ── POPUP ACTIONS ──
-omegaQListen = function() {
-  el('omegaQText').style.display = 'block';
+// omegaTTSSpeak: called as FIRST action in onclick - iOS requires speak() to be immediate
+function omegaTTSSpeak() {
   var cfg = getCfgFull();
-  if(cfg.tts && window.speechSynthesis) {
-    var ttsText = (omegaQPending || '').replace(/^CHIARIMENTO:\s*"[^"]+"\s*--\s*/, '').replace(/<[^>]+>/g,'').trim();
-    if(ttsText) {
-      // iOS: must call speak() synchronously in the gesture handler
-      var utt = new SpeechSynthesisUtterance(ttsText);
-      utt.lang = (cfg.lang || 'it') === 'it' ? 'it-IT' : 'en-US';
-      utt.rate = 0.92;
-      var voice = ttsVoices.find(function(v){ return v.lang && v.lang.startsWith(utt.lang.slice(0,2)); });
-      if(voice) utt.voice = voice;
-      el('stopTtsBtn').style.display = 'block';
-      utt.onend = utt.onerror = function(){
-        el('stopTtsBtn').style.display = 'none';
-        el('omegaQInterrompi').style.display = 'none';
-        // Auto-close after TTS ends
-        if(el('omegaQOverlay').classList.contains('show')) {
-          el('omegaQOverlay').classList.remove('show');
-          el('omegaQText').style.display = 'none';
-          if(window._omegaPausedRecording) { sessRiprendi(); window._omegaPausedRecording = false; }
-        }
-      };
-      window.speechSynthesis.speak(utt);
-      el('omegaQInterrompi').style.display = 'block';
-    }
-  }
-  // Add question to transcript
+  if(!cfg.tts || !window.speechSynthesis) { omegaShowText(); return; }
+  var ttsText = (omegaQPending || '').replace(/^CHIARIMENTO:\s*"[^"]+"\s*--\s*/, '').replace(/<[^>]+>/g,'').trim();
+  if(!ttsText) { omegaShowText(); return; }
+  // iOS: speak() is the VERY FIRST call - no other code before this
+  var utt = new SpeechSynthesisUtterance(ttsText);
+  utt.lang = (getCfgFull().lang || 'it') === 'it' ? 'it-IT' : 'en-US';
+  utt.rate = 0.92;
+  window.speechSynthesis.speak(utt);
+  // After speak() is queued, set up UI
+  el('omegaQInterrompi').style.display = 'block';
+  el('stopTtsBtn').style.display = 'block';
+  utt.onend = utt.onerror = function() {
+    el('omegaQInterrompi').style.display = 'none';
+    el('stopTtsBtn').style.display = 'none';
+  };
+  omegaShowText();
+}
+
+function omegaShowText() {
+  el('omegaQText').style.display = 'block';
   var qText = el('omegaQText').textContent || el('omegaQText').innerText;
   transcript += (transcript ? ' ' : '') + '[Omega]: ' + qText;
   updateHistoryPill();
-  // Show only Chiudi after Ascolta
   el('omegaQBtns').innerHTML =
+    '<button class="omega-q-btn mute" onclick="omegaQInterrompiTTS()">Interrompi</button>'+
     '<button class="omega-q-btn close" onclick="omegaQClose()">Chiudi</button>';
+}
+
+omegaQListen = function() {
+  omegaShowText();
 };
+
+function omegaQInterrompiTTS() {
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
+  el('omegaQInterrompi').style.display = 'none';
+  el('stopTtsBtn').style.display = 'none';
+}
 
 omegaQSilence = function() {
   stopTTS();
@@ -2836,6 +2817,5 @@ sessAvvia = function() {
 
 </script>
 
-<div id="dbgPanel">debug...</div>
 </body>
 </html>
