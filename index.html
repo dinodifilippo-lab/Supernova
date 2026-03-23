@@ -1146,7 +1146,6 @@ UTILITY
         <div class="phase-opt" onclick="setPhase('f2','Fase 2')">Fase 2</div>
       </div>
     </div>
-    <button class="btn-logout" onclick="doLogout()">Esci</button>
   </div>
 </header>
 
@@ -1542,6 +1541,14 @@ function loginSuccess(u) {
   el('homeBtn').style.pointerEvents = 'none';
   setTimeout(function() {
     el('scHome').classList.remove('active');
+    // Always reset to Sessione
+    ['scSess','scArch','scLog','scCfg'].forEach(function(id){
+      var s = el(id); if(s) s.classList.remove('active');
+    });
+    el('scSess').classList.add('active');
+    document.querySelectorAll('.side-link').forEach(function(l){ l.classList.remove('active'); });
+    el('sl-sess').classList.add('active');
+    el('hdrTitle').textContent = 'Sessione';
     el('scApp').style.display = 'flex';
     el('sideUser').textContent = 'Utente: ' + u;
     el('cfgUser').value = u;
@@ -1833,10 +1840,10 @@ function drawWave() {
     var ph = r*(Math.PI*2/5);
     var ratio = ((wTime*sp+ph)%(Math.PI*2))/(Math.PI*2);
     var rad = base*(.8+r*.12) + (Math.max(wW,wH)*.75 - base*(.8+r*.12))*ratio;
-    var op = isPaused ? (1-ratio)*.1 : (1-ratio)*.22;
+    var lvl = window.realAudioLevel||0; var op = isPaused ? (1-ratio)*.1 : (1-ratio)*(.2+lvl*.3);
     wCtx.beginPath(); wCtx.arc(cx,cy,rad,0,Math.PI*2);
     wCtx.strokeStyle = isPaused ? 'rgba(232,168,74,'+op+')' : 'rgba(74,158,114,'+op+')';
-    wCtx.lineWidth = thicks[r]; wCtx.stroke();
+    wCtx.lineWidth = thicks[r] + (isRecording&&!isPaused ? lvl*2 : 0); wCtx.stroke();
   }
 }
 
@@ -1852,6 +1859,230 @@ drawWave();
   rs(); is(); ds();
   window.addEventListener('resize', function(){ rs(); is(); });
 })();
+
+// ================================================================
+// LAYER 3 — RECORDING + GROQ TRANSCRIPTION
+// ================================================================
+
+var CHUNK_SEC   = 10;
+var MIN_BLOB    = 2000;
+var GROQ_TIMEOUT = 8000;
+
+var transcript  = '';
+var mediaStream = null;
+var mediaRec    = null;
+var recChunks   = [];
+var audioCtx    = null;
+var analyser    = null;
+var audioData   = null;
+
+function getCfg() {
+  try {
+    var saved = localStorage.getItem('sn_cfg_'+(currentUser||'default'));
+    return saved ? JSON.parse(saved) : {};
+  } catch(e) { return {}; }
+}
+
+function getMime() {
+  var types = ['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus'];
+  return types.find(function(t){ return MediaRecorder.isTypeSupported(t); }) || '';
+}
+
+function getAudioLevel() {
+  if(!analyser || !audioData) return 0;
+  analyser.getByteFrequencyData(audioData);
+  var sum = 0;
+  for(var i=0; i<audioData.length; i++) sum += audioData[i];
+  return Math.min(1, sum / (audioData.length * 255) * 4);
+}
+
+function initAnalyser(stream) {
+  try {
+    audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+    var src   = audioCtx.createMediaStreamSource(stream);
+    analyser  = audioCtx.createAnalyser();
+    analyser.fftSize = 256;
+    audioData = new Uint8Array(analyser.frequencyBinCount);
+    src.connect(analyser);
+  } catch(e) { analyser = null; }
+}
+
+function setBanner(id, show) {
+  var b = el(id);
+  if(b) b.classList.toggle('show', show);
+}
+
+function spawnRecorder() {
+  var mime  = getMime();
+  var opts  = mime ? {mimeType: mime} : {};
+  var chunks = [];
+  var r = new MediaRecorder(mediaStream, opts);
+  r.ondataavailable = function(e){ if(e.data && e.data.size > 0) chunks.push(e.data); };
+  r.start(500);
+  mediaRec   = r;
+  recChunks  = chunks;
+}
+
+function sendToGroq(blob) {
+  var cfg = getCfg();
+  if(!cfg.groqKey) { setBanner('bannerGroq', true); return Promise.resolve(null); }
+  var mime = blob.type || 'audio/mp4';
+  var ext  = mime.includes('mp4') ? 'm4a' : mime.includes('ogg') ? 'ogg' : 'webm';
+  var fd   = new FormData();
+  fd.append('file', blob, 'audio.'+ext);
+  fd.append('model', 'whisper-large-v3-turbo');
+  var lang = cfg.lang || 'it';
+  if(lang) fd.append('language', lang);
+  fd.append('response_format', 'text');
+  var timeout = new Promise(function(_, rej){ setTimeout(function(){ rej(new Error('timeout')); }, GROQ_TIMEOUT); });
+  return Promise.race([
+    fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {'Authorization': 'Bearer '+cfg.groqKey},
+      body: fd
+    }).then(function(r){ return r.ok ? r.text() : null; }),
+    timeout
+  ]).then(function(t){
+    setBanner('bannerGroq', false);
+    return (t||'').trim();
+  }).catch(function(){
+    setBanner('bannerGroq', true);
+    return null;
+  });
+}
+
+function appendTranscript(text) {
+  if(!text) return;
+  transcript += (transcript ? ' ' : '') + text;
+  var words = transcript.split(' ').filter(function(w){ return w.length > 0; }).length;
+  el('sessWordCount').textContent = words;
+}
+
+function rollover() {
+  var oldRec    = mediaRec;
+  var oldChunks = recChunks.slice();
+  spawnRecorder();
+  setTimeout(function(){
+    if(oldRec && oldRec.state !== 'inactive') {
+      oldRec.onstop = function(){
+        if(!oldChunks.length) return;
+        var total = oldChunks.reduce(function(s,c){ return s+c.size; }, 0);
+        if(total < MIN_BLOB) return;
+        var mime = (oldChunks[0]&&oldChunks[0].type) || getMime() || 'audio/mp4';
+        var blob = new Blob(oldChunks, {type: mime});
+        sendToGroq(blob).then(function(text){
+          appendTranscript(text);
+          chunkCount++;
+          el('sessChunkCount').textContent = chunkCount;
+          if(chunkCount === 1) {
+            el('omegaAskBtn').disabled = false;
+            el('omegaAskHint').textContent = '';
+          }
+        });
+      };
+      oldRec.stop();
+    }
+  }, 3000);
+}
+
+// Override sessAvvia with real recording
+var _origSessAvvia = sessAvvia;
+sessAvvia = function() {
+  var cfg = getCfg();
+  if(!cfg.groqKey) {
+    alert('Inserisci la chiave Groq in Config prima di iniziare.');
+    navTo('scCfg','Config','sl-cfg');
+    return;
+  }
+  transcript = '';
+  navigator.mediaDevices.getUserMedia({
+    audio: {channelCount:1, echoCancellation:true, noiseSuppression:true}
+  }).then(function(stream) {
+    mediaStream = stream;
+    initAnalyser(stream);
+    spawnRecorder();
+    _origSessAvvia();
+    // Chunk timer
+    chunkSec = 0;
+    clearInterval(chunkInt);
+    chunkInt = setInterval(function(){
+      if(isPaused) return;
+      chunkSec++;
+      if(chunkSec >= CHUNK_SEC) { chunkSec = 0; rollover(); }
+    }, 1000);
+  }).catch(function(e){
+    alert('Microfono non disponibile: ' + e.message);
+  });
+};
+
+// Override sessPausa to stop recorder
+var _origSessPausa = sessPausa;
+sessPausa = function() {
+  _origSessPausa();
+  clearInterval(chunkInt);
+  if(mediaRec && mediaRec.state !== 'inactive') mediaRec.stop();
+};
+
+// Override sessRiprendi to restart recorder
+var _origSessRiprendi = sessRiprendi;
+sessRiprendi = function() {
+  _origSessRiprendi();
+  chunkSec = 0;
+  spawnRecorder();
+  chunkInt = setInterval(function(){
+    if(isPaused) return;
+    chunkSec++;
+    if(chunkSec >= CHUNK_SEC) { chunkSec = 0; rollover(); }
+  }, 1000);
+};
+
+// Override sessStop to finalize
+var _origSessStop = sessStop;
+sessStop = function() {
+  clearInterval(chunkInt);
+  var finalChunks = recChunks.slice();
+  if(mediaRec && mediaRec.state !== 'inactive') {
+    mediaRec.onstop = function(){
+      var total = finalChunks.reduce(function(s,c){ return s+c.size; }, 0);
+      if(total >= MIN_BLOB) {
+        var mime = (finalChunks[0]&&finalChunks[0].type) || getMime() || 'audio/mp4';
+        sendToGroq(new Blob(finalChunks, {type:mime})).then(function(text){
+          appendTranscript(text);
+        });
+      }
+    };
+    mediaRec.stop();
+  }
+  if(mediaStream) { mediaStream.getTracks().forEach(function(t){ t.stop(); }); mediaStream = null; }
+  if(audioCtx) { try{audioCtx.close();}catch(e){} audioCtx = null; analyser = null; }
+  _origSessStop();
+};
+
+// Override sessShowTx to show real transcript
+var _origSessShowTx = sessShowTx;
+sessShowTx = function() {
+  if(isRecording && !isPaused) sessPausa();
+  el('txTitle').textContent = 'Transcript -- ' + fmt(timerSec);
+  el('txBody').textContent = transcript || 'Nessuna trascrizione ancora. Parla per almeno 10 secondi.';
+  el('txOverlay').classList.add('show');
+};
+
+// Real audio level for wave canvas
+var _origDrawWave = null;
+(function patchDrawWave(){
+  // Patch getAudioLevel into wave draw
+  var orig = window.drawWave;
+  // The drawWave function uses audioCtx analyser inline
+  // We inject real audio level by patching the op variable
+  // Actually the wave draw reads wTime and isPaused/isRecording
+  // We patch it by storing level in a global
+  window.realAudioLevel = 0;
+  setInterval(function(){
+    if(isRecording && !isPaused) window.realAudioLevel = getAudioLevel();
+    else window.realAudioLevel = 0;
+  }, 50);
+})();
+
 </script>
 
 </body>
