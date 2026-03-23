@@ -1646,6 +1646,12 @@ function togglePhaseDD() {
   el('phaseDD').classList.toggle('open');
 }
 function setPhase(val, label) {
+  // Block phase change during active recording
+  if(isRecording) {
+    el('phaseDD').classList.remove('open');
+    alert('Ferma la sessione prima di cambiare Fase.');
+    return;
+  }
   currentPhase = val;
   el('phaseLabel').textContent = label;
   el('sessPhaseDisplay').textContent = label;
@@ -2183,22 +2189,41 @@ function resetAutoSave() {
 }
 
 function loadSessions() {
-  // Try to load with user filter first, fallback to all sessions
+  // First: restore any locally buffered sessions immediately
+  try {
+    var backup = localStorage.getItem('sn_sessions_backup');
+    if(backup) { sessions = JSON.parse(backup); renderArch(); renderLog(); }
+  } catch(e) {}
+  // Then: load from Supabase and merge
   sbSafe('sn_sessions?order=created_at.desc&limit=100', 'GET')
     .then(function(data){
-      if(data && data.length !== undefined) sessions = data;
-      renderArch();
-      renderLog();
+      if(data && data.length !== undefined) {
+        sessions = data;
+        renderArch();
+        renderLog();
+        // Update backup with fresh data
+        try { localStorage.setItem('sn_sessions_backup', JSON.stringify(sessions)); } catch(e) {}
+      }
+      // Also flush any buffered sessions that didn't save
+      flushBuffer();
     });
 }
 
-// beforeunload save
+// beforeunload — synchronous save to localStorage
+// fetch() is killed on page close, localStorage is synchronous and always works
 window.addEventListener('beforeunload', function(){
-  if(isRecording || isPaused) {
+  if((isRecording || isPaused) && currentSessId) {
     var sess = buildSessObj();
-    var idx = sessions.findIndex(function(s){ return s.id === currentSessId; });
-    if(idx >= 0) sessions[idx] = sess; else sessions.push(sess);
-    try { localStorage.setItem('sn_buffer', JSON.stringify([sess])); } catch(e) {}
+    // Save current session to local buffer
+    try {
+      var buf = [];
+      try { buf = JSON.parse(localStorage.getItem('sn_buffer')||'[]'); } catch(e){}
+      var idx = buf.findIndex(function(s){ return s.id === currentSessId; });
+      if(idx >= 0) buf[idx] = sess; else buf.push(sess);
+      localStorage.setItem('sn_buffer', JSON.stringify(buf));
+      // Also save all sessions for recovery
+      localStorage.setItem('sn_sessions_backup', JSON.stringify(sessions));
+    } catch(e) {}
   }
 });
 
