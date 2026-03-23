@@ -1083,8 +1083,50 @@ font-family: DM Mono, monospace; font-size: 10px;
 color: #4aaf7a; max-width: 95vw; max-height: 40vh;
 overflow-y: auto; line-height: 1.6; word-break: break-all;
 }
-</style>
 
+/* Mic loading overlay */
+#micLoading {
+display: none;
+position: absolute;
+inset: 0;
+z-index: 20;
+background: rgba(10,12,15,.85);
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 20px;
+backdrop-filter: blur(4px);
+}
+#micLoading.show { display: flex; }
+
+.mic-spinner {
+width: 48px; height: 48px;
+border: 3px solid rgba(74,158,114,.2);
+border-top-color: #4a9e72;
+border-radius: 50%;
+animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.mic-loading-msg {
+font-family: ‘DM Mono’, monospace;
+font-size: 12px;
+letter-spacing: .14em;
+text-transform: uppercase;
+color: #4a9e72;
+text-align: center;
+line-height: 1.6;
+}
+.mic-loading-sub {
+font-family: ‘DM Mono’, monospace;
+font-size: 10px;
+letter-spacing: .1em;
+color: #3d4655;
+text-align: center;
+margin-top: -8px;
+}
+
+</style>
 </head>
 <body>
 
@@ -1189,6 +1231,11 @@ overflow-y: auto; line-height: 1.6; word-break: break-all;
     <!-- -- SESSIONE -- -->
     <div id="scSess" class="screen active" style="position:relative">
       <canvas class="sess-canvas" id="waveCanvas"></canvas>
+  <div id="micLoading">
+    <div class="mic-spinner"></div>
+    <div class="mic-loading-msg">Attivazione microfono</div>
+    <div class="mic-loading-sub">Attendere prima di parlare</div>
+  </div>
       <div class="sess-body">
         <div class="omega-stage">
           <div class="omega-symbol" id="omegaSym">&#937;</div>
@@ -2003,12 +2050,20 @@ sessAvvia = function() {
     return;
   }
   transcript = '';
+  // Show loading immediately on button
+  var loadEl = document.getElementById('micLoading');
+  if(loadEl) loadEl.classList.add('show');
+  var avviaBtn = document.getElementById('btnAvvia');
+  if(avviaBtn) { avviaBtn.textContent = 'Avvio...'; avviaBtn.style.opacity = '.6'; avviaBtn.style.pointerEvents = 'none'; }
+  
   navigator.mediaDevices.getUserMedia({
     audio: {channelCount:1, echoCancellation:true, noiseSuppression:true}
   }).then(function(stream) {
     mediaStream = stream;
     initAnalyser(stream);
     spawnRecorder();
+    // Hide loading, start recording
+    if(loadEl) loadEl.classList.remove('show');
     _origSessAvvia();
     // Chunk timer
     chunkSec = 0;
@@ -2019,8 +2074,17 @@ sessAvvia = function() {
       if(chunkSec >= CHUNK_SEC) { chunkSec = 0; rollover(); }
     }, 1000);
   }).catch(function(e){
+    if(loadEl) loadEl.classList.remove('show');
+    var btn = document.getElementById('btnAvvia');
+    if(btn) { btn.textContent = 'Avvia'; btn.style.opacity = ''; btn.style.pointerEvents = ''; }
     alert('Microfono non disponibile: ' + e.message);
   });
+  // Force-hide any loading state after 4 seconds regardless
+  setTimeout(function(){
+    if(loadEl) loadEl.classList.remove('show');
+    var btn = document.getElementById('btnAvvia');
+    if(btn) { btn.style.opacity = ''; btn.style.pointerEvents = ''; }
+  }, 4000);
 };
 
 // Override sessPausa to stop recorder
