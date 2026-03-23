@@ -2283,7 +2283,8 @@ sessStop = function() {
     var idx = sessions.findIndex(function(s){ return s.id === currentSessId; });
     if(idx >= 0) sessions[idx] = sess; else sessions.push(sess);
     try { localStorage.setItem('sn_sessions_backup', JSON.stringify(sessions)); } catch(e) {}
-    saveSessToSB(sessSB).then(function(){
+    dbg('Saving to SB id:'+currentSessId);
+    saveSessToSB(sess).then(function(){
       renderArch();
       renderLog();
     });
