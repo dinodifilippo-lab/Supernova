@@ -3,30 +3,266 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>SuperNOVA -- App</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SuperNOVA - Home</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+height: 100%;
+overflow: hidden;
+background: #0a0208;
+font-family: ‘DM Sans’, sans-serif;
+-webkit-font-smoothing: antialiased;
+}
+
+.scene {
+position: fixed;
+inset: 0;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+}
+
+/* ── GALAXY BACKGROUND ── */
+.galaxy-bg {
+position: fixed;
+inset: 0;
+z-index: 0;
+background:
+radial-gradient(ellipse at 20% 50%, rgba(74,20,140,.75) 0%, transparent 50%),
+radial-gradient(ellipse at 80% 20%, rgba(13,71,161,.65) 0%, transparent 45%),
+radial-gradient(ellipse at 60% 80%, rgba(0,96,100,.5) 0%, transparent 40%),
+radial-gradient(ellipse at 50% 50%, rgba(10,12,15,1) 0%, rgba(15,10,30,1) 100%);
+}
+
+.galaxy-bg::before {
+content: ‘’;
+position: absolute;
+inset: 0;
+background: url(‘https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1600&q=80&fm=jpg’) center/cover no-repeat;
+opacity: .55;
+mix-blend-mode: screen;
+}
+
+/* Grain overlay for depth */
+.galaxy-bg::after {
+content: ‘’;
+position: absolute;
+inset: 0;
+background-image: url(“data:image/svg+xml,%3Csvg viewBox=‘0 0 256 256’ xmlns=‘http://www.w3.org/2000/svg’%3E%3Cfilter id=‘noise’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.9’ numOctaves=‘4’ stitchTiles=‘stitch’/%3E%3C/filter%3E%3Crect width=‘100%25’ height=‘100%25’ filter=‘url(%23noise)’ opacity=‘0.04’/%3E%3C/svg%3E”);
+opacity: 0.4;
+mix-blend-mode: overlay;
+pointer-events: none;
+}
+
+/* Version */
+.ver {
+position: fixed;
+top: 20px;
+left: 22px;
+font-family: ‘DM Mono’, monospace;
+font-size: 10px;
+letter-spacing: .14em;
+color: rgba(255,255,255,.22);
+z-index: 10;
+}
+
+/* ── CONTENT ── */
+.content {
+position: relative;
+z-index: 10;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 40px;
+padding: 32px 24px;
+width: 100%;
+max-width: 420px;
+animation: rise .9s cubic-bezier(.22,1,.36,1) both;
+}
+
+@keyframes rise {
+from { opacity: 0; transform: translateY(28px); }
+to   { opacity: 1; transform: none; }
+}
+
+/* ── LOGO ── */
+.logo {
+text-align: center;
+}
+
+.logo-eyebrow {
+font-family: ‘DM Mono’, monospace;
+font-size: 10px;
+letter-spacing: .3em;
+text-transform: uppercase;
+color: rgba(255,255,255,.3);
+margin-bottom: 12px;
+}
+
+.logo-title {
+font-family: ‘Fraunces’, serif;
+font-size: clamp(52px, 14vw, 80px);
+font-weight: 300;
+color: white;
+line-height: 1;
+letter-spacing: -.01em;
+text-shadow:
+0 0 60px rgba(120,180,255,.35),
+0 0 120px rgba(80,100,200,.2);
+}
+
+.logo-title span {
+color: #5ab8f5;
+font-style: italic;
+}
+
+.logo-sub {
+font-family: ‘DM Mono’, monospace;
+font-size: 10px;
+letter-spacing: .22em;
+text-transform: uppercase;
+color: rgba(255,255,255,.38);
+margin-top: 14px;
+}
+
+/* Decorative line */
+.logo-line {
+width: 60px;
+height: 1px;
+background: linear-gradient(90deg, transparent, rgba(90,184,245,.5), transparent);
+margin: 16px auto 0;
+}
+
+/* ── FORM ── */
+.form {
+width: 100%;
+display: flex;
+flex-direction: column;
+gap: 12px;
+animation: rise .9s cubic-bezier(.22,1,.36,1) .12s both;
+}
+
+.field {
+position: relative;
+}
+
+.field-label {
+font-family: ‘DM Mono’, monospace;
+font-size: 9px;
+letter-spacing: .18em;
+text-transform: uppercase;
+color: rgba(255,255,255,.35);
+margin-bottom: 6px;
+display: block;
+}
+
+.field input {
+width: 100%;
+background: rgba(8,12,22,.7);
+border: 1px solid rgba(90,160,245,.3);
+border-radius: 10px;
+padding: 15px 18px;
+font-family: ‘DM Sans’, sans-serif;
+font-size: 15px;
+color: white;
+outline: none;
+transition: border-color .25s, background .25s, box-shadow .25s;
+backdrop-filter: blur(12px);
+-webkit-backdrop-filter: blur(12px);
+-webkit-appearance: none;
+}
+
+.field input::placeholder {
+color: rgba(255,255,255,.2);
+}
+
+.field input:focus {
+border-color: rgba(90,184,245,.7);
+background: rgba(8,12,22,.85);
+box-shadow: 0 0 0 3px rgba(90,184,245,.1), inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+.err {
+font-family: ‘DM Mono’, monospace;
+font-size: 11px;
+color: #f08090;
+text-align: center;
+min-height: 14px;
+letter-spacing: .04em;
+opacity: 0;
+transition: opacity .2s;
+}
+.err.on { opacity: 1; }
+
+.btn-login {
+width: 100%;
+background: linear-gradient(135deg, rgba(61,122,181,.9), rgba(42,92,151,.9));
+border: 1px solid rgba(90,160,245,.4);
+border-radius: 10px;
+padding: 16px;
+font-family: ‘DM Sans’, sans-serif;
+font-size: 15px;
+font-weight: 500;
+color: white;
+cursor: pointer;
+letter-spacing: .01em;
+margin-top: 4px;
+transition: all .25s;
+position: relative;
+overflow: hidden;
+}
+
+.btn-login::before {
+content: ‘’;
+position: absolute;
+top: 0; left: -100%;
+width: 100%; height: 100%;
+background: linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);
+transition: left .4s;
+}
+
+.btn-login:hover {
+background: linear-gradient(135deg, rgba(71,142,201,1), rgba(52,102,171,1));
+border-color: rgba(90,180,255,.6);
+box-shadow: 0 4px 24px rgba(61,122,181,.3);
+}
+.btn-login:hover::before { left: 100%; }
+.btn-login:active { transform: scale(.98); }
+
+/* Floating stars canvas */
+canvas {
+position: fixed;
+inset: 0;
+z-index: 1;
+pointer-events: none;
+}
+
+/* ── APP STYLES ── */
+
 :root {
-  --bg:    #0a0c0f;
-  --s1:    #111318;
-  --s2:    #181c22;
-  --s3:    #1e232b;
-  --bd:    #252b35;
-  --bd2:   #2e3540;
-  --omega: #4a9e72;
-  --ow:    #6bbf92;
-  --od:    rgba(74,158,114,.12);
-  --blue:  #3d7ab5;
-  --warn:  #e8a84a;
-  --dngr:  #d95f5f;
-  --ok:    #4aaf7a;
-  --text:  #dde2e8;
-  --dim:   #7a8694;
-  --faint: #3d4655;
-  --ff: 'DM Sans', sans-serif;
-  --fm: 'DM Mono', monospace;
-  --fd: 'Fraunces', serif;
+–bg:    #0a0c0f;
+–s1:    #111318;
+–s2:    #181c22;
+–s3:    #1e232b;
+–bd:    #252b35;
+–bd2:   #2e3540;
+–omega: #4a9e72;
+–ow:    #6bbf92;
+–od:    rgba(74,158,114,.12);
+–blue:  #3d7ab5;
+–warn:  #e8a84a;
+–dngr:  #d95f5f;
+–ok:    #4aaf7a;
+–text:  #dde2e8;
+–dim:   #7a8694;
+–faint: #3d4655;
+–ff: ‘DM Sans’, sans-serif;
+–fm: ‘DM Mono’, monospace;
+–fd: ‘Fraunces’, serif;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -46,9 +282,9 @@ display: flex;
 flex-direction: column;
 }
 
-/* No bottom nav – side panel only */
+/* No bottom nav — side panel only */
 
-/* – HEADER – */
+/* ── HEADER ── */
 .hdr {
 height: 52px;
 flex-shrink: 0;
@@ -108,7 +344,7 @@ gap: 6px;
 position: relative;
 }
 .phase-chip::after {
-content: ‘’;
+content: ‘▾’;
 font-size: 9px;
 opacity: .6;
 }
@@ -153,7 +389,7 @@ transition: all .2s;
 }
 .btn-logout:hover { color: var(–text); border-color: var(–bd2); }
 
-/* – MAIN – */
+/* ── MAIN ── */
 .main {
 flex: 1;
 display: flex;
@@ -161,7 +397,7 @@ overflow: hidden;
 position: relative;
 }
 
-/* – SIDE PANEL – */
+/* ── SIDE PANEL ── */
 .side {
 width: 0;
 overflow: hidden;
@@ -214,7 +450,7 @@ color: var(–faint);
 margin-bottom: 8px;
 }
 
-/* – SCREENS – */
+/* ── SCREENS ── */
 .screen { display: none; flex: 1; flex-direction: column; overflow: hidden; }
 .screen.on { display: flex; }
 
@@ -328,7 +564,7 @@ color: var(–dim);
 }
 
 /* Omega ask button */
-/* Omega ask – prominent standalone button */
+/* Omega ask — prominent standalone button */
 .omega-ask-wrap {
 display: none;
 flex-direction: column;
@@ -469,7 +705,7 @@ white-space: nowrap;
 .btn-tx { background: rgba(255,255,255,.04); border-color: var(–bd2); color: var(–dim); }
 .btn-tx:hover { background: rgba(255,255,255,.08); color: var(–text); }
 
-/* – OMEGA QUESTION POPUP – */
+/* ── OMEGA QUESTION POPUP ── */
 .omega-q-overlay {
 display: none;
 position: fixed;
@@ -920,582 +1156,209 @@ flex-shrink: 0;
 .svc-banner.warn { background: rgba(232,168,74,.12); border-bottom: 1px solid rgba(232,168,74,.25); color: var(–warn); }
 .svc-banner.err { background: rgba(217,95,95,.12); border-bottom: 1px solid rgba(217,95,95,.25); color: var(–dngr); }
 
-/* ================================================================
-HOME SCREEN
-================================================================ */
-#sHome {
-position: fixed; inset: 0; z-index: 1000;
-display: flex; flex-direction: column;
-align-items: center; justify-content: center;
-background: #0a0208;
-transition: opacity .4s ease;
-}
-#sHome.fading { opacity: 0; pointer-events: none; }
-
-.home-galaxy {
-position: absolute; inset: 0; z-index: 0;
-background:
-radial-gradient(ellipse at 20% 50%, rgba(74,20,140,.75) 0%, transparent 50%),
-radial-gradient(ellipse at 80% 20%, rgba(13,71,161,.65) 0%, transparent 45%),
-radial-gradient(ellipse at 60% 80%, rgba(0,96,100,.5) 0%, transparent 40%),
-radial-gradient(ellipse at 50% 50%, rgba(10,12,15,1) 0%, rgba(15,10,30,1) 100%);
-}
-.home-galaxy::before {
-content: ‘’; position: absolute; inset: 0;
-background: url(‘https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1600&q=80&fm=jpg’) center/cover no-repeat;
-opacity: .55; mix-blend-mode: screen;
-}
-.home-content {
-position: relative; z-index: 2;
-display: flex; flex-direction: column;
-align-items: center; gap: 36px;
-padding: 32px 24px; width: 100%; max-width: 420px;
-animation: homeRise .9s cubic-bezier(.22,1,.36,1) both;
-}
-@keyframes homeRise {
-from { opacity: 0; transform: translateY(28px); }
-to   { opacity: 1; transform: none; }
-}
-.home-ver-tag {
-position: absolute; top: 20px; left: 22px;
-font-family: var(–fm); font-size: 10px;
-letter-spacing: .14em; color: rgba(255,255,255,.22); z-index: 2;
-}
-.home-logo-title {
-font-family: var(–fd); font-size: clamp(52px, 14vw, 76px);
-font-weight: 300; color: white; line-height: 1; text-align: center;
-text-shadow: 0 0 60px rgba(120,180,255,.35), 0 0 120px rgba(80,100,200,.2);
-}
-.home-logo-title span { color: #5ab8f5; font-style: italic; }
-.home-logo-line {
-width: 60px; height: 1px;
-background: linear-gradient(90deg, transparent, rgba(90,184,245,.5), transparent);
-margin: 12px auto 0;
-}
-.home-logo-sub {
-font-family: var(–fm); font-size: 10px;
-letter-spacing: .22em; text-transform: uppercase;
-color: rgba(255,255,255,.35); margin-top: 8px; text-align: center;
-}
-.home-form { width: 100%; display: flex; flex-direction: column; gap: 12px; }
-.home-field { display: flex; flex-direction: column; gap: 6px; }
-.home-lbl {
-font-family: var(–fm); font-size: 9px;
-letter-spacing: .18em; text-transform: uppercase;
-color: rgba(255,255,255,.35);
-}
-.home-inp {
-width: 100%; background: rgba(8,12,22,.72);
-border: 1px solid rgba(90,160,245,.3); border-radius: 10px;
-padding: 15px 18px; font-family: var(–ff); font-size: 15px; color: white;
-outline: none; transition: border-color .25s, box-shadow .25s;
-backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
--webkit-appearance: none;
-}
-.home-inp::placeholder { color: rgba(255,255,255,.2); }
-.home-inp:focus {
-border-color: rgba(90,184,245,.7);
-box-shadow: 0 0 0 3px rgba(90,184,245,.1);
-}
-.home-err {
-font-family: var(–fm); font-size: 11px;
-color: #f08090; text-align: center; min-height: 14px;
-letter-spacing: .04em; opacity: 0; transition: opacity .2s;
-}
-.home-err.on { opacity: 1; }
-.home-btn {
-width: 100%;
-background: linear-gradient(135deg, rgba(61,122,181,.9), rgba(42,92,151,.9));
-border: 1px solid rgba(90,160,245,.4); border-radius: 10px;
-padding: 16px; font-family: var(–ff); font-size: 15px; font-weight: 500;
-color: white; cursor: pointer; letter-spacing: .01em;
-margin-top: 4px; transition: all .25s;
-}
-.home-btn:hover { box-shadow: 0 4px 24px rgba(61,122,181,.3); }
-.home-btn:active { transform: scale(.98); }
-.home-btn.loading { opacity: .6; pointer-events: none; }
-
 </style>
 </head>
 <body>
 
-<!-- HOME SCREEN -->
+<div class="galaxy-bg"></div>
+<canvas id="stars"></canvas>
 
-<div id="sHome">
-  <div class="home-galaxy"></div>
-  <div class="home-ver-tag">v1.1</div>
-  <div class="home-content">
-    <div>
-      <div class="home-logo-title">Super<span>-NOVA</span></div>
-      <div class="home-logo-line"></div>
-      <div class="home-logo-sub">New Operating Model Via AI</div>
+<div class="ver">v1.0</div>
+
+<div class="scene">
+  <div class="content">
+    <div class="logo">
+      <div class="logo-eyebrow">AI Colleague Platform</div>
+      <div class="logo-title">Super<span>NOVA</span></div>
+      <div class="logo-line"></div>
+      <div class="logo-sub">New Operating Model Via AI</div>
     </div>
-    <div class="home-form">
-      <div class="home-field">
-        <label class="home-lbl">Username</label>
-        <input class="home-inp" id="homeUser" type="text" placeholder="nome utente"
-          autocomplete="off" autocorrect="off" autocapitalize="none"
-          onkeydown="if(event.key==='Enter')document.getElementById('homePsw').focus()">
-      </div>
-      <div class="home-field">
-        <label class="home-lbl">Password</label>
-        <input class="home-inp" id="homePsw" type="password" placeholder="password"
-          autocomplete="current-password"
-          onkeydown="if(event.key==='Enter')doLogin()">
-      </div>
-      <div class="home-err" id="homeErr"></div>
-      <button class="home-btn" id="homeBtn" onclick="doLogin()">Accedi</button>
-    </div>
-  </div>
-</div>
-
-<div class="app">
-
-  <!-- HEADER -->
-
-  <header class="hdr">
-    <div class="hdr-left">
-      <button class="hmb" id="menuBtn" onclick="togglePanel()" title="Menu">
-        <span></span><span></span><span></span>
-      </button>
-      <span class="hdr-title" id="hdrTitle">Sessione</span>
-    </div>
-    <div class="hdr-right">
-      <div class="phase-chip" id="phaseChip" onclick="togglePhaseDD()">
-        <span id="phaseLabel">Setup</span>
-      </div>
-      <div class="phase-dropdown" id="phaseDD">
-        <div class="phase-opt active" onclick="setPhase('Setup')">Setup</div>
-        <div class="phase-opt" onclick="setPhase('Fase 0')">Fase 0</div>
-        <div class="phase-opt" onclick="setPhase('Fase 1')">Fase 1</div>
-        <div class="phase-opt" onclick="setPhase('Fase 2')">Fase 2</div>
-      </div>
-      <button class="btn-logout">Esci</button>
-    </div>
-  </header>
-
-  <!-- SERVICE BANNER (demo) -->
-
-  <div class="svc-banner warn" id="svBanner" style="display:none">
-    Groq non raggiungibile -- trascrizione sospesa
-  </div>
-
-  <!-- MAIN -->
-
-  <div class="main">
 
 ```
-<!-- SIDE PANEL -->
-<aside class="side" id="sidePanel">
-  <nav class="side-nav">
-    <button class="side-link on" id="sl-sess" onclick="nav('sess')">
-      <span class="side-link-icon">&#937;</span> Sessione
-    </button>
-    <button class="side-link" id="sl-arch" onclick="nav('arch')">
-      <span class="side-link-icon">&#9633;</span> Archivio
-    </button>
-    <button class="side-link" id="sl-log" onclick="nav('log')">
-      <span class="side-link-icon">&#8801;</span> Log
-    </button>
-    <button class="side-link" id="sl-cfg" onclick="nav('cfg')">
-      <span class="side-link-icon">&#9881;</span> Config
-    </button>
-  </nav>
-  <div class="side-footer">
-    <div class="side-user">Utente: dino.martin</div>
-    <button class="btn-logout" style="width:100%">Logout</button>
+<div class="form">
+  <div class="field">
+    <label class="field-label">Username</label>
+    <input type="text" placeholder="nome utente" autocomplete="off" autocapitalize="none">
   </div>
-</aside>
-
-<!-- ---------- SESSIONE ---------- -->
-<div class="screen on" id="sSess">
-  <canvas id="waveCanvas"></canvas>
-  <div class="sess-body">
-
-    <div class="omega-stage">
-      <div class="omega-glyph" id="omegaSym">&#937;</div>
-      <div class="omega-state" id="omegaStatus">pronto</div>
-      <div class="omega-timer" id="sessTimer"></div>
-      <div class="sess-stats" id="sessInfoStrip">
-        <div class="stat"><span class="stat-lbl">Chunk</span><span class="stat-val" id="sessChunkCount">0</span></div>
-        <div class="stat"><span class="stat-lbl">Parole</span><span class="stat-val" id="sessWordCount">0</span></div>
-        <div class="stat"><span class="stat-lbl">Fase</span><span class="stat-val" id="sessPhaseDisplay">Setup</span></div>
-      </div>
-
-
-      <!-- Demo bubble -->
-      <div class="omega-bubble" id="omegaBubble">
-        <div class="bubble-lbl">Omega -- Domanda</div>
-        <button class="bubble-x" onclick="document.getElementById('omegaBubble').classList.remove('on')">&#215;</button>
-        <div class="bubble-text">Qual è l'obiettivo principale di questa attività in termini di riduzione del rischio operativo?</div>
-      </div>
-    </div>
-
-    <div class="sess-controls">
-      <!-- Omega Chiedi -- prominent button, shown during recording -->
-      <div class="omega-ask-wrap" id="omegaAskWrap">
-        <button class="omega-ask disabled" id="omegaAskBtn" onclick="showOmegaQ()">
-          <span class="omega-ask-sym">&#937;</span>
-          Chiedi a Omega
-        </button>
-        <span class="omega-ask-hint" id="omegaAskHint">attivo dopo 10 secondi</span>
-      </div>
-      <button class="btn-avvia" id="btnAvvia" onclick="startSess()">Avvia</button>
-      <div class="sess-btn-row" id="sessBtns">
-        <button class="btn-s btn-pause" id="btnPausa" onclick="togglePause()">Pausa</button>
-        <button class="btn-s btn-stop" onclick="stopSess()">&#9724; Stop</button>
-        <button class="btn-s btn-tx" onclick="showTx()">&#8801; Trascrizione</button>
-      </div>
-    </div>
-
+  <div class="field">
+    <label class="field-label">Password</label>
+    <input type="password" placeholder="••••••••">
   </div>
-</div>
-
-<!-- ---------- ARCHIVIO ---------- -->
-<div class="screen" id="sArch">
-  <div class="two-col">
-    <div class="col-left">
-      <div class="col-left-hdr">
-        <select class="filter-sel">
-          <option>Tutte le fasi</option>
-          <option>Setup</option>
-          <option>Fase 0</option>
-          <option>Fase 1</option>
-          <option>Fase 2</option>
-        </select>
-      </div>
-      <div class="sess-list" id="archList"></div>
-    </div>
-    <div class="col-right">
-      <div class="col-right-hdr">
-        <div class="col-right-title" id="archTitle">Seleziona una sessione</div>
-        <div class="col-right-acts" id="archActs" style="display:none">
-          <button class="act-btn green">Copia</button>
-          <button class="act-btn blue" onclick="showSynth()">Sintesi</button>
-          <button class="act-btn red">Cancella</button>
-        </div>
-      </div>
-      <div class="col-right-body" id="archBody">
-        <div class="empty-state">
-          <div class="empty-icon">&#9633;</div>
-          <div class="empty-text">Seleziona una sessione</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ---------- LOG ---------- -->
-<div class="screen" id="sLog">
-  <div class="two-col">
-    <div class="col-left">
-      <div class="col-left-hdr">
-        <select class="filter-sel">
-          <option>Tutte le fasi</option>
-          <option>Setup</option>
-          <option>Fase 0</option>
-          <option>Fase 1</option>
-          <option>Fase 2</option>
-        </select>
-      </div>
-      <div class="sess-list" id="logList"></div>
-    </div>
-    <div class="col-right">
-      <div class="col-right-hdr">
-        <div class="col-right-title" id="logTitle">Seleziona una sessione</div>
-        <div class="col-right-acts" id="logActs" style="display:none">
-          <button class="act-btn green">Copia log</button>
-          <button class="act-btn red">Cancella log</button>
-        </div>
-      </div>
-      <div class="col-right-body" id="logBody">
-        <div class="empty-state">
-          <div class="empty-icon">&#8801;</div>
-          <div class="empty-text">Seleziona una sessione</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ---------- CONFIG ---------- -->
-<div class="screen" id="sCfg">
-  <div class="cfg-body">
-
-    <div class="cfg-section" id="cfgAPI">
-      <div class="cfg-hdr" onclick="toggleCfg('cfgAPI')">
-        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#128273;</span> Chiavi API</div>
-        <span class="cfg-arrow">&#8250;</span>
-      </div>
-      <div class="cfg-body-inner">
-        <div class="cfg-row">
-          <label class="cfg-lbl">Groq API Key</label>
-          <input class="cfg-inp" type="password" id="cfgGroq" placeholder="gsk_...">
-        </div>
-        <div class="cfg-row">
-          <label class="cfg-lbl">Anthropic API Key</label>
-          <input class="cfg-inp" type="password" id="cfgAnth" placeholder="sk-ant-...">
-        </div>
-        <div class="cfg-row">
-          <label class="cfg-lbl">OpenAI API Key (embedding)</label>
-          <input class="cfg-inp" type="password" id="cfgOai" placeholder="sk-...">
-        </div>
-        <button class="cfg-save" onclick="saveCfgKeys()">Salva chiavi</button>
-      </div>
-    </div>
-
-    <div class="cfg-section" id="cfgRec">
-      <div class="cfg-hdr" onclick="toggleCfg('cfgRec')">
-        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#127908;</span> Registrazione</div>
-        <span class="cfg-arrow">&#8250;</span>
-      </div>
-      <div class="cfg-body-inner">
-        <div class="cfg-row">
-          <label class="cfg-lbl">Lingua trascrizione</label>
-          <select class="cfg-sel" id="cfgLang">
-            <option value="it">Italiano</option>
-            <option value="en">English</option>
-            <option value="">Auto-detect</option>
-          </select>
-        </div>
-        <div class="cfg-row">
-          <label class="cfg-lbl">Frase trigger Omega</label>
-          <input class="cfg-inp" type="text" id="cfgTrigger" value="Omega chiedi">
-        </div>
-      </div>
-    </div>
-
-    <div class="cfg-section" id="cfgOm">
-      <div class="cfg-hdr" onclick="toggleCfg('cfgOm')">
-        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#937;</span> Omega</div>
-        <span class="cfg-arrow">&#8250;</span>
-      </div>
-      <div class="cfg-body-inner">
-        <div class="cfg-check-row">
-          <input class="cfg-check" type="checkbox" id="cfgTts">
-          <label class="cfg-check-lbl" for="cfgTts">Attiva voce Omega (TTS)</label>
-        </div>
-      </div>
-    </div>
-
-    <div class="cfg-section" id="cfgAcc">
-      <div class="cfg-hdr" onclick="toggleCfg('cfgAcc')">
-        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#128100;</span> Account</div>
-        <span class="cfg-arrow">&#8250;</span>
-      </div>
-      <div class="cfg-body-inner">
-        <div class="cfg-row">
-          <label class="cfg-lbl">Utente corrente</label>
-          <input class="cfg-inp" id="cfgUserDisplay" readonly>
-        </div>
-        <button class="cfg-save" style="background:rgba(217,95,95,.08);border-color:rgba(217,95,95,.25);color:var(--dngr)">Logout</button>
-      </div>
-    </div>
-
-  </div>
+  <div class="err" id="errMsg">Credenziali non riconosciute</div>
+  <button class="btn-login">Accedi</button>
 </div>
 ```
 
-  </div><!-- /main -->
-
-  </div><!-- /app -->
-
-<!-- OMEGA QUESTION POPUP -->
-
-<div class="omega-q-overlay" id="omegaQOverlay">
-  <div class="omega-q-card">
-    <div class="omega-q-alert">&#11042; Omega ha una domanda</div>
-    <div class="omega-q-sym">&#937;</div>
-    <div class="omega-q-text">
-      Qual è il principale collo di bottiglia in questo processo che genera ritardi ricorrenti?
-    </div>
-    <div class="omega-q-btns">
-      <button class="q-btn listen" onclick="closeOmegaQ(true)">Ascolta</button>
-      <button class="q-btn mute" onclick="closeOmegaQ(false)">Non parlare</button>
-      <button class="q-btn close-q" onclick="closeOmegaQ(false)">Chiudi</button>
-    </div>
   </div>
 </div>
 
-<!-- TRANSCRIPT OVERLAY -->
+<script>(function() {
+// ── HOME STAR ANIMATION (scoped) ──
+// Animated star field
+const starsCanvas = document.getElementById('stars');
+const starsCtx = starsCanvas.getContext('2d');
+let W, H, stars = [];
 
-<div class="tx-overlay" id="txOverlay">
-  <div class="tx-sheet">
-    <div class="tx-hdr">
-      <div class="tx-title">Transcript -- 00:34</div>
-      <div class="tx-acts">
-        <button class="tx-copy">Copia</button>
-        <button class="tx-xbtn" onclick="document.getElementById('txOverlay').classList.remove('on')">&#215;</button>
-      </div>
-    </div>
-    <div class="tx-body">Adesso proveremo a fare il transcript senza pausa che è la modalità più comune. Vediamo se il sistema riesce a catturare tutto quello che viene detto durante la sessione di lavoro.
+function resizeStars() {
+  W = starsCanvas.width = window.innerWidth;
+  H = starsCanvas.height = window.innerHeight;
+}
 
-[Omega]: Qual è l’obiettivo principale di questa attività in termini di riduzione del rischio operativo?
+function initStars() {
+  stars = [];
+  for(let i = 0; i < 220; i++) {
+    stars.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.2 + 0.2,
+      a: Math.random(),
+      da: (Math.random() - .5) * .004,
+      gold: Math.random() < .12
+    });
+  }
+}
 
-Dunque l’obiettivo principale è quello di ridurre il tempo di elaborazione delle pratiche di sinistro, attualmente stimato in circa tre giorni lavorativi per le pratiche standard. Il problema principale è la frammentazione del processo tra diversi sistemi legacy che non comunicano tra loro.</div>
+function draw() {
+  starsCtx.clearRect(0, 0, W, H);
+  stars.forEach(s => {
+    s.a = Math.max(.05, Math.min(.95, s.a + s.da));
+    if(s.a <= .05 || s.a >= .95) s.da *= -1;
+    starsCtx.beginPath();
+    starsCtx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+    starsCtx.fillStyle = s.gold
+      ? `rgba(200,180,100,${s.a * .8})`
+      : `rgba(180,200,255,${s.a * .7})`;
+    starsCtx.fill();
 
-  </div>
-</div>
+    if(s.r > .9) {
+      const g = starsCtx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 6);
+      g.addColorStop(0, s.gold ? `rgba(200,180,100,${s.a*.25})` : `rgba(100,160,255,${s.a*.2})`);
+      g.addColorStop(1, 'transparent');
+      starsCtx.fillStyle = g;
+      starsCtx.beginPath();
+      starsCtx.arc(s.x, s.y, s.r * 6, 0, Math.PI*2);
+      starsCtx.fill();
+    }
+  });
+  requestAnimationFrame(draw);
+}
 
-<script>
-'use strict';
+resizeStars(); initStars(); draw();
+window.addEventListener('resize', () => { resizeStars(); initStars(); });
 
-// -- CONSTANTS --
+// ── SUPABASE ──
 const SB_URL = 'https://ygpbozycacpncohdjqft.supabase.co';
 const SB_KEY = 'sb_publishable_Evfe7sPUsrjIe0TK65k52g_irQA-ifa';
 const ADMIN_USER = 'superNOVA';
 const ADMIN_PASS = 'superNOVA';
 
-// -- APP STATE --
-const APP = {
-  user: null,
-  phase: 'setup',
-  cfg: { groqKey:'', anthKey:'', oaiKey:'', lang:'it', trigger:'omega chiedi', tts:false }
-};
-
-// -- SUPABASE --
-async function sbFetch(path, method, body) {
-  const opts = {
-    method: method || 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': SB_KEY,
-      'Authorization': 'Bearer ' + SB_KEY,
-    }
-  };
-  if(body) opts.body = JSON.stringify(body);
+async function sbGet(path) {
   try {
-    const res = await fetch(SB_URL + '/rest/v1/' + path, opts);
-    if(!res.ok && res.status !== 409) throw new Error('SB ' + res.status);
-    const ct = res.headers.get('content-type') || '';
-    return ct.includes('json') ? res.json() : null;
-  } catch(e) {
-    console.warn('Supabase:', e.message);
-    return null;
-  }
+    const res = await fetch(SB_URL + '/rest/v1/' + path, {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    return res.ok ? res.json() : null;
+  } catch(e) { return null; }
 }
 
-// -- AUTH --
-async function doLogin() {
-  const u = document.getElementById('homeUser').value.trim();
-  const p = document.getElementById('homePsw').value;
-  const errEl = document.getElementById('homeErr');
-  const btn = document.getElementById('homeBtn');
+async function sbPost(path, body) {
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/' + path, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(body)
+    });
+    return res.ok || res.status === 409;
+  } catch(e) { return false; }
+}
 
-  errEl.textContent = '';
-  errEl.classList.remove('on');
+async function doLogin() {
+  const uEl = document.querySelector('input[type=text]');
+  const pEl = document.querySelector('input[type=password]');
+  const btn = document.querySelector('.btn-login');
+  const err = document.getElementById('errMsg');
+
+  const u = uEl.value.trim();
+  const p = pEl.value;
+
+  err.classList.remove('on');
 
   if(!u || !p) {
-    errEl.textContent = 'Inserisci username e password';
-    errEl.classList.add('on');
+    err.textContent = 'Inserisci username e password';
+    err.classList.add('on');
     return;
   }
 
-  btn.classList.add('loading');
   btn.textContent = 'Accesso...';
+  btn.style.opacity = '.6';
+  btn.style.pointerEvents = 'none';
 
-  // Admin master key -- always works
+  // Admin master key
   if(u === ADMIN_USER && p === ADMIN_PASS) {
-    loginSuccess(u);
+    showSuccess(u);
     return;
   }
 
   // Check Supabase
-  const data = await sbFetch('sn_users?username=eq.' + encodeURIComponent(u) + '&select=username,password_hash', 'GET');
+  const data = await sbGet('sn_users?username=eq.' + encodeURIComponent(u) + '&select=username,password_hash');
 
   if(data === null) {
-    // Supabase offline -- allow login anyway
-    loginSuccess(u);
+    // Supabase offline — allow anyway
+    showSuccess(u);
     return;
   }
 
   if(data.length === 0) {
-    // New user -- register
-    await sbFetch('sn_users', 'POST', {
+    // New user — register then login
+    await sbPost('sn_users', {
       username: u,
       password_hash: p,
       created_at: new Date().toISOString()
     });
-    loginSuccess(u);
+    showSuccess(u);
     return;
   }
 
-  // Existing user -- verify password
+  // Existing user
   if(data[0].password_hash === p) {
-    loginSuccess(u);
+    showSuccess(u);
   } else {
-    btn.classList.remove('loading');
     btn.textContent = 'Accedi';
-    errEl.textContent = 'Password non corretta';
-    errEl.classList.add('on');
+    btn.style.opacity = '';
+    btn.style.pointerEvents = '';
+    err.textContent = 'Password non corretta';
+    err.classList.add('on');
+    pEl.value = '';
+    pEl.focus();
   }
 }
 
-function loginSuccess(username) {
-  APP.user = username;
-  // Update username display in Config
-  const cfgUserEl = document.getElementById('cfgUserDisplay');
-  if(cfgUserEl) cfgUserEl.textContent = username;
-  // Load saved config
-  loadCfg(username);
-  // Fade out home, show app
-  const home = document.getElementById('sHome');
-  home.classList.add('fading');
-  setTimeout(() => { home.style.display = 'none'; }, 420);
+function showSuccess(username) {
+  // Show success message — next step will navigate to app
+  const btn = document.querySelector('.btn-login');
+  btn.textContent = 'Accesso effettuato ✓';
+  btn.style.background = 'linear-gradient(135deg, rgba(74,158,114,.9), rgba(42,120,82,.9))';
+  btn.style.opacity = '1';
+  btn.style.pointerEvents = 'none';
 }
 
-function doLogout() {
-  APP.user = null;
-  const home = document.getElementById('sHome');
-  home.style.display = '';
-  home.style.opacity = '';
-  requestAnimationFrame(() => { home.classList.remove('fading'); });
-  document.getElementById('homeUser').value = '';
-  document.getElementById('homePsw').value = '';
-  document.getElementById('homeErr').classList.remove('on');
-  document.getElementById('homeBtn').classList.remove('loading');
-  document.getElementById('homeBtn').textContent = 'Accedi';
-}
-
-document.addEventListener('keydown', e => {
-  if(e.key === 'Enter' && document.getElementById('sHome').style.display !== 'none') doLogin();
+document.querySelector('.btn-login').addEventListener('click', doLogin);
+document.querySelector('input[type=password]').addEventListener('keydown', e => {
+  if(e.key === 'Enter') doLogin();
 });
+document.querySelector('input[type=text]').addEventListener('keydown', e => {
+  if(e.key === 'Enter') document.querySelector('input[type=password]').focus();
+});
+})();
 
-// -- CONFIG --
-function loadCfg(username) {
-  try {
-    const key = 'sn_cfg_' + (username || 'default');
-    const saved = localStorage.getItem(key);
-    if(saved) Object.assign(APP.cfg, JSON.parse(saved));
-  } catch(e) {}
-  // Populate fields
-  const fields = {cfgGroq:'groqKey', cfgAnth:'anthKey', cfgOai:'oaiKey',
-                  cfgLang:'lang', cfgTrigger:'trigger'};
-  Object.entries(fields).forEach(([id, key]) => {
-    const el = document.getElementById(id);
-    if(el) el.value = APP.cfg[key] || '';
-  });
-  const tts = document.getElementById('cfgTts');
-  if(tts) tts.checked = APP.cfg.tts || false;
-}
+// ── APP LOGIC ──
 
-function saveCfgKeys() {
-  APP.cfg.groqKey  = (document.getElementById('cfgGroq')?.value || '').trim();
-  APP.cfg.anthKey  = (document.getElementById('cfgAnth')?.value || '').trim();
-  APP.cfg.oaiKey   = (document.getElementById('cfgOai')?.value || '').trim();
-  APP.cfg.lang     = document.getElementById('cfgLang')?.value || 'it';
-  APP.cfg.trigger  = (document.getElementById('cfgTrigger')?.value || '').trim() || 'omega chiedi';
-  APP.cfg.tts      = document.getElementById('cfgTts')?.checked || false;
-  try {
-    localStorage.setItem('sn_cfg_' + (APP.user || 'default'), JSON.stringify(APP.cfg));
-  } catch(e) {}
-  const btn = event?.target;
-  if(btn) { const orig = btn.textContent; btn.textContent = 'Salvato '; setTimeout(() => btn.textContent = orig, 1500); }
-}
-
-// -- KEEP ALL EXISTING MOCK UI LOGIC --
-
-// -- MOCK DATA --
+// ── MOCK DATA ──
 const MOCK_SESSIONS = [
   { id:1, date:'23 Mar 2026, 09:14', phase:'F0', dur:'00:34', words:287,
     transcript:`Adesso proveremo a fare il transcript senza pausa. Vediamo se il sistema riesce a catturare tutto quello che viene detto.
@@ -1532,7 +1395,7 @@ let selectedArch = null;
 let selectedLog = null;
 let currentPhase = 'Setup';
 
-// -- CANVAS WAVES --
+// ── CANVAS WAVES ──
 const canvas = document.getElementById('waveCanvas');
 const ctx = canvas.getContext('2d');
 let W, H, waveT = 0, audioLvl = 0;
@@ -1580,7 +1443,7 @@ function drawCanvas() {
 resizeCanvas(); initStars(); drawCanvas();
 window.addEventListener('resize', ()=>{resizeCanvas();initStars();});
 
-// -- NAVIGATION --
+// ── NAVIGATION ──
 function nav(screen) {
   currentScreen = screen;
   ['sess','arch','log','cfg'].forEach(s => {
@@ -1613,7 +1476,7 @@ document.addEventListener('click', e => {
   }
 });
 
-// -- PHASE --
+// ── PHASE ──
 function togglePhaseDD() {
   document.getElementById('phaseDD').classList.toggle('on');
 }
@@ -1625,7 +1488,7 @@ function setPhase(p) {
   document.getElementById('phaseDD').classList.remove('on');
 }
 
-// -- SESSION --
+// ── SESSION ──
 function fmt(s) {
   return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
 }
@@ -1706,7 +1569,7 @@ function stopSess() {
   setTimeout(()=>{ document.getElementById('omegaStatus').textContent='pronto'; },3000);
 }
 
-// -- OMEGA --
+// ── OMEGA ──
 function showOmegaQ() {
   document.getElementById('omegaQOverlay').classList.add('on');
 }
@@ -1715,10 +1578,10 @@ function closeOmegaQ(withVoice) {
   if(withVoice) document.getElementById('omegaBubble').classList.add('on');
 }
 
-// -- TRANSCRIPT --
+// ── TRANSCRIPT ──
 function showTx() { document.getElementById('txOverlay').classList.add('on'); }
 
-// -- ARCHIVE --
+// ── ARCHIVE ──
 function renderArch() {
   const list = document.getElementById('archList');
   list.innerHTML = MOCK_SESSIONS.map(s => `
@@ -1727,7 +1590,7 @@ function renderArch() {
       <div class="sess-item-title">${s.transcript.split('\n')[0].substring(0,60)}...</div>
       <div class="sess-item-meta">
         <span class="phase-tag">${s.phase}</span>
-        <span class="sess-item-dur">${s.dur}  ${s.words} parole</span>
+        <span class="sess-item-dur">${s.dur} · ${s.words} parole</span>
       </div>
     </div>
   `).join('');
@@ -1750,10 +1613,10 @@ function showSynth() {
 La sessione ha esplorato il processo di liquidazione sinistri con focus sul collo di bottiglia principale: la frammentazione tra sistemi legacy non integrati.
 
 Punti chiave emersi:
- Tempo medio di elaborazione: 3 giorni lavorativi (pratiche standard)
- Causa principale: 4 passaggi manuali tra sistemi separati
- Rischio turnover: conoscenza tacita non documentata
- Opportunità AI: automazione dei passaggi di estrazione e categorizzazione
+• Tempo medio di elaborazione: 3 giorni lavorativi (pratiche standard)
+• Causa principale: 4 passaggi manuali tra sistemi separati
+• Rischio turnover: conoscenza tacita non documentata
+• Opportunità AI: automazione dei passaggi di estrazione e categorizzazione
 
 === TRANSCRIPT ===
 
@@ -1762,7 +1625,7 @@ ${MOCK_SESSIONS.find(x=>x.id===selectedArch)?.transcript||''}
   `;
 }
 
-// -- LOG --
+// ── LOG ──
 function renderLog() {
   const list = document.getElementById('logList');
   list.innerHTML = MOCK_SESSIONS.map(s => `
@@ -1785,7 +1648,7 @@ function selectLog(id) {
   renderLog();
 }
 
-// -- CONFIG --
+// ── CONFIG ──
 function toggleCfg(id) {
   document.getElementById(id).classList.toggle('open');
 }
@@ -1795,9 +1658,316 @@ renderArch();
 renderLog();
 
 
-// -- OVERRIDE logout to use real doLogout --
-// (nav function already handles this via btn-logout onclick)
+// Override logout buttons in app
+document.addEventListener('click', function(e) {
+  if(e.target.classList.contains('btn-logout') || e.target.textContent === 'Esci') {
+    var appEl = document.getElementById('appWrap');
+    appEl.style.display = 'none';
+    var homeEl = document.getElementById('sHome');
+    homeEl.style.display = '';
+    homeEl.style.opacity = '';
+    document.querySelector('input[type=text]').value = '';
+    document.querySelector('input[type=password]').value = '';
+    document.querySelector('.btn-login').textContent = 'Accedi';
+    document.querySelector('.btn-login').style.background = '';
+    document.querySelector('.btn-login').style.opacity = '';
+    document.querySelector('.btn-login').style.pointerEvents = '';
+  }
+});
+
 </script>
+
+<!-- APP (hidden until login) -->
+
+<div id="appWrap" style="display:none;position:fixed;inset:0;z-index:500">
+<div class="app">
+
+  <!-- HEADER -->
+
+  <header class="hdr">
+    <div class="hdr-left">
+      <button class="hmb" id="menuBtn" onclick="togglePanel()" title="Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <span class="hdr-title" id="hdrTitle">Sessione</span>
+    </div>
+    <div class="hdr-right">
+      <div class="phase-chip" id="phaseChip" onclick="togglePhaseDD()">
+        <span id="phaseLabel">Setup</span>
+      </div>
+      <div class="phase-dropdown" id="phaseDD">
+        <div class="phase-opt active" onclick="setPhase('Setup')">Setup</div>
+        <div class="phase-opt" onclick="setPhase('Fase 0')">Fase 0</div>
+        <div class="phase-opt" onclick="setPhase('Fase 1')">Fase 1</div>
+        <div class="phase-opt" onclick="setPhase('Fase 2')">Fase 2</div>
+      </div>
+      <button class="btn-logout">Esci</button>
+    </div>
+  </header>
+
+  <!-- SERVICE BANNER (demo) -->
+
+  <div class="svc-banner warn" id="svBanner" style="display:none">
+    Groq non raggiungibile — trascrizione sospesa
+  </div>
+
+  <!-- MAIN -->
+
+  <div class="main">
+
+```
+<!-- SIDE PANEL -->
+<aside class="side" id="sidePanel">
+  <nav class="side-nav">
+    <button class="side-link on" id="sl-sess" onclick="nav('sess')">
+      <span class="side-link-icon">&#937;</span> Sessione
+    </button>
+    <button class="side-link" id="sl-arch" onclick="nav('arch')">
+      <span class="side-link-icon">&#9633;</span> Archivio
+    </button>
+    <button class="side-link" id="sl-log" onclick="nav('log')">
+      <span class="side-link-icon">&#8801;</span> Log
+    </button>
+    <button class="side-link" id="sl-cfg" onclick="nav('cfg')">
+      <span class="side-link-icon">&#9881;</span> Config
+    </button>
+  </nav>
+  <div class="side-footer">
+    <div class="side-user">Utente: dino.martin</div>
+    <button class="btn-logout" style="width:100%">Logout</button>
+  </div>
+</aside>
+
+<!-- ══════════ SESSIONE ══════════ -->
+<div class="screen on" id="sSess">
+  <canvas id="waveCanvas"></canvas>
+  <div class="sess-body">
+
+    <div class="omega-stage">
+      <div class="omega-glyph" id="omegaSym">&#937;</div>
+      <div class="omega-state" id="omegaStatus">pronto</div>
+      <div class="omega-timer" id="sessTimer"></div>
+      <div class="sess-stats" id="sessInfoStrip">
+        <div class="stat"><span class="stat-lbl">Chunk</span><span class="stat-val" id="sessChunkCount">0</span></div>
+        <div class="stat"><span class="stat-lbl">Parole</span><span class="stat-val" id="sessWordCount">0</span></div>
+        <div class="stat"><span class="stat-lbl">Fase</span><span class="stat-val" id="sessPhaseDisplay">Setup</span></div>
+      </div>
+
+
+      <!-- Demo bubble -->
+      <div class="omega-bubble" id="omegaBubble">
+        <div class="bubble-lbl">Omega — Domanda</div>
+        <button class="bubble-x" onclick="document.getElementById('omegaBubble').classList.remove('on')">&#215;</button>
+        <div class="bubble-text">Qual è l'obiettivo principale di questa attività in termini di riduzione del rischio operativo?</div>
+      </div>
+    </div>
+
+    <div class="sess-controls">
+      <!-- Omega Chiedi — prominent button, shown during recording -->
+      <div class="omega-ask-wrap" id="omegaAskWrap">
+        <button class="omega-ask disabled" id="omegaAskBtn" onclick="showOmegaQ()">
+          <span class="omega-ask-sym">&#937;</span>
+          Chiedi a Omega
+        </button>
+        <span class="omega-ask-hint" id="omegaAskHint">attivo dopo 10 secondi</span>
+      </div>
+      <button class="btn-avvia" id="btnAvvia" onclick="startSess()">Avvia</button>
+      <div class="sess-btn-row" id="sessBtns">
+        <button class="btn-s btn-pause" id="btnPausa" onclick="togglePause()">Pausa</button>
+        <button class="btn-s btn-stop" onclick="stopSess()">&#9724; Stop</button>
+        <button class="btn-s btn-tx" onclick="showTx()">&#8801; Trascrizione</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════ ARCHIVIO ══════════ -->
+<div class="screen" id="sArch">
+  <div class="two-col">
+    <div class="col-left">
+      <div class="col-left-hdr">
+        <select class="filter-sel">
+          <option>Tutte le fasi</option>
+          <option>Setup</option>
+          <option>Fase 0</option>
+          <option>Fase 1</option>
+          <option>Fase 2</option>
+        </select>
+      </div>
+      <div class="sess-list" id="archList"></div>
+    </div>
+    <div class="col-right">
+      <div class="col-right-hdr">
+        <div class="col-right-title" id="archTitle">Seleziona una sessione</div>
+        <div class="col-right-acts" id="archActs" style="display:none">
+          <button class="act-btn green">Copia</button>
+          <button class="act-btn blue" onclick="showSynth()">Sintesi</button>
+          <button class="act-btn red">Cancella</button>
+        </div>
+      </div>
+      <div class="col-right-body" id="archBody">
+        <div class="empty-state">
+          <div class="empty-icon">&#9633;</div>
+          <div class="empty-text">Seleziona una sessione</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ LOG ══════════ -->
+<div class="screen" id="sLog">
+  <div class="two-col">
+    <div class="col-left">
+      <div class="col-left-hdr">
+        <select class="filter-sel">
+          <option>Tutte le fasi</option>
+          <option>Setup</option>
+          <option>Fase 0</option>
+          <option>Fase 1</option>
+          <option>Fase 2</option>
+        </select>
+      </div>
+      <div class="sess-list" id="logList"></div>
+    </div>
+    <div class="col-right">
+      <div class="col-right-hdr">
+        <div class="col-right-title" id="logTitle">Seleziona una sessione</div>
+        <div class="col-right-acts" id="logActs" style="display:none">
+          <button class="act-btn green">Copia log</button>
+          <button class="act-btn red">Cancella log</button>
+        </div>
+      </div>
+      <div class="col-right-body" id="logBody">
+        <div class="empty-state">
+          <div class="empty-icon">&#8801;</div>
+          <div class="empty-text">Seleziona una sessione</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ CONFIG ══════════ -->
+<div class="screen" id="sCfg">
+  <div class="cfg-body">
+
+    <div class="cfg-section" id="cfgAPI">
+      <div class="cfg-hdr" onclick="toggleCfg('cfgAPI')">
+        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#128273;</span> Chiavi API</div>
+        <span class="cfg-arrow">&#8250;</span>
+      </div>
+      <div class="cfg-body-inner">
+        <div class="cfg-row">
+          <label class="cfg-lbl">Groq API Key</label>
+          <input class="cfg-inp" type="password" placeholder="gsk_...">
+        </div>
+        <div class="cfg-row">
+          <label class="cfg-lbl">Anthropic API Key</label>
+          <input class="cfg-inp" type="password" placeholder="sk-ant-...">
+        </div>
+        <div class="cfg-row">
+          <label class="cfg-lbl">OpenAI API Key (embedding)</label>
+          <input class="cfg-inp" type="password" placeholder="sk-...">
+        </div>
+        <button class="cfg-save">Salva chiavi</button>
+      </div>
+    </div>
+
+    <div class="cfg-section" id="cfgRec">
+      <div class="cfg-hdr" onclick="toggleCfg('cfgRec')">
+        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#127908;</span> Registrazione</div>
+        <span class="cfg-arrow">&#8250;</span>
+      </div>
+      <div class="cfg-body-inner">
+        <div class="cfg-row">
+          <label class="cfg-lbl">Lingua trascrizione</label>
+          <select class="cfg-sel">
+            <option>Italiano</option>
+            <option>English</option>
+            <option>Auto-detect</option>
+          </select>
+        </div>
+        <div class="cfg-row">
+          <label class="cfg-lbl">Frase trigger Omega</label>
+          <input class="cfg-inp" type="text" value="Omega chiedi">
+        </div>
+      </div>
+    </div>
+
+    <div class="cfg-section" id="cfgOm">
+      <div class="cfg-hdr" onclick="toggleCfg('cfgOm')">
+        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#937;</span> Omega</div>
+        <span class="cfg-arrow">&#8250;</span>
+      </div>
+      <div class="cfg-body-inner">
+        <div class="cfg-check-row">
+          <input class="cfg-check" type="checkbox" id="chkTts">
+          <label class="cfg-check-lbl" for="chkTts">Attiva voce Omega (TTS)</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="cfg-section" id="cfgAcc">
+      <div class="cfg-hdr" onclick="toggleCfg('cfgAcc')">
+        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#128100;</span> Account</div>
+        <span class="cfg-arrow">&#8250;</span>
+      </div>
+      <div class="cfg-body-inner">
+        <div class="cfg-row">
+          <label class="cfg-lbl">Utente corrente</label>
+          <input class="cfg-inp" value="dino.martin" readonly>
+        </div>
+        <button class="cfg-save" style="background:rgba(217,95,95,.08);border-color:rgba(217,95,95,.25);color:var(--dngr)">Logout</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+```
+
+  </div><!-- /main -->
+
+  </div><!-- /app -->
+
+<!-- OMEGA QUESTION POPUP -->
+
+<div class="omega-q-overlay" id="omegaQOverlay">
+  <div class="omega-q-card">
+    <div class="omega-q-alert">&#11042; Omega ha una domanda</div>
+    <div class="omega-q-sym">&#937;</div>
+    <div class="omega-q-text">
+      Qual è il principale collo di bottiglia in questo processo che genera ritardi ricorrenti?
+    </div>
+    <div class="omega-q-btns">
+      <button class="q-btn listen" onclick="closeOmegaQ(true)">Ascolta</button>
+      <button class="q-btn mute" onclick="closeOmegaQ(false)">Non parlare</button>
+      <button class="q-btn close-q" onclick="closeOmegaQ(false)">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRANSCRIPT OVERLAY -->
+
+<div class="tx-overlay" id="txOverlay">
+  <div class="tx-sheet">
+    <div class="tx-hdr">
+      <div class="tx-title">Transcript — 00:34</div>
+      <div class="tx-acts">
+        <button class="tx-copy">Copia</button>
+        <button class="tx-xbtn" onclick="document.getElementById('txOverlay').classList.remove('on')">&#215;</button>
+      </div>
+    </div>
+    <div class="tx-body">Adesso proveremo a fare il transcript senza pausa che è la modalità più comune. Vediamo se il sistema riesce a catturare tutto quello che viene detto durante la sessione di lavoro.
+
+[Omega]: Qual è l’obiettivo principale di questa attività in termini di riduzione del rischio operativo?
+
+Dunque l’obiettivo principale è quello di ridurre il tempo di elaborazione delle pratiche di sinistro, attualmente stimato in circa tre giorni lavorativi per le pratiche standard. Il problema principale è la frammentazione del processo tra diversi sistemi legacy che non comunicano tra loro.</div>
+
+  </div>
+</div>
+</div>
 
 </body>
 </html>
