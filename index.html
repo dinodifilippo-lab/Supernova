@@ -2153,7 +2153,7 @@ function buildSessObj() {
 }
 
 function saveSessToSB(sess) {
-  return sbSafe('sn_sessions?on_conflict=id', 'POST', sess).then(function(ok){
+  return sbSafe('sn_sessions?on_conflict=id', 'POST', cleanSessForSB(sess)).then(function(ok){
     if(ok === null || ok === false) {
       // Offline — buffer locally
       var idx = localBuffer.findIndex(function(s){ return s.id === sess.id; });
@@ -2169,6 +2169,22 @@ function saveSessToSB(sess) {
   });
 }
 
+function cleanSessForSB(sess) {
+  // Send only columns that exist in sn_sessions
+  return {
+    id:           sess.id,
+    updated_at:   sess.updated_at || new Date().toISOString(),
+    mode:         sess.mode || sess.phase || 'setup',
+    phase:        sess.phase || sess.mode || 'setup',
+    username:     sess.username || sess.user || 'unknown',
+    duration_sec: sess.duration_sec || sess.duration || 0,
+    transcript:   sess.transcript || '',
+    summary:      sess.summary || '',
+    word_count:   sess.word_count || 0,
+    log_entries:  sess.log_entries || '[]'
+  };
+}
+
 function flushBuffer() {
   if(!localBuffer.length) {
     try {
@@ -2179,8 +2195,8 @@ function flushBuffer() {
   if(!localBuffer.length) return;
   var remaining = [];
   var promises = localBuffer.map(function(sess){
-    return sbSafe('sn_sessions?on_conflict=id', 'POST', sess).then(function(ok){
-      if(ok === null) remaining.push(sess);
+    return sbSafe('sn_sessions?on_conflict=id', 'POST', cleanSessForSB(sess)).then(function(ok){
+      if(ok === null || ok === false) remaining.push(sess);
     });
   });
   Promise.all(promises).then(function(){
@@ -2278,6 +2294,8 @@ sessStop = function() {
 var _l4_origLoginSuccess = loginSuccess;
 loginSuccess = function(u) {
   _l4_origLoginSuccess(u);
+  // Clear stale buffer that may have old schema fields
+  try { localStorage.removeItem('sn_buffer'); } catch(e) {}
   setTimeout(function(){ loadSessions(); }, 800);
 };
 
