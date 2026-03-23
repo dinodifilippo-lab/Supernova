@@ -241,250 +241,813 @@ z-index: 1;
 pointer-events: none;
 }
 
-/* ── APP STYLES ── */
+/* APP */
 
-:root {
-–bg:    #0a0c0f;
-–s1:    #111318;
-–s2:    #181c22;
-–s3:    #1e232b;
-–bd:    #252b35;
-–bd2:   #2e3540;
-–omega: #4a9e72;
-–ow:    #6bbf92;
-–od:    rgba(74,158,114,.12);
-–blue:  #3d7ab5;
-–warn:  #e8a84a;
-–dngr:  #d95f5f;
-–ok:    #4aaf7a;
-–text:  #dde2e8;
-–dim:   #7a8694;
-–faint: #3d4655;
-–ff: ‘DM Sans’, sans-serif;
-–fm: ‘DM Mono’, monospace;
-–fd: ‘Fraunces’, serif;
+## :root {
+
+<div id="homeWrap" style="width:100%;height:100dvh">
+<div class="galaxy-bg"></div>
+<canvas id="stars"></canvas>
+
+<div class="ver">v1.0</div>
+
+<div class="scene">
+  <div class="content">
+    <div class="logo">
+      <div class="logo-eyebrow">AI Colleague Platform</div>
+      <div class="logo-title">Super<span>NOVA</span></div>
+      <div class="logo-line"></div>
+      <div class="logo-sub">New Operating Model Via AI</div>
+    </div>
+
+```
+<div class="form">
+  <div class="field">
+    <label class="field-label">Username</label>
+    <input type="text" placeholder="nome utente" autocomplete="off" autocapitalize="none">
+  </div>
+  <div class="field">
+    <label class="field-label">Password</label>
+    <input type="password" placeholder="••••••••">
+  </div>
+  <div class="err" id="errMsg">Credenziali non riconosciute</div>
+  <button class="btn-login">Accedi</button>
+</div>
+```
+
+  </div>
+</div>
+
+<script>
+// Animated star field
+const starsCanvas = document.getElementById('sStars');
+const starsCtx = starsCanvas.getContext('2d');
+let sW, sH, sStars = [];
+
+function resize() {
+  sW = starsCanvas.width = window.innerWidth;
+  sH = starsCanvas.height = window.innerHeight;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow: hidden; }
-
-body {
-background: var(–bg);
-color: var(–text);
-font-family: var(–ff);
-font-weight: 300;
--webkit-font-smoothing: antialiased;
+function initStars() {
+  sStars = [];
+  for(let i = 0; i < 220; i++) {
+    sStars.push({
+      x: Math.random() * sW,
+      y: Math.random() * sH,
+      r: Math.random() * 1.2 + 0.2,
+      a: Math.random(),
+      da: (Math.random() - .5) * .004,
+      gold: Math.random() < .12
+    });
+  }
 }
 
-.app {
-height: 100dvh;
-display: flex;
-flex-direction: column;
+function draw() {
+  starsCtx.clearRect(0, 0, sW, sH);
+  sStars.forEach(s => {
+    s.a = Math.max(.05, Math.min(.95, s.a + s.da));
+    if(s.a <= .05 || s.a >= .95) s.da *= -1;
+    starsCtx.beginPath();
+    starsCtx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+    starsCtx.fillStyle = s.gold
+      ? `rgba(200,180,100,${s.a * .8})`
+      : `rgba(180,200,255,${s.a * .7})`;
+    starsCtx.fill();
+
+    if(s.r > .9) {
+      const g = starsCtx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 6);
+      g.addColorStop(0, s.gold ? `rgba(200,180,100,${s.a*.25})` : `rgba(100,160,255,${s.a*.2})`);
+      g.addColorStop(1, 'transparent');
+      starsCtx.fillStyle = g;
+      starsCtx.beginPath();
+      starsCtx.arc(s.x, s.y, s.r * 6, 0, Math.PI*2);
+      starsCtx.fill();
+    }
+  });
+  requestAnimationFrame(draw);
 }
 
-/* No bottom nav — side panel only */
+resize(); initStars(); draw();
+window.addEventListener('resize', () => { resize(); initStars(); });
 
-/* ── HEADER ── */
-.hdr {
-height: 52px;
-flex-shrink: 0;
-display: flex;
-align-items: center;
-justify-content: space-between;
-padding: 0 16px;
-border-bottom: 1px solid var(–bd);
-background: rgba(10,12,15,.92);
-backdrop-filter: blur(16px);
--webkit-backdrop-filter: blur(16px);
-position: relative;
-z-index: 50;
-}
+// ── SUPABASE ──
+const SB_URL = 'https://ygpbozycacpncohdjqft.supabase.co';
+const SB_KEY = 'sb_publishable_Evfe7sPUsrjIe0TK65k52g_irQA-ifa';
+const ADMIN_USER = 'superNOVA';
+const ADMIN_PASS = 'superNOVA';
 
-.hdr-left { display: flex; align-items: center; gap: 14px; }
-.hdr-right { display: flex; align-items: center; gap: 10px; }
-
-.hmb {
-background: none; border: none; cursor: pointer;
-display: flex; flex-direction: column; gap: 5px; padding: 6px;
-border-radius: 6px; transition: background .2s;
-}
-.hmb:hover { background: rgba(255,255,255,.06); }
-.hmb span {
-display: block; width: 20px; height: 1.5px;
-background: var(–dim); border-radius: 2px;
-transition: background .2s, transform .2s;
-}
-.hmb:hover span { background: var(–text); }
-.hmb.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
-.hmb.open span:nth-child(2) { opacity: 0; }
-.hmb.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
-
-.hdr-title {
-font-family: var(–fm);
-font-size: 11px;
-letter-spacing: .14em;
-color: var(–dim);
-text-transform: uppercase;
+async function sbGet(path) {
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/' + path, {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    return res.ok ? res.json() : null;
+  } catch(e) { return null; }
 }
 
-.phase-chip {
-background: var(–od);
-border: 1px solid rgba(74,158,114,.3);
-border-radius: 20px;
-padding: 5px 12px;
-font-family: var(–fm);
-font-size: 10px;
-letter-spacing: .1em;
-color: var(–omega);
-cursor: pointer;
-transition: all .2s;
-display: flex;
-align-items: center;
-gap: 6px;
-position: relative;
-}
-.phase-chip::after {
-content: ‘▾’;
-font-size: 9px;
-opacity: .6;
+async function sbPost(path, body) {
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/' + path, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(body)
+    });
+    return res.ok || res.status === 409;
+  } catch(e) { return false; }
 }
 
-.phase-dropdown {
-display: none;
-position: absolute;
-top: calc(100% + 8px);
-right: 0;
-background: var(–s2);
-border: 1px solid var(–bd2);
-border-radius: 10px;
-overflow: hidden;
-min-width: 120px;
-z-index: 100;
-box-shadow: 0 8px 32px rgba(0,0,0,.4);
-}
-.phase-dropdown.on { display: block; }
-.phase-opt {
-padding: 10px 16px;
-font-family: var(–fm);
-font-size: 11px;
-letter-spacing: .08em;
-color: var(–dim);
-cursor: pointer;
-transition: all .15s;
-}
-.phase-opt:hover { background: var(–od); color: var(–omega); }
-.phase-opt.active { color: var(–omega); }
+async function doLogin() {
+  const uEl = document.querySelector('input[type=text]');
+  const pEl = document.querySelector('input[type=password]');
+  const btn = document.querySelector('.btn-login');
+  const err = document.getElementById('errMsg');
 
-.btn-logout {
-background: none;
-border: 1px solid var(–bd);
-border-radius: 6px;
-padding: 5px 10px;
-font-family: var(–fm);
-font-size: 10px;
-letter-spacing: .08em;
-color: var(–dim);
-cursor: pointer;
-transition: all .2s;
-}
-.btn-logout:hover { color: var(–text); border-color: var(–bd2); }
+  const u = uEl.value.trim();
+  const p = pEl.value;
 
-/* ── MAIN ── */
-.main {
-flex: 1;
-display: flex;
-overflow: hidden;
-position: relative;
-}
+  err.classList.remove('on');
 
-/* ── SIDE PANEL ── */
-.side {
-width: 0;
-overflow: hidden;
-transition: width .28s cubic-bezier(.4,0,.2,1);
-border-right: 1px solid transparent;
-background: var(–s1);
-flex-shrink: 0;
-display: flex;
-flex-direction: column;
-z-index: 40;
-}
-.side.open {
-width: 210px;
-border-right-color: var(–bd);
+  if(!u || !p) {
+    err.textContent = 'Inserisci username e password';
+    err.classList.add('on');
+    return;
+  }
+
+  btn.textContent = 'Accesso...';
+  btn.style.opacity = '.6';
+  btn.style.pointerEvents = 'none';
+
+  // Admin master key
+  if(u === ADMIN_USER && p === ADMIN_PASS) {
+    showSuccess(u);
+    return;
+  }
+
+  // Check Supabase
+  const data = await sbGet('sn_users?username=eq.' + encodeURIComponent(u) + '&select=username,password_hash');
+
+  if(data === null) {
+    // Supabase offline — allow anyway
+    showSuccess(u);
+    return;
+  }
+
+  if(data.length === 0) {
+    // New user — register then login
+    await sbPost('sn_users', {
+      username: u,
+      password_hash: p,
+      created_at: new Date().toISOString()
+    });
+    showSuccess(u);
+    return;
+  }
+
+  // Existing user
+  if(data[0].password_hash === p) {
+    showSuccess(u);
+  } else {
+    btn.textContent = 'Accedi';
+    btn.style.opacity = '';
+    btn.style.pointerEvents = '';
+    err.textContent = 'Password non corretta';
+    err.classList.add('on');
+    pEl.value = '';
+    pEl.focus();
+  }
 }
 
-.side-nav { padding: 8px 0; }
-.side-link {
-display: flex;
-align-items: center;
-gap: 12px;
-padding: 13px 20px;
-font-family: var(–fm);
-font-size: 11px;
-letter-spacing: .1em;
-text-transform: uppercase;
-color: var(–dim);
-background: none;
-border: none;
-cursor: pointer;
-width: 100%;
-text-align: left;
-transition: all .18s;
-white-space: nowrap;
-}
-.side-link:hover { color: var(–text); background: rgba(255,255,255,.03); }
-.side-link.on { color: var(–omega); background: var(–od); }
-.side-link-icon { font-size: 16px; width: 20px; text-align: center; }
-
-.side-footer {
-padding: 16px 20px;
-border-top: 1px solid var(–bd);
-margin-top: auto;
-}
-.side-user {
-font-family: var(–fm);
-font-size: 10px;
-letter-spacing: .08em;
-color: var(–faint);
-margin-bottom: 8px;
+function showSuccess(username) {
+  const btn = document.querySelector('.btn-login');
+  btn.textContent = 'Accesso effettuato ✓';
+  btn.style.background = 'linear-gradient(135deg, rgba(74,158,114,.9), rgba(42,120,82,.9))';
+  setTimeout(function() {
+    document.getElementById('homeWrap').style.display = 'none';
+    document.getElementById('appWrap').style.display = 'block';
+  }, 700);
 }
 
-/* ── SCREENS ── */
-.screen { display: none; flex: 1; flex-direction: column; overflow: hidden; }
-.screen.on { display: flex; }
+document.querySelector('.btn-login').addEventListener('click', doLogin);
+document.querySelector('input[type=password]').addEventListener('keydown', e => {
+  if(e.key === 'Enter') doLogin();
+});
+document.querySelector('input[type=text]').addEventListener('keydown', e => {
+  if(e.key === 'Enter') document.querySelector('input[type=password]').focus();
+});
 
-/* ================================================================
-SESSIONE
-================================================================ */
-#sSess { position: relative; }
-
-canvas#wc {
-position: absolute;
-inset: 0;
-z-index: 0;
-pointer-events: none;
+function doLogout() {
+  document.getElementById('appWrap').style.display = 'none';
+  document.getElementById('homeWrap').style.display = 'block';
+  document.querySelector('input[type=text]').value = '';
+  document.querySelector('input[type=password]').value = '';
+  document.querySelector('.btn-login').textContent = 'Accedi';
+  document.querySelector('.btn-login').style.background = '';
 }
 
-.sess-body {
-flex: 1;
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: space-between;
-padding: 28px 20px 36px;
-position: relative;
-z-index: 1;
+
+
+// APP JS
+
+// ── MOCK DATA ──
+const MOCK_SESSIONS = [
+  { id:1, date:'23 Mar 2026, 09:14', phase:'F0', dur:'00:34', words:287,
+    transcript:`Adesso proveremo a fare il transcript senza pausa. Vediamo se il sistema riesce a catturare tutto quello che viene detto.
+
+[Omega]: Qual è l'obiettivo principale di questa attività in termini di riduzione del rischio operativo?
+
+Dunque l'obiettivo principale è quello di ridurre il tempo di elaborazione delle pratiche di sinistro, attualmente stimato in circa tre giorni lavorativi per le pratiche standard.`,
+    log:`09:14:22  [Start] Nuova sessione ID: 1774201919370\n09:14:22  [TTS] Stato vocale: attivo\n09:14:32  [Chunk 1] Trascritto: "Adesso proveremo a fare il transcript..."\n09:14:32  [Chunk 1] Valutazione Omega in corso...\n09:14:35  [Omega] Vuole intervenire: "Qual è l\'obiettivo principale..."\n09:14:55  [Finalize] Salvataggio sessione: 287 parole, 00:34\n09:14:55  Sessione salvata.`
+  },
+  { id:2, date:'22 Mar 2026, 14:30', phase:'F0', dur:'01:12', words:634,
+    transcript:`Sessione di esplorazione con l'owner del processo di liquidazione sinistri. Il processo attuale prevede quattro passaggi manuali che potrebbero essere automatizzati.
+
+[Omega]: Come viene gestita la conoscenza critica quando una risorsa esperta lascia il team?
+
+Attualmente la conoscenza è trasmessa principalmente tramite affiancamento informale. Non esiste documentazione strutturata delle casistiche complesse.`,
+    log:`14:30:01  [Start] Nuova sessione ID: 1774201635421\n14:30:01  [TTS] Stato vocale: attivo\n14:30:11  [Chunk 1] Trascritto: "Sessione di esplorazione..."\n14:31:05  [Omega] Vuole intervenire\n14:41:01  [Finalize] Salvataggio sessione: 634 parole, 01:12`
+  },
+  { id:3, date:'21 Mar 2026, 10:45', phase:'Setup', dur:'00:18', words:142,
+    transcript:`Prima sessione di setup. Verifica che il sistema di trascrizione funzioni correttamente e che Omega risponda alle domande nel contesto corretto.`,
+    log:`10:45:00  [Start] Nuova sessione ID: 1774201412380\n10:45:10  [Chunk 1] Trascritto: "Prima sessione di setup..."\n10:45:18  [Finalize] Salvataggio sessione: 142 parole, 00:18`
+  },
+];
+
+let currentScreen = 'sess';
+let panelOpen = false;
+let isRec = false;
+let isPaused = false;
+let timerSec = 0;
+let timerInt = null;
+let chunkSim = null;
+let chunkCount = 0;
+let wordCount = 0;
+let selectedArch = null;
+let selectedLog = null;
+let currentPhase = 'Setup';
+
+// ── CANVAS WAVES ──
+const canvas = document.getElementById('waveCanvas');
+const ctx = canvas.getContext('2d');
+let W, H, waveT = 0, audioLvl = 0;
+const stars = [];
+
+function resizeCanvas() {
+  const s = document.getElementById('sSess');
+  W = canvas.width = s.offsetWidth;
+  H = canvas.height = s.offsetHeight;
 }
 
-/* Omega center */
-.omega-stage {
-flex: 1;
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-position: relative;
+function initStars() {
+  stars.length = 0;
+  for(let i=0; i<60; i++) stars.push({x:Math.random()*W, y:Math.random()*H, r:Math.random()*.7+.1, a:Math.random(), da:(Math.random()-.5)*.003});
+}
+
+function drawCanvas() {
+  requestAnimationFrame(drawCanvas);
+  ctx.clearRect(0,0,W,H);
+  stars.forEach(s => {
+    s.a = Math.max(.05, Math.min(.9, s.a+s.da));
+    if(s.a<=.05||s.a>=.9) s.da*=-1;
+    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(74,158,114,${s.a*.3})`; ctx.fill();
+  });
+
+  if(!isRec && !isPaused) return;
+  waveT += isPaused ? .005 : .025;
+  if(isRec && !isPaused) audioLvl = .35 + Math.sin(waveT*3)*.2 + Math.random()*.1;
+  else audioLvl += (.04 - audioLvl)*.05;
+
+  const cx=W/2, cy=H*.38, base=Math.min(W,H)*.12;
+  [3,2.2,1.8,1.2,.8].forEach((thick,r) => {
+    const sp = isPaused ? [.2,.3,.25,.35,.28][r] : [1,.8,1.1,.7,.9][r];
+    const ph = r*(Math.PI*2/5);
+    const ratio = ((waveT*sp+ph)%(Math.PI*2))/(Math.PI*2);
+    const rad = base*(.8+r*.12) + (Math.max(W,H)*.75-base*(.8+r*.12))*ratio;
+    const op = isPaused ? (1-ratio)*.1 : (1-ratio)*(.22+audioLvl*.35);
+    ctx.beginPath(); ctx.arc(cx,cy,rad,0,Math.PI*2);
+    ctx.strokeStyle = isPaused ? `rgba(232,168,74,${op})` : `rgba(74,158,114,${op})`;
+    ctx.lineWidth = thick+(isRec?audioLvl*2:0); ctx.stroke();
+  });
+}
+
+resizeCanvas(); initStars(); drawCanvas();
+window.addEventListener('resize', ()=>{resizeCanvas();initStars();});
+
+// ── NAVIGATION ──
+function nav(screen) {
+  currentScreen = screen;
+  ['sess','arch','log','cfg'].forEach(s => {
+    document.getElementById(`s${s.charAt(0).toUpperCase()+s.slice(1)}`).classList.toggle('on', s===screen);
+    document.getElementById(`sl-${s}`).classList.toggle('on', s===screen);
+    
+  });
+  const titles = {sess:'Sessione', arch:'Archivio', log:'Log', cfg:'Config'};
+  document.getElementById('hdrTitle').textContent = titles[screen];
+  if(screen==='arch') renderArch();
+  if(screen==='log') renderLog();
+  if(screen==='sess') { setTimeout(resizeCanvas,100); setTimeout(initStars,100); }
+}
+
+function togglePanel() {
+  panelOpen = !panelOpen;
+  const p = document.getElementById('sidePanel');
+  const h = document.getElementById('menuBtn');
+  p.classList.toggle('open', panelOpen);
+  h.classList.toggle('open', panelOpen);
+  document.getElementById('phaseDD').classList.remove('on');
+  setTimeout(resizeCanvas, 300);
+}
+
+// Close panel/dropdown on outside click
+document.addEventListener('click', e => {
+  if(!e.target.closest('#sidePanel') && !e.target.closest('#hmb') && panelOpen) togglePanel();
+  if(!e.target.closest('.phase-chip') && !e.target.closest('.phase-dropdown')) {
+    document.getElementById('phaseDD').classList.remove('on');
+  }
+});
+
+// ── PHASE ──
+function togglePhaseDD() {
+  document.getElementById('phaseDD').classList.toggle('on');
+}
+function setPhase(p) {
+  currentPhase = p;
+  document.getElementById('phaseLabel').textContent = p;
+  document.getElementById('sessPhaseDisplay').textContent = p;
+  document.querySelectorAll('.phase-opt').forEach(o => o.classList.toggle('active', o.textContent===p));
+  document.getElementById('phaseDD').classList.remove('on');
+}
+
+// ── SESSION ──
+function fmt(s) {
+  return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+}
+
+function startSess() {
+  isRec = true; isPaused = false;
+  timerSec=0; chunkCount=0; wordCount=0;
+  document.getElementById('omegaSym').className='omega-glyph rec';
+  document.getElementById('omegaStatus').className='omega-state rec';
+  document.getElementById('omegaStatus').textContent='registrazione';
+  document.getElementById('sessTimer').className='omega-timer on';
+  document.getElementById('btnAvvia').style.display='none';
+  document.getElementById('sessBtns').classList.add('on');
+  document.getElementById('sessInfoStrip').classList.add('on');
+  document.getElementById('omegaAskWrap').classList.add('on');
+  document.getElementById('omegaAskBtn').classList.add('disabled');
+  document.getElementById('sessPhaseDisplay').textContent=currentPhase;
+
+  timerInt = setInterval(()=>{
+    timerSec++;
+    document.getElementById('sessTimer').textContent=fmt(timerSec);
+    // Simulate word accumulation
+    wordCount += Math.floor(Math.random()*3+1);
+    document.getElementById('sessWordCount').textContent=wordCount;
+  }, 1000);
+
+  // Simulate chunks
+  chunkSim = setInterval(()=>{
+    if(isPaused) return;
+    chunkCount++;
+    document.getElementById('sessChunkCount').textContent=chunkCount;
+    if(chunkCount===1) {
+      document.getElementById('omegaAskBtn').classList.remove('disabled');
+      document.getElementById('omegaAskHint').textContent='';
+    }
+    if(chunkCount===3) {
+      // Simulate Omega question
+      setTimeout(()=>{
+        document.getElementById('omegaBubble').classList.add('on');
+      }, 500);
+    }
+  }, 10000);
+}
+
+function togglePause() {
+  isPaused = !isPaused;
+  const btn = document.getElementById('btnPausa');
+  const glyph = document.getElementById('omegaSym');
+  const state = document.getElementById('omegaStatus');
+  if(isPaused) {
+    glyph.className='omega-glyph paused';
+    state.className='omega-state paused';
+    state.textContent='in pausa';
+    btn.textContent='Riprendi';
+    btn.className='btn-s btn-tx';
+  } else {
+    glyph.className='omega-glyph rec';
+    state.className='omega-state rec';
+    state.textContent='registrazione';
+    btn.textContent='Pausa';
+    btn.className='btn-s btn-pause';
+  }
+}
+
+function stopSess() {
+  isRec=false; isPaused=false;
+  clearInterval(timerInt); clearInterval(chunkSim);
+  document.getElementById('omegaSym').className='omega-glyph';
+  document.getElementById('omegaStatus').className='omega-state';
+  document.getElementById('omegaStatus').textContent='sessione salvata';
+  document.getElementById('btnAvvia').style.display='block';
+  document.getElementById('sessBtns').classList.remove('on');
+  document.getElementById('sessInfoStrip').classList.remove('on');
+  document.getElementById('omegaAskWrap').classList.remove('on');
+  document.getElementById('omegaBubble').classList.remove('on');
+  document.getElementById('sessTimer').textContent='';
+  audioLvl=0;
+  setTimeout(()=>{ document.getElementById('omegaStatus').textContent='pronto'; },3000);
+}
+
+// ── OMEGA ──
+function showOmegaQ() {
+  document.getElementById('omegaQOverlay').classList.add('on');
+}
+function closeOmegaQ(withVoice) {
+  document.getElementById('omegaQOverlay').classList.remove('on');
+  if(withVoice) document.getElementById('omegaBubble').classList.add('on');
+}
+
+// ── TRANSCRIPT ──
+function showTx() { document.getElementById('txOverlay').classList.add('on'); }
+
+// ── ARCHIVE ──
+function renderArch() {
+  const list = document.getElementById('archList');
+  list.innerHTML = MOCK_SESSIONS.map(s => `
+    <div class="sess-item${selectedArch===s.id?' on':''}" onclick="selectArch(${s.id})">
+      <div class="sess-item-date">${s.date}</div>
+      <div class="sess-item-title">${s.transcript.split('\n')[0].substring(0,60)}...</div>
+      <div class="sess-item-meta">
+        <span class="phase-tag">${s.phase}</span>
+        <span class="sess-item-dur">${s.dur} · ${s.words} parole</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectArch(id) {
+  selectedArch = id;
+  const s = MOCK_SESSIONS.find(x=>x.id===id);
+  document.getElementById('archTitle').textContent = s.date;
+  document.getElementById('archActs').style.display='flex';
+  document.getElementById('archBody').innerHTML = `<div class="tx-content">${s.transcript.replace(/\[Omega\]:/g,'<span class="tx-omega-line">[Omega]:</span>')}</div>`;
+  renderArch();
+}
+
+function showSynth() {
+  document.getElementById('archBody').innerHTML = `
+    <div class="tx-content">
+=== SINTESI ===
+
+La sessione ha esplorato il processo di liquidazione sinistri con focus sul collo di bottiglia principale: la frammentazione tra sistemi legacy non integrati.
+
+Punti chiave emersi:
+• Tempo medio di elaborazione: 3 giorni lavorativi (pratiche standard)
+• Causa principale: 4 passaggi manuali tra sistemi separati
+• Rischio turnover: conoscenza tacita non documentata
+• Opportunità AI: automazione dei passaggi di estrazione e categorizzazione
+
+=== TRANSCRIPT ===
+
+${MOCK_SESSIONS.find(x=>x.id===selectedArch)?.transcript||''}
+    </div>
+  `;
+}
+
+// ── LOG ──
+function renderLog() {
+  const list = document.getElementById('logList');
+  list.innerHTML = MOCK_SESSIONS.map(s => `
+    <div class="sess-item${selectedLog===s.id?' on':''}" onclick="selectLog(${s.id})">
+      <div class="sess-item-date">${s.date}</div>
+      <div class="sess-item-meta">
+        <span class="phase-tag">${s.phase}</span>
+        <span class="sess-item-dur">${s.dur}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectLog(id) {
+  selectedLog = id;
+  const s = MOCK_SESSIONS.find(x=>x.id===id);
+  document.getElementById('logTitle').textContent = s.date;
+  document.getElementById('logActs').style.display='flex';
+  document.getElementById('logBody').innerHTML = `<div class="tx-content" style="font-family:var(--fm);font-size:12px;color:var(--dim)">${s.log}</div>`;
+  renderLog();
+}
+
+// ── CONFIG ──
+function toggleCfg(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+
+// Init
+renderArch();
+renderLog();
+
+</script>
+
+</div>
+
+<div id="appWrap" style="display:none;width:100%;height:100dvh">
+<div class="app">
+
+  <!-- HEADER -->
+
+  <header class="hdr">
+    <div class="hdr-left">
+      <button class="hmb" id="menuBtn" onclick="togglePanel()" title="Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <span class="hdr-title" id="hdrTitle">Sessione</span>
+    </div>
+    <div class="hdr-right">
+      <div class="phase-chip" id="phaseChip" onclick="togglePhaseDD()">
+        <span id="phaseLabel">Setup</span>
+      </div>
+      <div class="phase-dropdown" id="phaseDD">
+        <div class="phase-opt active" onclick="setPhase('Setup')">Setup</div>
+        <div class="phase-opt" onclick="setPhase('Fase 0')">Fase 0</div>
+        <div class="phase-opt" onclick="setPhase('Fase 1')">Fase 1</div>
+        <div class="phase-opt" onclick="setPhase('Fase 2')">Fase 2</div>
+      </div>
+      <button class="btn-logout">Esci</button>
+    </div>
+  </header>
+
+  <!-- SERVICE BANNER (demo) -->
+
+  <div class="svc-banner warn" id="svBanner" style="display:none">
+    Groq non raggiungibile — trascrizione sospesa
+  </div>
+
+  <!-- MAIN -->
+
+  <div class="main">
+
+```
+<!-- SIDE PANEL -->
+<aside class="side" id="sidePanel">
+  <nav class="side-nav">
+    <button class="side-link on" id="sl-sess" onclick="nav('sess')">
+      <span class="side-link-icon">&#937;</span> Sessione
+    </button>
+    <button class="side-link" id="sl-arch" onclick="nav('arch')">
+      <span class="side-link-icon">&#9633;</span> Archivio
+    </button>
+    <button class="side-link" id="sl-log" onclick="nav('log')">
+      <span class="side-link-icon">&#8801;</span> Log
+    </button>
+    <button class="side-link" id="sl-cfg" onclick="nav('cfg')">
+      <span class="side-link-icon">&#9881;</span> Config
+    </button>
+  </nav>
+  <div class="side-footer">
+    <div class="side-user">Utente: dino.martin</div>
+    <button class="btn-logout" style="width:100%">Logout</button>
+  </div>
+</aside>
+
+<!-- ══════════ SESSIONE ══════════ -->
+<div class="screen on" id="sSess">
+  <canvas id="waveCanvas"></canvas>
+  <div class="sess-body">
+
+    <div class="omega-stage">
+      <div class="omega-glyph" id="omegaSym">&#937;</div>
+      <div class="omega-state" id="omegaStatus">pronto</div>
+      <div class="omega-timer" id="sessTimer"></div>
+      <div class="sess-stats" id="sessInfoStrip">
+        <div class="stat"><span class="stat-lbl">Chunk</span><span class="stat-val" id="sessChunkCount">0</span></div>
+        <div class="stat"><span class="stat-lbl">Parole</span><span class="stat-val" id="sessWordCount">0</span></div>
+        <div class="stat"><span class="stat-lbl">Fase</span><span class="stat-val" id="sessPhaseDisplay">Setup</span></div>
+      </div>
+
+
+      <!-- Demo bubble -->
+      <div class="omega-bubble" id="omegaBubble">
+        <div class="bubble-lbl">Omega — Domanda</div>
+        <button class="bubble-x" onclick="document.getElementById('omegaBubble').classList.remove('on')">&#215;</button>
+        <div class="bubble-text">Qual è l'obiettivo principale di questa attività in termini di riduzione del rischio operativo?</div>
+      </div>
+    </div>
+
+    <div class="sess-controls">
+      <!-- Omega Chiedi — prominent button, shown during recording -->
+      <div class="omega-ask-wrap" id="omegaAskWrap">
+        <button class="omega-ask disabled" id="omegaAskBtn" onclick="showOmegaQ()">
+          <span class="omega-ask-sym">&#937;</span>
+          Chiedi a Omega
+        </button>
+        <span class="omega-ask-hint" id="omegaAskHint">attivo dopo 10 secondi</span>
+      </div>
+      <button class="btn-avvia" id="btnAvvia" onclick="startSess()">Avvia</button>
+      <div class="sess-btn-row" id="sessBtns">
+        <button class="btn-s btn-pause" id="btnPausa" onclick="togglePause()">Pausa</button>
+        <button class="btn-s btn-stop" onclick="stopSess()">&#9724; Stop</button>
+        <button class="btn-s btn-tx" onclick="showTx()">&#8801; Trascrizione</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════ ARCHIVIO ══════════ -->
+<div class="screen" id="sArch">
+  <div class="two-col">
+    <div class="col-left">
+      <div class="col-left-hdr">
+        <select class="filter-sel">
+          <option>Tutte le fasi</option>
+          <option>Setup</option>
+          <option>Fase 0</option>
+          <option>Fase 1</option>
+          <option>Fase 2</option>
+        </select>
+      </div>
+      <div class="sess-list" id="archList"></div>
+    </div>
+    <div class="col-right">
+      <div class="col-right-hdr">
+        <div class="col-right-title" id="archTitle">Seleziona una sessione</div>
+        <div class="col-right-acts" id="archActs" style="display:none">
+          <button class="act-btn green">Copia</button>
+          <button class="act-btn blue" onclick="showSynth()">Sintesi</button>
+          <button class="act-btn red">Cancella</button>
+        </div>
+      </div>
+      <div class="col-right-body" id="archBody">
+        <div class="empty-state">
+          <div class="empty-icon">&#9633;</div>
+          <div class="empty-text">Seleziona una sessione</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ LOG ══════════ -->
+<div class="screen" id="sLog">
+  <div class="two-col">
+    <div class="col-left">
+      <div class="col-left-hdr">
+        <select class="filter-sel">
+          <option>Tutte le fasi</option>
+          <option>Setup</option>
+          <option>Fase 0</option>
+          <option>Fase 1</option>
+          <option>Fase 2</option>
+        </select>
+      </div>
+      <div class="sess-list" id="logList"></div>
+    </div>
+    <div class="col-right">
+      <div class="col-right-hdr">
+        <div class="col-right-title" id="logTitle">Seleziona una sessione</div>
+        <div class="col-right-acts" id="logActs" style="display:none">
+          <button class="act-btn green">Copia log</button>
+          <button class="act-btn red">Cancella log</button>
+        </div>
+      </div>
+      <div class="col-right-body" id="logBody">
+        <div class="empty-state">
+          <div class="empty-icon">&#8801;</div>
+          <div class="empty-text">Seleziona una sessione</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ CONFIG ══════════ -->
+<div class="screen" id="sCfg">
+  <div class="cfg-body">
+
+    <div class="cfg-section" id="cfgAPI">
+      <div class="cfg-hdr" onclick="toggleCfg('cfgAPI')">
+        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#128273;</span> Chiavi API</div>
+        <span class="cfg-arrow">&#8250;</span>
+      </div>
+      <div class="cfg-body-inner">
+        <div class="cfg-row">
+          <label class="cfg-lbl">Groq API Key</label>
+          <input class="cfg-inp" type="password" placeholder="gsk_...">
+        </div>
+        <div class="cfg-row">
+          <label class="cfg-lbl">Anthropic API Key</label>
+          <input class="cfg-inp" type="password" placeholder="sk-ant-...">
+        </div>
+        <div class="cfg-row">
+          <label class="cfg-lbl">OpenAI API Key (embedding)</label>
+          <input class="cfg-inp" type="password" placeholder="sk-...">
+        </div>
+        <button class="cfg-save">Salva chiavi</button>
+      </div>
+    </div>
+
+    <div class="cfg-section" id="cfgRec">
+      <div class="cfg-hdr" onclick="toggleCfg('cfgRec')">
+        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#127908;</span> Registrazione</div>
+        <span class="cfg-arrow">&#8250;</span>
+      </div>
+      <div class="cfg-body-inner">
+        <div class="cfg-row">
+          <label class="cfg-lbl">Lingua trascrizione</label>
+          <select class="cfg-sel">
+            <option>Italiano</option>
+            <option>English</option>
+            <option>Auto-detect</option>
+          </select>
+        </div>
+        <div class="cfg-row">
+          <label class="cfg-lbl">Frase trigger Omega</label>
+          <input class="cfg-inp" type="text" value="Omega chiedi">
+        </div>
+      </div>
+    </div>
+
+    <div class="cfg-section" id="cfgOm">
+      <div class="cfg-hdr" onclick="toggleCfg('cfgOm')">
+        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#937;</span> Omega</div>
+        <span class="cfg-arrow">&#8250;</span>
+      </div>
+      <div class="cfg-body-inner">
+        <div class="cfg-check-row">
+          <input class="cfg-check" type="checkbox" id="chkTts">
+          <label class="cfg-check-lbl" for="chkTts">Attiva voce Omega (TTS)</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="cfg-section" id="cfgAcc">
+      <div class="cfg-hdr" onclick="toggleCfg('cfgAcc')">
+        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#128100;</span> Account</div>
+        <span class="cfg-arrow">&#8250;</span>
+      </div>
+      <div class="cfg-body-inner">
+        <div class="cfg-row">
+          <label class="cfg-lbl">Utente corrente</label>
+          <input class="cfg-inp" value="dino.martin" readonly>
+        </div>
+        <button class="cfg-save" style="background:rgba(217,95,95,.08);border-color:rgba(217,95,95,.25);color:var(--dngr)">Logout</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+```
+
+  </div><!-- /main -->
+
+  </div><!-- /app -->
+
+<!-- OMEGA QUESTION POPUP -->
+
+<div class="omega-q-overlay" id="omegaQOverlay">
+  <div class="omega-q-card">
+    <div class="omega-q-alert">&#11042; Omega ha una domanda</div>
+    <div class="omega-q-sym">&#937;</div>
+    <div class="omega-q-text">
+      Qual è il principale collo di bottiglia in questo processo che genera ritardi ricorrenti?
+    </div>
+    <div class="omega-q-btns">
+      <button class="q-btn listen" onclick="closeOmegaQ(true)">Ascolta</button>
+      <button class="q-btn mute" onclick="closeOmegaQ(false)">Non parlare</button>
+      <button class="q-btn close-q" onclick="closeOmegaQ(false)">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRANSCRIPT OVERLAY -->
+
+<div class="tx-overlay" id="txOverlay">
+  <div class="tx-sheet">
+    <div class="tx-hdr">
+      <div class="tx-title">Transcript — 00:34</div>
+      <div class="tx-acts">
+        <button class="tx-copy">Copia</button>
+        <button class="tx-xbtn" onclick="document.getElementById('txOverlay').classList.remove('on')">&#215;</button>
+      </div>
+    </div>
+    <div class="tx-body">Adesso proveremo a fare il transcript senza pausa che è la modalità più comune. Vediamo se il sistema riesce a catturare tutto quello che viene detto durante la sessione di lavoro.
+
+[Omega]: Qual è l’obiettivo principale di questa attività in termini di riduzione del rischio operativo?
+
+Dunque l’obiettivo principale è quello di ridurre il tempo di elaborazione delle pratiche di sinistro, attualmente stimato in circa tre giorni lavorativi per le pratiche standard. Il problema principale è la frammentazione del processo tra diversi sistemi legacy che non comunicano tra loro.</div>
+
+  </div>
+</div>
+</div>
+ center;
+  position: relative;
 }
 
 .omega-glyph {
@@ -1159,7 +1722,7 @@ flex-shrink: 0;
 </style>
 </head>
 <body>
-<div id="sHome" style="position:fixed;inset:0;z-index:1000">
+
 <div class="galaxy-bg"></div>
 <canvas id="stars"></canvas>
 
@@ -1192,16 +1755,15 @@ flex-shrink: 0;
   </div>
 </div>
 
-<script>(function() {
-// ── HOME STAR ANIMATION (scoped) ──
+<script>
 // Animated star field
-const starsCanvas = document.getElementById('stars');
-const starsCtx = starsCanvas.getContext('2d');
+const canvas = document.getElementById('stars');
+const ctx = canvas.getContext('2d');
 let W, H, stars = [];
 
-function resizeStars() {
-  W = starsCanvas.width = window.innerWidth;
-  H = starsCanvas.height = window.innerHeight;
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
 }
 
 function initStars() {
@@ -1219,32 +1781,32 @@ function initStars() {
 }
 
 function draw() {
-  starsCtx.clearRect(0, 0, W, H);
+  ctx.clearRect(0, 0, W, H);
   stars.forEach(s => {
     s.a = Math.max(.05, Math.min(.95, s.a + s.da));
     if(s.a <= .05 || s.a >= .95) s.da *= -1;
-    starsCtx.beginPath();
-    starsCtx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-    starsCtx.fillStyle = s.gold
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+    ctx.fillStyle = s.gold
       ? `rgba(200,180,100,${s.a * .8})`
       : `rgba(180,200,255,${s.a * .7})`;
-    starsCtx.fill();
+    ctx.fill();
 
     if(s.r > .9) {
-      const g = starsCtx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 6);
+      const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 6);
       g.addColorStop(0, s.gold ? `rgba(200,180,100,${s.a*.25})` : `rgba(100,160,255,${s.a*.2})`);
       g.addColorStop(1, 'transparent');
-      starsCtx.fillStyle = g;
-      starsCtx.beginPath();
-      starsCtx.arc(s.x, s.y, s.r * 6, 0, Math.PI*2);
-      starsCtx.fill();
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r * 6, 0, Math.PI*2);
+      ctx.fill();
     }
   });
   requestAnimationFrame(draw);
 }
 
-resizeStars(); initStars(); draw();
-window.addEventListener('resize', () => { resizeStars(); initStars(); });
+resize(); initStars(); draw();
+window.addEventListener('resize', () => { resize(); initStars(); });
 
 // ── SUPABASE ──
 const SB_URL = 'https://ygpbozycacpncohdjqft.supabase.co';
@@ -1354,622 +1916,7 @@ document.querySelector('input[type=password]').addEventListener('keydown', e => 
 document.querySelector('input[type=text]').addEventListener('keydown', e => {
   if(e.key === 'Enter') document.querySelector('input[type=password]').focus();
 });
-})();
-
-// ── APP LOGIC ──
-
-// ── MOCK DATA ──
-const MOCK_SESSIONS = [
-  { id:1, date:'23 Mar 2026, 09:14', phase:'F0', dur:'00:34', words:287,
-    transcript:`Adesso proveremo a fare il transcript senza pausa. Vediamo se il sistema riesce a catturare tutto quello che viene detto.
-
-[Omega]: Qual è l'obiettivo principale di questa attività in termini di riduzione del rischio operativo?
-
-Dunque l'obiettivo principale è quello di ridurre il tempo di elaborazione delle pratiche di sinistro, attualmente stimato in circa tre giorni lavorativi per le pratiche standard.`,
-    log:`09:14:22  [Start] Nuova sessione ID: 1774201919370\n09:14:22  [TTS] Stato vocale: attivo\n09:14:32  [Chunk 1] Trascritto: "Adesso proveremo a fare il transcript..."\n09:14:32  [Chunk 1] Valutazione Omega in corso...\n09:14:35  [Omega] Vuole intervenire: "Qual è l\'obiettivo principale..."\n09:14:55  [Finalize] Salvataggio sessione: 287 parole, 00:34\n09:14:55  Sessione salvata.`
-  },
-  { id:2, date:'22 Mar 2026, 14:30', phase:'F0', dur:'01:12', words:634,
-    transcript:`Sessione di esplorazione con l'owner del processo di liquidazione sinistri. Il processo attuale prevede quattro passaggi manuali che potrebbero essere automatizzati.
-
-[Omega]: Come viene gestita la conoscenza critica quando una risorsa esperta lascia il team?
-
-Attualmente la conoscenza è trasmessa principalmente tramite affiancamento informale. Non esiste documentazione strutturata delle casistiche complesse.`,
-    log:`14:30:01  [Start] Nuova sessione ID: 1774201635421\n14:30:01  [TTS] Stato vocale: attivo\n14:30:11  [Chunk 1] Trascritto: "Sessione di esplorazione..."\n14:31:05  [Omega] Vuole intervenire\n14:41:01  [Finalize] Salvataggio sessione: 634 parole, 01:12`
-  },
-  { id:3, date:'21 Mar 2026, 10:45', phase:'Setup', dur:'00:18', words:142,
-    transcript:`Prima sessione di setup. Verifica che il sistema di trascrizione funzioni correttamente e che Omega risponda alle domande nel contesto corretto.`,
-    log:`10:45:00  [Start] Nuova sessione ID: 1774201412380\n10:45:10  [Chunk 1] Trascritto: "Prima sessione di setup..."\n10:45:18  [Finalize] Salvataggio sessione: 142 parole, 00:18`
-  },
-];
-
-let currentScreen = 'sess';
-let panelOpen = false;
-let isRec = false;
-let isPaused = false;
-let timerSec = 0;
-let timerInt = null;
-let chunkSim = null;
-let chunkCount = 0;
-let wordCount = 0;
-let selectedArch = null;
-let selectedLog = null;
-let currentPhase = 'Setup';
-
-// ── CANVAS WAVES ──
-const canvas = document.getElementById('waveCanvas');
-const ctx = canvas.getContext('2d');
-let W, H, waveT = 0, audioLvl = 0;
-const stars = [];
-
-function resizeCanvas() {
-  const s = document.getElementById('sSess');
-  W = canvas.width = s.offsetWidth;
-  H = canvas.height = s.offsetHeight;
-}
-
-function initStars() {
-  stars.length = 0;
-  for(let i=0; i<60; i++) stars.push({x:Math.random()*W, y:Math.random()*H, r:Math.random()*.7+.1, a:Math.random(), da:(Math.random()-.5)*.003});
-}
-
-function drawCanvas() {
-  requestAnimationFrame(drawCanvas);
-  ctx.clearRect(0,0,W,H);
-  stars.forEach(s => {
-    s.a = Math.max(.05, Math.min(.9, s.a+s.da));
-    if(s.a<=.05||s.a>=.9) s.da*=-1;
-    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-    ctx.fillStyle=`rgba(74,158,114,${s.a*.3})`; ctx.fill();
-  });
-
-  if(!isRec && !isPaused) return;
-  waveT += isPaused ? .005 : .025;
-  if(isRec && !isPaused) audioLvl = .35 + Math.sin(waveT*3)*.2 + Math.random()*.1;
-  else audioLvl += (.04 - audioLvl)*.05;
-
-  const cx=W/2, cy=H*.38, base=Math.min(W,H)*.12;
-  [3,2.2,1.8,1.2,.8].forEach((thick,r) => {
-    const sp = isPaused ? [.2,.3,.25,.35,.28][r] : [1,.8,1.1,.7,.9][r];
-    const ph = r*(Math.PI*2/5);
-    const ratio = ((waveT*sp+ph)%(Math.PI*2))/(Math.PI*2);
-    const rad = base*(.8+r*.12) + (Math.max(W,H)*.75-base*(.8+r*.12))*ratio;
-    const op = isPaused ? (1-ratio)*.1 : (1-ratio)*(.22+audioLvl*.35);
-    ctx.beginPath(); ctx.arc(cx,cy,rad,0,Math.PI*2);
-    ctx.strokeStyle = isPaused ? `rgba(232,168,74,${op})` : `rgba(74,158,114,${op})`;
-    ctx.lineWidth = thick+(isRec?audioLvl*2:0); ctx.stroke();
-  });
-}
-
-resizeCanvas(); initStars(); drawCanvas();
-window.addEventListener('resize', ()=>{resizeCanvas();initStars();});
-
-// ── NAVIGATION ──
-function nav(screen) {
-  currentScreen = screen;
-  ['sess','arch','log','cfg'].forEach(s => {
-    document.getElementById(`s${s.charAt(0).toUpperCase()+s.slice(1)}`).classList.toggle('on', s===screen);
-    document.getElementById(`sl-${s}`).classList.toggle('on', s===screen);
-    
-  });
-  const titles = {sess:'Sessione', arch:'Archivio', log:'Log', cfg:'Config'};
-  document.getElementById('hdrTitle').textContent = titles[screen];
-  if(screen==='arch') renderArch();
-  if(screen==='log') renderLog();
-  if(screen==='sess') { setTimeout(resizeCanvas,100); setTimeout(initStars,100); }
-}
-
-function togglePanel() {
-  panelOpen = !panelOpen;
-  const p = document.getElementById('sidePanel');
-  const h = document.getElementById('menuBtn');
-  p.classList.toggle('open', panelOpen);
-  h.classList.toggle('open', panelOpen);
-  document.getElementById('phaseDD').classList.remove('on');
-  setTimeout(resizeCanvas, 300);
-}
-
-// Close panel/dropdown on outside click
-document.addEventListener('click', e => {
-  if(!e.target.closest('#sidePanel') && !e.target.closest('#hmb') && panelOpen) togglePanel();
-  if(!e.target.closest('.phase-chip') && !e.target.closest('.phase-dropdown')) {
-    document.getElementById('phaseDD').classList.remove('on');
-  }
-});
-
-// ── PHASE ──
-function togglePhaseDD() {
-  document.getElementById('phaseDD').classList.toggle('on');
-}
-function setPhase(p) {
-  currentPhase = p;
-  document.getElementById('phaseLabel').textContent = p;
-  document.getElementById('sessPhaseDisplay').textContent = p;
-  document.querySelectorAll('.phase-opt').forEach(o => o.classList.toggle('active', o.textContent===p));
-  document.getElementById('phaseDD').classList.remove('on');
-}
-
-// ── SESSION ──
-function fmt(s) {
-  return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
-}
-
-function startSess() {
-  isRec = true; isPaused = false;
-  timerSec=0; chunkCount=0; wordCount=0;
-  document.getElementById('omegaSym').className='omega-glyph rec';
-  document.getElementById('omegaStatus').className='omega-state rec';
-  document.getElementById('omegaStatus').textContent='registrazione';
-  document.getElementById('sessTimer').className='omega-timer on';
-  document.getElementById('btnAvvia').style.display='none';
-  document.getElementById('sessBtns').classList.add('on');
-  document.getElementById('sessInfoStrip').classList.add('on');
-  document.getElementById('omegaAskWrap').classList.add('on');
-  document.getElementById('omegaAskBtn').classList.add('disabled');
-  document.getElementById('sessPhaseDisplay').textContent=currentPhase;
-
-  timerInt = setInterval(()=>{
-    timerSec++;
-    document.getElementById('sessTimer').textContent=fmt(timerSec);
-    // Simulate word accumulation
-    wordCount += Math.floor(Math.random()*3+1);
-    document.getElementById('sessWordCount').textContent=wordCount;
-  }, 1000);
-
-  // Simulate chunks
-  chunkSim = setInterval(()=>{
-    if(isPaused) return;
-    chunkCount++;
-    document.getElementById('sessChunkCount').textContent=chunkCount;
-    if(chunkCount===1) {
-      document.getElementById('omegaAskBtn').classList.remove('disabled');
-      document.getElementById('omegaAskHint').textContent='';
-    }
-    if(chunkCount===3) {
-      // Simulate Omega question
-      setTimeout(()=>{
-        document.getElementById('omegaBubble').classList.add('on');
-      }, 500);
-    }
-  }, 10000);
-}
-
-function togglePause() {
-  isPaused = !isPaused;
-  const btn = document.getElementById('btnPausa');
-  const glyph = document.getElementById('omegaSym');
-  const state = document.getElementById('omegaStatus');
-  if(isPaused) {
-    glyph.className='omega-glyph paused';
-    state.className='omega-state paused';
-    state.textContent='in pausa';
-    btn.textContent='Riprendi';
-    btn.className='btn-s btn-tx';
-  } else {
-    glyph.className='omega-glyph rec';
-    state.className='omega-state rec';
-    state.textContent='registrazione';
-    btn.textContent='Pausa';
-    btn.className='btn-s btn-pause';
-  }
-}
-
-function stopSess() {
-  isRec=false; isPaused=false;
-  clearInterval(timerInt); clearInterval(chunkSim);
-  document.getElementById('omegaSym').className='omega-glyph';
-  document.getElementById('omegaStatus').className='omega-state';
-  document.getElementById('omegaStatus').textContent='sessione salvata';
-  document.getElementById('btnAvvia').style.display='block';
-  document.getElementById('sessBtns').classList.remove('on');
-  document.getElementById('sessInfoStrip').classList.remove('on');
-  document.getElementById('omegaAskWrap').classList.remove('on');
-  document.getElementById('omegaBubble').classList.remove('on');
-  document.getElementById('sessTimer').textContent='';
-  audioLvl=0;
-  setTimeout(()=>{ document.getElementById('omegaStatus').textContent='pronto'; },3000);
-}
-
-// ── OMEGA ──
-function showOmegaQ() {
-  document.getElementById('omegaQOverlay').classList.add('on');
-}
-function closeOmegaQ(withVoice) {
-  document.getElementById('omegaQOverlay').classList.remove('on');
-  if(withVoice) document.getElementById('omegaBubble').classList.add('on');
-}
-
-// ── TRANSCRIPT ──
-function showTx() { document.getElementById('txOverlay').classList.add('on'); }
-
-// ── ARCHIVE ──
-function renderArch() {
-  const list = document.getElementById('archList');
-  list.innerHTML = MOCK_SESSIONS.map(s => `
-    <div class="sess-item${selectedArch===s.id?' on':''}" onclick="selectArch(${s.id})">
-      <div class="sess-item-date">${s.date}</div>
-      <div class="sess-item-title">${s.transcript.split('\n')[0].substring(0,60)}...</div>
-      <div class="sess-item-meta">
-        <span class="phase-tag">${s.phase}</span>
-        <span class="sess-item-dur">${s.dur} · ${s.words} parole</span>
-      </div>
-    </div>
-  `).join('');
-}
-
-function selectArch(id) {
-  selectedArch = id;
-  const s = MOCK_SESSIONS.find(x=>x.id===id);
-  document.getElementById('archTitle').textContent = s.date;
-  document.getElementById('archActs').style.display='flex';
-  document.getElementById('archBody').innerHTML = `<div class="tx-content">${s.transcript.replace(/\[Omega\]:/g,'<span class="tx-omega-line">[Omega]:</span>')}</div>`;
-  renderArch();
-}
-
-function showSynth() {
-  document.getElementById('archBody').innerHTML = `
-    <div class="tx-content">
-=== SINTESI ===
-
-La sessione ha esplorato il processo di liquidazione sinistri con focus sul collo di bottiglia principale: la frammentazione tra sistemi legacy non integrati.
-
-Punti chiave emersi:
-• Tempo medio di elaborazione: 3 giorni lavorativi (pratiche standard)
-• Causa principale: 4 passaggi manuali tra sistemi separati
-• Rischio turnover: conoscenza tacita non documentata
-• Opportunità AI: automazione dei passaggi di estrazione e categorizzazione
-
-=== TRANSCRIPT ===
-
-${MOCK_SESSIONS.find(x=>x.id===selectedArch)?.transcript||''}
-    </div>
-  `;
-}
-
-// ── LOG ──
-function renderLog() {
-  const list = document.getElementById('logList');
-  list.innerHTML = MOCK_SESSIONS.map(s => `
-    <div class="sess-item${selectedLog===s.id?' on':''}" onclick="selectLog(${s.id})">
-      <div class="sess-item-date">${s.date}</div>
-      <div class="sess-item-meta">
-        <span class="phase-tag">${s.phase}</span>
-        <span class="sess-item-dur">${s.dur}</span>
-      </div>
-    </div>
-  `).join('');
-}
-
-function selectLog(id) {
-  selectedLog = id;
-  const s = MOCK_SESSIONS.find(x=>x.id===id);
-  document.getElementById('logTitle').textContent = s.date;
-  document.getElementById('logActs').style.display='flex';
-  document.getElementById('logBody').innerHTML = `<div class="tx-content" style="font-family:var(--fm);font-size:12px;color:var(--dim)">${s.log}</div>`;
-  renderLog();
-}
-
-// ── CONFIG ──
-function toggleCfg(id) {
-  document.getElementById(id).classList.toggle('open');
-}
-
-// Init
-renderArch();
-renderLog();
-
-
-// Override logout buttons in app
-document.addEventListener('click', function(e) {
-  if(e.target.classList.contains('btn-logout') || e.target.textContent === 'Esci') {
-    var appEl = document.getElementById('appWrap');
-    appEl.style.display = 'none';
-    var homeEl = document.getElementById('sHome');
-    homeEl.style.display = '';
-    homeEl.style.opacity = '';
-    document.querySelector('input[type=text]').value = '';
-    document.querySelector('input[type=password]').value = '';
-    document.querySelector('.btn-login').textContent = 'Accedi';
-    document.querySelector('.btn-login').style.background = '';
-    document.querySelector('.btn-login').style.opacity = '';
-    document.querySelector('.btn-login').style.pointerEvents = '';
-  }
-});
-
 </script>
-
-</div>
-
-<!-- APP (hidden until login) -->
-
-<div id="appWrap" style="display:none;position:fixed;inset:0;z-index:500">
-<div class="app">
-
-  <!-- HEADER -->
-
-  <header class="hdr">
-    <div class="hdr-left">
-      <button class="hmb" id="menuBtn" onclick="togglePanel()" title="Menu">
-        <span></span><span></span><span></span>
-      </button>
-      <span class="hdr-title" id="hdrTitle">Sessione</span>
-    </div>
-    <div class="hdr-right">
-      <div class="phase-chip" id="phaseChip" onclick="togglePhaseDD()">
-        <span id="phaseLabel">Setup</span>
-      </div>
-      <div class="phase-dropdown" id="phaseDD">
-        <div class="phase-opt active" onclick="setPhase('Setup')">Setup</div>
-        <div class="phase-opt" onclick="setPhase('Fase 0')">Fase 0</div>
-        <div class="phase-opt" onclick="setPhase('Fase 1')">Fase 1</div>
-        <div class="phase-opt" onclick="setPhase('Fase 2')">Fase 2</div>
-      </div>
-      <button class="btn-logout">Esci</button>
-    </div>
-  </header>
-
-  <!-- SERVICE BANNER (demo) -->
-
-  <div class="svc-banner warn" id="svBanner" style="display:none">
-    Groq non raggiungibile — trascrizione sospesa
-  </div>
-
-  <!-- MAIN -->
-
-  <div class="main">
-
-```
-<!-- SIDE PANEL -->
-<aside class="side" id="sidePanel">
-  <nav class="side-nav">
-    <button class="side-link on" id="sl-sess" onclick="nav('sess')">
-      <span class="side-link-icon">&#937;</span> Sessione
-    </button>
-    <button class="side-link" id="sl-arch" onclick="nav('arch')">
-      <span class="side-link-icon">&#9633;</span> Archivio
-    </button>
-    <button class="side-link" id="sl-log" onclick="nav('log')">
-      <span class="side-link-icon">&#8801;</span> Log
-    </button>
-    <button class="side-link" id="sl-cfg" onclick="nav('cfg')">
-      <span class="side-link-icon">&#9881;</span> Config
-    </button>
-  </nav>
-  <div class="side-footer">
-    <div class="side-user">Utente: dino.martin</div>
-    <button class="btn-logout" style="width:100%">Logout</button>
-  </div>
-</aside>
-
-<!-- ══════════ SESSIONE ══════════ -->
-<div class="screen on" id="sSess">
-  <canvas id="waveCanvas"></canvas>
-  <div class="sess-body">
-
-    <div class="omega-stage">
-      <div class="omega-glyph" id="omegaSym">&#937;</div>
-      <div class="omega-state" id="omegaStatus">pronto</div>
-      <div class="omega-timer" id="sessTimer"></div>
-      <div class="sess-stats" id="sessInfoStrip">
-        <div class="stat"><span class="stat-lbl">Chunk</span><span class="stat-val" id="sessChunkCount">0</span></div>
-        <div class="stat"><span class="stat-lbl">Parole</span><span class="stat-val" id="sessWordCount">0</span></div>
-        <div class="stat"><span class="stat-lbl">Fase</span><span class="stat-val" id="sessPhaseDisplay">Setup</span></div>
-      </div>
-
-
-      <!-- Demo bubble -->
-      <div class="omega-bubble" id="omegaBubble">
-        <div class="bubble-lbl">Omega — Domanda</div>
-        <button class="bubble-x" onclick="document.getElementById('omegaBubble').classList.remove('on')">&#215;</button>
-        <div class="bubble-text">Qual è l'obiettivo principale di questa attività in termini di riduzione del rischio operativo?</div>
-      </div>
-    </div>
-
-    <div class="sess-controls">
-      <!-- Omega Chiedi — prominent button, shown during recording -->
-      <div class="omega-ask-wrap" id="omegaAskWrap">
-        <button class="omega-ask disabled" id="omegaAskBtn" onclick="showOmegaQ()">
-          <span class="omega-ask-sym">&#937;</span>
-          Chiedi a Omega
-        </button>
-        <span class="omega-ask-hint" id="omegaAskHint">attivo dopo 10 secondi</span>
-      </div>
-      <button class="btn-avvia" id="btnAvvia" onclick="startSess()">Avvia</button>
-      <div class="sess-btn-row" id="sessBtns">
-        <button class="btn-s btn-pause" id="btnPausa" onclick="togglePause()">Pausa</button>
-        <button class="btn-s btn-stop" onclick="stopSess()">&#9724; Stop</button>
-        <button class="btn-s btn-tx" onclick="showTx()">&#8801; Trascrizione</button>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- ══════════ ARCHIVIO ══════════ -->
-<div class="screen" id="sArch">
-  <div class="two-col">
-    <div class="col-left">
-      <div class="col-left-hdr">
-        <select class="filter-sel">
-          <option>Tutte le fasi</option>
-          <option>Setup</option>
-          <option>Fase 0</option>
-          <option>Fase 1</option>
-          <option>Fase 2</option>
-        </select>
-      </div>
-      <div class="sess-list" id="archList"></div>
-    </div>
-    <div class="col-right">
-      <div class="col-right-hdr">
-        <div class="col-right-title" id="archTitle">Seleziona una sessione</div>
-        <div class="col-right-acts" id="archActs" style="display:none">
-          <button class="act-btn green">Copia</button>
-          <button class="act-btn blue" onclick="showSynth()">Sintesi</button>
-          <button class="act-btn red">Cancella</button>
-        </div>
-      </div>
-      <div class="col-right-body" id="archBody">
-        <div class="empty-state">
-          <div class="empty-icon">&#9633;</div>
-          <div class="empty-text">Seleziona una sessione</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════ LOG ══════════ -->
-<div class="screen" id="sLog">
-  <div class="two-col">
-    <div class="col-left">
-      <div class="col-left-hdr">
-        <select class="filter-sel">
-          <option>Tutte le fasi</option>
-          <option>Setup</option>
-          <option>Fase 0</option>
-          <option>Fase 1</option>
-          <option>Fase 2</option>
-        </select>
-      </div>
-      <div class="sess-list" id="logList"></div>
-    </div>
-    <div class="col-right">
-      <div class="col-right-hdr">
-        <div class="col-right-title" id="logTitle">Seleziona una sessione</div>
-        <div class="col-right-acts" id="logActs" style="display:none">
-          <button class="act-btn green">Copia log</button>
-          <button class="act-btn red">Cancella log</button>
-        </div>
-      </div>
-      <div class="col-right-body" id="logBody">
-        <div class="empty-state">
-          <div class="empty-icon">&#8801;</div>
-          <div class="empty-text">Seleziona una sessione</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════ CONFIG ══════════ -->
-<div class="screen" id="sCfg">
-  <div class="cfg-body">
-
-    <div class="cfg-section" id="cfgAPI">
-      <div class="cfg-hdr" onclick="toggleCfg('cfgAPI')">
-        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#128273;</span> Chiavi API</div>
-        <span class="cfg-arrow">&#8250;</span>
-      </div>
-      <div class="cfg-body-inner">
-        <div class="cfg-row">
-          <label class="cfg-lbl">Groq API Key</label>
-          <input class="cfg-inp" type="password" placeholder="gsk_...">
-        </div>
-        <div class="cfg-row">
-          <label class="cfg-lbl">Anthropic API Key</label>
-          <input class="cfg-inp" type="password" placeholder="sk-ant-...">
-        </div>
-        <div class="cfg-row">
-          <label class="cfg-lbl">OpenAI API Key (embedding)</label>
-          <input class="cfg-inp" type="password" placeholder="sk-...">
-        </div>
-        <button class="cfg-save">Salva chiavi</button>
-      </div>
-    </div>
-
-    <div class="cfg-section" id="cfgRec">
-      <div class="cfg-hdr" onclick="toggleCfg('cfgRec')">
-        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#127908;</span> Registrazione</div>
-        <span class="cfg-arrow">&#8250;</span>
-      </div>
-      <div class="cfg-body-inner">
-        <div class="cfg-row">
-          <label class="cfg-lbl">Lingua trascrizione</label>
-          <select class="cfg-sel">
-            <option>Italiano</option>
-            <option>English</option>
-            <option>Auto-detect</option>
-          </select>
-        </div>
-        <div class="cfg-row">
-          <label class="cfg-lbl">Frase trigger Omega</label>
-          <input class="cfg-inp" type="text" value="Omega chiedi">
-        </div>
-      </div>
-    </div>
-
-    <div class="cfg-section" id="cfgOm">
-      <div class="cfg-hdr" onclick="toggleCfg('cfgOm')">
-        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#937;</span> Omega</div>
-        <span class="cfg-arrow">&#8250;</span>
-      </div>
-      <div class="cfg-body-inner">
-        <div class="cfg-check-row">
-          <input class="cfg-check" type="checkbox" id="chkTts">
-          <label class="cfg-check-lbl" for="chkTts">Attiva voce Omega (TTS)</label>
-        </div>
-      </div>
-    </div>
-
-    <div class="cfg-section" id="cfgAcc">
-      <div class="cfg-hdr" onclick="toggleCfg('cfgAcc')">
-        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#128100;</span> Account</div>
-        <span class="cfg-arrow">&#8250;</span>
-      </div>
-      <div class="cfg-body-inner">
-        <div class="cfg-row">
-          <label class="cfg-lbl">Utente corrente</label>
-          <input class="cfg-inp" value="dino.martin" readonly>
-        </div>
-        <button class="cfg-save" style="background:rgba(217,95,95,.08);border-color:rgba(217,95,95,.25);color:var(--dngr)">Logout</button>
-      </div>
-    </div>
-
-  </div>
-</div>
-```
-
-  </div><!-- /main -->
-
-  </div><!-- /app -->
-
-<!-- OMEGA QUESTION POPUP -->
-
-<div class="omega-q-overlay" id="omegaQOverlay">
-  <div class="omega-q-card">
-    <div class="omega-q-alert">&#11042; Omega ha una domanda</div>
-    <div class="omega-q-sym">&#937;</div>
-    <div class="omega-q-text">
-      Qual è il principale collo di bottiglia in questo processo che genera ritardi ricorrenti?
-    </div>
-    <div class="omega-q-btns">
-      <button class="q-btn listen" onclick="closeOmegaQ(true)">Ascolta</button>
-      <button class="q-btn mute" onclick="closeOmegaQ(false)">Non parlare</button>
-      <button class="q-btn close-q" onclick="closeOmegaQ(false)">Chiudi</button>
-    </div>
-  </div>
-</div>
-
-<!-- TRANSCRIPT OVERLAY -->
-
-<div class="tx-overlay" id="txOverlay">
-  <div class="tx-sheet">
-    <div class="tx-hdr">
-      <div class="tx-title">Transcript — 00:34</div>
-      <div class="tx-acts">
-        <button class="tx-copy">Copia</button>
-        <button class="tx-xbtn" onclick="document.getElementById('txOverlay').classList.remove('on')">&#215;</button>
-      </div>
-    </div>
-    <div class="tx-body">Adesso proveremo a fare il transcript senza pausa che è la modalità più comune. Vediamo se il sistema riesce a catturare tutto quello che viene detto durante la sessione di lavoro.
-
-[Omega]: Qual è l’obiettivo principale di questa attività in termini di riduzione del rischio operativo?
-
-Dunque l’obiettivo principale è quello di ridurre il tempo di elaborazione delle pratiche di sinistro, attualmente stimato in circa tre giorni lavorativi per le pratiche standard. Il problema principale è la frammentazione del processo tra diversi sistemi legacy che non comunicano tra loro.</div>
-
-  </div>
-</div>
-</div>
 
 </body>
 </html>
