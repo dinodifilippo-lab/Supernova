@@ -2684,6 +2684,11 @@ function showOmegaQuestion(text) {
 // omegaTTSSpeak: called as FIRST action in onclick - iOS requires speak() to be immediate
 function omegaTTSSpeak() {
   var cfg = getCfgFull();
+  // DIAGNOSTIC — remove after fix
+  alert('TTS debug:\ncfg.tts=' + cfg.tts
+    + '\ncurrentUser=' + currentUser
+    + '\nspeechSynthesis=' + !!window.speechSynthesis
+    + '\nomegaQPending=' + (omegaQPending||'').substring(0,30));
   if(!cfg.tts || !window.speechSynthesis) { omegaShowText(); return; }
   var ttsText = (omegaQPending || '').replace(/^CHIARIMENTO:\s*"[^"]+"\s*--\s*/, '').replace(/<[^>]+>/g,'').trim();
   if(!ttsText) { omegaShowText(); return; }
