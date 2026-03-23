@@ -2500,6 +2500,293 @@ sbSafe = function(path, method, body) {
   });
 };
 
+
+// ================================================================
+// LAYER 5 — OMEGA INTELLIGENCE
+// ================================================================
+
+var claudeBusy   = false;
+var claudeAbort  = null;
+var claudeHist   = [];
+var omegaHistory = [];
+var evalChunks   = 0;
+var EVAL_EVERY   = 3;
+var CLAUDE_TIMEOUT = 15000;
+
+function getCfgFull() {
+  try {
+    var s = localStorage.getItem('sn_cfg_'+(currentUser||'default'));
+    return s ? JSON.parse(s) : {};
+  } catch(e) { return {}; }
+}
+
+// ── CLAUDE CALL ──
+function claudeCall(msg, useHistory) {
+  var cfg = getCfgFull();
+  if(!cfg.anthKey) { setBanner('bannerClaude', true); return Promise.resolve(null); }
+  setBanner('bannerClaude', false);
+
+  if(claudeAbort) { try { claudeAbort.abort(); } catch(e) {} }
+  claudeAbort = new AbortController();
+  var myAbort   = claudeAbort;
+  var mySessId  = currentSessId;
+
+  var msgs = useHistory
+    ? claudeHist.concat([{role:'user', content:msg}])
+    : [{role:'user', content:msg}];
+
+  var sysPrompt = buildSysPrompt();
+
+  var timeout = new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('timeout')); }, CLAUDE_TIMEOUT); });
+
+  return Promise.race([
+    fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      signal: myAbort.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': cfg.anthKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: sysPrompt,
+        messages: msgs
+      })
+    }).then(function(r){
+      if(mySessId !== currentSessId) return null;
+      if(!r.ok) return r.json().then(function(e){ throw new Error((e.error&&e.error.message)||'HTTP '+r.status); });
+      return r.json();
+    }).then(function(data){
+      if(!data) return null;
+      var reply = data.content && data.content[0] ? data.content[0].text : '';
+      if(useHistory && reply) {
+        claudeHist.push({role:'user', content:msg});
+        claudeHist.push({role:'assistant', content:reply});
+        if(claudeHist.length > 40) claudeHist = claudeHist.slice(-40);
+      }
+      setBanner('bannerClaude', false);
+      return reply;
+    }),
+    timeout
+  ]).catch(function(e){
+    if(e.name === 'AbortError') return null;
+    setBanner('bannerClaude', true);
+    dbg('Claude error: '+e.message);
+    return null;
+  });
+}
+
+// ── SYSTEM PROMPT ──
+var PROMPTS = {
+  setup: "Sei Omega, il collega AI del Progetto Super-NOVA. Sei appena arrivato -- conosci lo scopo del progetto e la logica delle fasi ma non sai ancora nulla delle attivita operative. Sei un collega junior in onboarding, non uno strumento che esegue istruzioni. Stile: diretto, collaborativo, mai didattico. Una cosa alla volta, max 3-4 frasi.",
+  f0: "Sei Omega in Fase 0. Stai incontrando per la prima volta le attivita operative. Sei curioso, fai domande specifiche, una alla volta. Esplori: cosa funziona, cosa frustra, dipendenze, fragilita. Max 3 frasi.",
+  f1: "Sei Omega in Fase 1. Approfondisci i problemi emersi in F0 e acquisisci skill specifiche. Ogni skill si chiama skill_[nome]. Fai domande su: manifestazione del problema, root cause, flusso completo, target. Max 3 frasi.",
+  f2: "Sei Omega in Fase 2. Lavori operativamente. Osservi frequenze, volumi, eccezioni. Vedi parallelismi trasversali. Proponi ottimizzazioni concrete. Max 3 frasi."
+};
+
+function buildSysPrompt() {
+  var base = PROMPTS[currentPhase] || PROMPTS.setup;
+  return base + "\n\nProgetto Super-NOVA (New Operating model Via AI). Omega e il collega AI che cresce attraverso le fasi accompagnando il progetto.";
+}
+
+// ── RAG CONTEXT ──
+function buildRAGContext(query) {
+  var cfg = getCfgFull();
+  if(!cfg.oaiKey || !sessions.length) return Promise.resolve('');
+  // Simple: use last 3 sessions as context (full RAG with embeddings in next layer)
+  var recent = sessions.slice(0,3).map(function(s,i){
+    return '[Sessione '+(i+1)+' - '+( s.phase||'setup')+']\n'+(s.transcript||'').substring(0,400);
+  }).join('\n\n');
+  return Promise.resolve(recent ? '\n\nCONTESTOSESSIONIPRECEDENTI:\n'+recent : '');
+}
+
+// ── OMEGA RESPOND ──
+function omegaRespond(triggerType) {
+  if(claudeBusy) {
+    if(triggerType === 'manual') dbg('Claude busy -- ignored');
+    return;
+  }
+  claudeBusy = true;
+  el('omegaAskBtn').disabled = true;
+
+  var txCtx = transcript || '(nessun transcript)';
+
+  buildRAGContext(txCtx.slice(-400)).then(function(ragCtx) {
+    var prompt;
+    if(triggerType === 'auto') {
+      prompt = 'Hai ascoltato gli ultimi 30 secondi.\n\nTranscript recente:\n"'+txCtx.slice(-800)+'"'+ragCtx+'\n\nValuta se intervenire usando questi criteri (intervieni SOLO se uno e soddisfatto in modo evidente):\n1. CONFLITTO con informazioni note\n2. SCOPO non chiaro rispetto al progetto\n3. DETTAGLIO mancante importante\n4. PROPOSTA concreta per un problema emerso\n5. CONNESSIONE con sessioni precedenti rilevante\n6. CHIARIMENTO: testo incomprensibile -- formato: CHIARIMENTO: "[testo]" -- [domanda]\n\nSe nessun criterio e soddisfatto: rispondi solo SILENZIO.\nAltrimenti max 3 frasi.';
+    } else {
+      prompt = 'Sei invitato a intervenire adesso.\n\nTranscript:\n"'+txCtx.slice(-1000)+'"'+ragCtx+'\n\nFai UNA domanda utile e pertinente. Max 3 frasi.';
+    }
+
+    claudeCall(prompt, triggerType !== 'auto').then(function(reply) {
+      claudeBusy = false;
+      if(triggerType === 'manual' && !isPaused && isRecording) el('omegaAskBtn').disabled = false;
+      if(!reply) return;
+      if(triggerType === 'auto' && reply.trim().toUpperCase().startsWith('SILENZIO')) {
+        dbg('Omega: silenzio');
+        return;
+      }
+      dbg('Omega risponde: '+reply.substring(0,40));
+      showOmegaQuestion(reply);
+    });
+  });
+}
+
+// ── SHOW OMEGA QUESTION POPUP ──
+function showOmegaQuestion(text) {
+  var chiarMatch = text.match(/^CHIARIMENTO:\s*"([^"]+)"\s*--\s*(.+)/s);
+  var qEl = el('omegaQText');
+  if(chiarMatch) {
+    qEl.innerHTML =
+      '<div style="font-family:DM Mono,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#e8a84a;margin-bottom:8px">Testo poco chiaro:</div>'+
+      '<div style="background:rgba(232,168,74,.08);border:1px solid rgba(232,168,74,.2);border-radius:6px;padding:10px;font-style:italic;margin-bottom:12px;font-size:13px">"'+chiarMatch[1]+'"</div>'+
+      '<div>'+chiarMatch[2]+'</div>';
+    omegaHistory.push({text: chiarMatch[2], time: new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})});
+  } else {
+    qEl.textContent = text;
+    omegaHistory.push({text: text, time: new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})});
+  }
+  qEl.style.display = 'none';
+  el('omegaQInterrompi').style.display = 'none';
+  el('omegaQBtns').innerHTML =
+    '<button class="omega-q-btn listen" onclick="omegaQListen()">Ascolta</button>'+
+    '<button class="omega-q-btn mute" onclick="omegaQSilence()">Non parlare</button>'+
+    '<button class="omega-q-btn close" onclick="omegaQClose()">Chiudi</button>';
+  el('omegaQOverlay').classList.add('show');
+}
+
+// ── POPUP ACTIONS ──
+omegaQListen = function() {
+  el('omegaQText').style.display = 'block';
+  var cfg = getCfgFull();
+  if(cfg.tts) {
+    speakText(el('omegaQText').textContent || el('omegaQText').innerText);
+    el('omegaQInterrompi').style.display = 'block';
+  }
+  el('omegaQBtns').innerHTML =
+    '<button class="omega-q-btn mute" onclick="omegaQSilence()">Non parlare</button>'+
+    '<button class="omega-q-btn close" onclick="omegaQClose()">Chiudi</button>';
+  // Add question to transcript
+  var qText = el('omegaQText').textContent || el('omegaQText').innerText;
+  transcript += (transcript ? ' ' : '') + '[Omega]: ' + qText;
+  updateHistoryPill();
+};
+
+omegaQSilence = function() {
+  stopTTS();
+  el('omegaQInterrompi').style.display = 'none';
+};
+
+omegaQClose = function() {
+  stopTTS();
+  el('omegaQOverlay').classList.remove('show');
+  el('omegaQText').style.display = 'none';
+  el('omegaQInterrompi').style.display = 'none';
+};
+
+omegaQInterrompi = function() {
+  stopTTS();
+  el('omegaQInterrompi').style.display = 'none';
+};
+
+// ── TTS ──
+var ttsVoices = [];
+if(window.speechSynthesis) {
+  speechSynthesis.onvoiceschanged = function(){ ttsVoices = speechSynthesis.getVoices(); };
+  ttsVoices = speechSynthesis.getVoices();
+}
+
+function speakText(text) {
+  var cfg = getCfgFull();
+  if(!cfg.tts || !window.speechSynthesis) return;
+  stopTTS();
+  try { speechSynthesis.speak(new SpeechSynthesisUtterance('')); } catch(e) {}
+  var clean = text.replace(/<[^>]+>/g,'').trim();
+  var utt = new SpeechSynthesisUtterance(clean);
+  utt.lang = (cfg.lang || 'it') === 'it' ? 'it-IT' : 'en-US';
+  utt.rate = 0.95;
+  var voice = ttsVoices.find(function(v){ return v.lang && v.lang.startsWith(utt.lang.slice(0,2)); });
+  if(voice) utt.voice = voice;
+  utt.onstart = function(){ el('stopTtsBtn').style.display = 'block'; };
+  utt.onend = utt.onerror = function(){ el('stopTtsBtn').style.display = 'none'; };
+  speechSynthesis.speak(utt);
+}
+
+stopTTS = function() {
+  if(window.speechSynthesis) speechSynthesis.cancel();
+  el('stopTtsBtn').style.display = 'none';
+};
+
+// ── HISTORY PILL ──
+function updateHistoryPill() {
+  var pill = el('historyPill');
+  if(!pill) return;
+  if(omegaHistory.length > 1) {
+    pill.style.display = 'block';
+    pill.textContent = '^ Messaggi precedenti ('+omegaHistory.length+')';
+  } else {
+    pill.style.display = 'none';
+  }
+}
+
+showHistory = function() {
+  var body = el('historyBody');
+  if(!body) return;
+  body.innerHTML = omegaHistory.length
+    ? omegaHistory.map(function(m){
+        return '<div style="margin-bottom:14px"><div style="font-family:DM Mono,monospace;font-size:9px;color:#4a9e72;letter-spacing:.1em;margin-bottom:4px">'+m.time+'</div><div>'+m.text+'</div></div>';
+      }).join('<hr style="border:none;border-top:1px solid #252b35;margin:0 0 14px">')
+    : 'Nessun messaggio precedente.';
+  el('historyOverlay').classList.add('show');
+};
+
+clearOmegaHistory = function() {
+  omegaHistory = [];
+  closeHistory();
+  updateHistoryPill();
+};
+
+// ── MANUAL TRIGGER ──
+omegaChiedi = function() {
+  if(claudeBusy) return;
+  if(!isRecording) return;
+  var cfg = getCfgFull();
+  if(!cfg.anthKey) { alert('Inserisci la chiave Anthropic in Config.'); navTo('scCfg','Config','sl-cfg'); return; }
+  if(cfg.tts && window.speechSynthesis) { try { speechSynthesis.speak(new SpeechSynthesisUtterance('')); } catch(e) {} }
+  dbg('Omega: trigger manuale');
+  omegaRespond('manual');
+};
+
+// ── AUTO EVALUATION (called from rollover in layer 3) ──
+// Patch rollover to trigger evaluation every EVAL_EVERY chunks
+var _origRollover = rollover;
+rollover = function() {
+  _origRollover();
+  evalChunks++;
+  if(evalChunks >= EVAL_EVERY && !claudeBusy) {
+    evalChunks = 0;
+    dbg('Omega: auto eval');
+    omegaRespond('auto');
+  }
+};
+
+// ── RESET on new session ──
+var _l5_origAvvia = sessAvvia;
+sessAvvia = function() {
+  claudeBusy  = false;
+  claudeHist  = [];
+  omegaHistory = [];
+  evalChunks  = 0;
+  if(claudeAbort) { try { claudeAbort.abort(); } catch(e) {} claudeAbort = null; }
+  if(window.speechSynthesis) speechSynthesis.cancel();
+  updateHistoryPill();
+  _l5_origAvvia();
+};
+
 </script>
 
 <div id="dbgPanel">debug...</div>
