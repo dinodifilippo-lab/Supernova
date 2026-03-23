@@ -1130,7 +1130,7 @@ margin-top: -8px;
   <div id="scHome" class="screen active">
     <div class="home-galaxy"></div>
     <canvas id="homeStars"></canvas>
-    <div class="home-ver">v1.6</div>
+    <div class="home-ver">v1.7</div>
     <div class="home-content">
       <div>
         <div class="home-title">Super<span>NOVA</span></div>
@@ -2080,6 +2080,7 @@ sessAvvia = function() {
   }, 4000);
 };
 
+
 // Override sessPausa to stop recorder
 var _origSessPausa = sessPausa;
 sessPausa = function() {
@@ -2283,6 +2284,14 @@ function resetAutoSave() {
   autoSaveTimer = setTimeout(function(){
     if(!isRecording && !isPaused) return;
     addLog('Autosave...');
+    // Emergency localStorage snapshot
+    try {
+      var snap = buildSessObj();
+      var buf2 = []; try { buf2 = JSON.parse(localStorage.getItem('sn_buffer')||'[]'); } catch(e){}
+      var bi = buf2.findIndex(function(s){ return s.id===snap.id; });
+      if(bi>=0) buf2[bi]=snap; else buf2.push(snap);
+      localStorage.setItem('sn_buffer', JSON.stringify(buf2));
+    } catch(e) {}
     var sess = buildSessObj();
     var idx = sessions.findIndex(function(s){ return s.id === currentSessId; });
     if(idx >= 0) sessions[idx] = sess; else sessions.push(sess);
@@ -2323,16 +2332,15 @@ function loadSessions() {
 // beforeunload — synchronous save to localStorage
 // fetch() is killed on page close, localStorage is synchronous and always works
 window.addEventListener('beforeunload', function(){
+  // Always save if there's an active session (even if just paused)
   if((isRecording || isPaused) && currentSessId) {
     var sess = buildSessObj();
-    // Save current session to local buffer
     try {
       var buf = [];
       try { buf = JSON.parse(localStorage.getItem('sn_buffer')||'[]'); } catch(e){}
       var idx = buf.findIndex(function(s){ return s.id === currentSessId; });
       if(idx >= 0) buf[idx] = sess; else buf.push(sess);
       localStorage.setItem('sn_buffer', JSON.stringify(buf));
-      // Also save all sessions for recovery
       localStorage.setItem('sn_sessions_backup', JSON.stringify(sessions));
     } catch(e) {}
   }
@@ -2448,12 +2456,7 @@ renderLog = function() {
     return;
   }
   listEl.innerHTML = list.map(function(s){
-    return '<div class="sess-item'+(selectedLogId===s.id?' active':'')+'" onclick="logSelect('+s.id+')">'
-      +'<div class="sess-item-date">'+(s.date||'')+'</div>'
-      +'<div class="sess-item-meta"><span class="phase-tag">'+(s.phase||'setup')+'</span>'
-      +'<span class="sess-item-dur">'+fmt(s.duration_sec||s.duration||0)+'</span></div>'
-      +'</div>';
-  }).join('');
+    return '<div class="sess-item'+(selectedLogId===s.id?' active':'')+'" onclick="logSelect('+s.id+')">'      +'<div class="sess-item-date">'+(s.date||'')+'</div>'      +'<div class="sess-item-meta"><span class="phase-tag">'+(s.phase||'setup')+'</span>'      +'<span class="sess-item-dur">'+fmt(s.duration_sec||s.duration||0)+'</span></div>'      +'</div>';  }).join('');
 };
 
 function logSelect(id) {
@@ -2493,6 +2496,7 @@ logDel = function() {
   el('logDelBtn').classList.add('hidden');
   renderLog();
 };
+
 
 
 function dbg(msg) { console.log('[SN]', msg); }
@@ -2865,6 +2869,148 @@ sessAvvia = function() {
   updateHistoryPill();
   _l5_origAvvia();
 };
+
+
+
+// ═══════════════════════════════════════════════════════════════
+// LAYER 8 — Extras: sintesi, bulk delete, log fantasma fix
+// ═══════════════════════════════════════════════════════════════
+
+// ── Log: nascondi sessioni senza log entries ──
+var _l8_origRenderLog = renderLog;
+renderLog = function() {
+  _l8_origRenderLog();
+  // Remove items with empty log from the list
+  var listEl = el('logList');
+  if(!listEl) return;
+  var items = listEl.querySelectorAll('.sess-item');
+  items.forEach(function(item) {
+    var onclick = item.getAttribute('onclick') || '';
+    var m = onclick.match(/logSelect\((\d+)\)/);
+    if(!m) return;
+    var id = parseInt(m[1]);
+    var s = sessions.find(function(x){ return x.id===id; });
+    if(!s) return;
+    var entries = [];
+    try { entries = JSON.parse(s.log_entries||'[]'); } catch(e){}
+    if(!entries.length) item.style.display = 'none';
+  });
+};
+
+// ── Sintesi on-demand ──
+archSynth = function() {
+  var s = sessions.find(function(x){ return x.id===selectedArchId; });
+  if(!s || !s.transcript) return;
+  var cfg = getCfgFull();
+  if(!cfg.anthKey) { alert('Chiave Anthropic mancante in Config.'); return; }
+  var btn = el('archSynthBtn');
+  btn.textContent = 'Generando…'; btn.disabled = true;
+  var prompt = 'Genera una sintesi concisa di questa sessione Super-NOVA.\n\nFase: '
+    +(s.phase||'setup')+'\nDurata: '+fmt(s.duration_sec||0)
+    +'\n\nTranscript:\n'+(s.transcript||'')
+    +'\n\nSintesi in italiano, max 250 parole. Punti chiave, domande aperte, decisioni. Niente intro.';
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': cfg.anthKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 800,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  }).then(function(r){ return r.json(); }).then(function(data){
+    btn.textContent = 'Sintesi'; btn.disabled = false;
+    var reply = data.content && data.content[0] ? data.content[0].text : '';
+    if(!reply) return;
+    s.summary = reply;
+    sbSafe('sn_sessions?id=eq.'+s.id, 'PATCH', { summary: reply });
+    el('archBody').innerHTML =
+      '<div style="background:rgba(74,158,114,.07);border:1px solid rgba(74,158,114,.2);'
+      +'border-radius:8px;padding:14px 16px;margin-bottom:20px">'
+      +'<div style="font-family:DM Mono,monospace;font-size:9px;letter-spacing:.14em;'
+      +'text-transform:uppercase;color:#4a9e72;margin-bottom:10px">Sintesi</div>'
+      +'<div style="font-size:14px;line-height:1.8;white-space:pre-wrap">'+reply+'</div>'
+      +'</div>'
+      +'<div style="font-family:DM Mono,monospace;font-size:9px;letter-spacing:.14em;'
+      +'text-transform:uppercase;color:#7a8694;margin-bottom:10px">Transcript</div>'
+      +'<div style="white-space:pre-wrap;line-height:1.85;font-size:14px">'+(s.transcript||'')+'</div>';
+  }).catch(function(e){
+    btn.textContent = 'Sintesi'; btn.disabled = false;
+    console.error('[L8] archSynth error', e);
+  });
+};
+
+// ── Bulk delete: cancella tutto dall'archivio ──
+function archDelAll() {
+  showConfirm('Cancella tutto', 'Tutte le sessioni verranno eliminate definitivamente.', function(){
+    var ids = sessions.map(function(s){ return s.id; });
+    sessions = [];
+    ids.forEach(function(id){ sbSafe('sn_sessions?id=eq.'+id, 'DELETE'); });
+    try { localStorage.removeItem('sn_sessions_backup'); localStorage.removeItem('sn_buffer'); } catch(e){}
+    selectedArchId = null;
+    el('archContentTitle').textContent = 'Seleziona una sessione';
+    el('archBody').innerHTML = '<div class="empty-state"><div class="empty-icon">&#9633;</div>'
+      +'<div class="empty-text">Nessuna sessione</div></div>';
+    ['archCopyBtn','archSynthBtn','archDelBtn'].forEach(function(id){
+      var b = el(id); if(b) b.classList.add('hidden');
+    });
+    renderArch(); renderLog();
+  });
+}
+
+// ── Bulk delete: cancella tutti i log ──
+function logDelAll() {
+  showConfirm('Cancella tutti i log', 'I log di tutte le sessioni verranno eliminati.', function(){
+    sessions.forEach(function(s){
+      s.log_entries = '[]';
+      sbSafe('sn_sessions?id=eq.'+s.id, 'PATCH', { log_entries: '[]' });
+    });
+    selectedLogId = null;
+    el('logContentTitle').textContent = 'Seleziona una sessione';
+    el('logBody').innerHTML = '<div class="empty-state"><div class="empty-icon">&#8801;</div>'
+      +'<div class="empty-text">Nessun log</div></div>';
+    ['logCopyBtn','logDelBtn'].forEach(function(id){
+      var b = el(id); if(b) b.classList.add('hidden');
+    });
+    renderLog();
+  });
+}
+
+// ── Bulk delete buttons in header ──
+(function() {
+  // Archivio header — add after archDelBtn
+  var archDel = el('archDelBtn');
+  if(archDel && !el('archDelAllBtn')) {
+    var btn = document.createElement('button');
+    btn.id = 'archDelAllBtn';
+    btn.className = 'btn-action red';
+    btn.style.marginLeft = '8px';
+    btn.textContent = 'Cancella tutto';
+    btn.onclick = archDelAll;
+    archDel.parentNode.insertBefore(btn, archDel.nextSibling);
+  }
+  // Log header — add after logDelBtn
+  var logDel = el('logDelBtn');
+  if(logDel && !el('logDelAllBtn')) {
+    var btn2 = document.createElement('button');
+    btn2.id = 'logDelAllBtn';
+    btn2.className = 'btn-action red';
+    btn2.style.marginLeft = '8px';
+    btn2.textContent = 'Cancella tutti i log';
+    btn2.onclick = logDelAll;
+    logDel.parentNode.insertBefore(btn2, logDel.nextSibling);
+  }
+})();
+
+// ── Version bump ──
+(function(){
+  var v = document.querySelector('.home-version');
+  if(v) v.textContent = v.textContent.replace('v1.6','v1.7');
+})();
 
 </script>
 
