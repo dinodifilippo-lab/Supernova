@@ -1130,7 +1130,7 @@ margin-top: -8px;
   <div id="scHome" class="screen active">
     <div class="home-galaxy"></div>
     <canvas id="homeStars"></canvas>
-    <div class="home-ver">v1.5</div>
+    <div class="home-ver">v1.6</div>
     <div class="home-content">
       <div>
         <div class="home-title">Super<span>NOVA</span></div>
@@ -1462,7 +1462,7 @@ margin-top: -8px;
     <div class="omega-q-glyph">&#937;</div>
     <div class="omega-q-text" id="omegaQText"></div>
     <div class="omega-q-btns" id="omegaQBtns">
-      <button class="omega-q-btn listen" onclick="omegaQListen()">Ascolta</button>
+      <button class="omega-q-btn listen" onclick="omegaTTSSpeak()">Ascolta</button>
       <button class="omega-q-btn mute"   onclick="omegaQSilence()">Non parlare</button>
       <button class="omega-q-btn close"  onclick="omegaQClose()">Chiudi</button>
     </div>
@@ -2195,9 +2195,11 @@ function sbSafe(path, method, body) {
 
 function buildSessObj() {
   var words = transcript ? transcript.split(' ').filter(function(w){return w.length>0;}).length : 0;
+  var now = new Date().toISOString();
   return {
     id:           currentSessId,
-    updated_at:   new Date().toISOString(),
+    created_at:   window._sessCreatedAt || now,
+    updated_at:   now,
     mode:         currentPhase,
     phase:        currentPhase,
     username:     currentUser || 'unknown',
@@ -2228,9 +2230,11 @@ function saveSessToSB(sess) {
 
 function cleanSessForSB(sess) {
   // Send only columns that exist in sn_sessions
+  var now = new Date().toISOString();
   return {
     id:           sess.id,
-    updated_at:   sess.updated_at || new Date().toISOString(),
+    created_at:   sess.created_at || now,
+    updated_at:   sess.updated_at || now,
     mode:         sess.mode || sess.phase || 'setup',
     phase:        sess.phase || sess.mode || 'setup',
     username:     sess.username || sess.user || 'unknown',
@@ -2262,6 +2266,15 @@ function flushBuffer() {
       if(remaining.length) localStorage.setItem('sn_buffer', JSON.stringify(remaining));
       else localStorage.removeItem('sn_buffer');
     } catch(e) {}
+    // Reload sessions from Supabase now that flush is done
+    sbSafe('sn_sessions?order=created_at.desc&limit=100', 'GET').then(function(data){
+      if(data && data.length !== undefined) {
+        sessions = data;
+        renderArch();
+        renderLog();
+        try { localStorage.setItem('sn_sessions_backup', JSON.stringify(sessions)); } catch(e) {}
+      }
+    });
   });
 }
 
@@ -2288,14 +2301,22 @@ function loadSessions() {
   sbSafe('sn_sessions?order=created_at.desc&limit=100', 'GET')
     .then(function(data){
       if(data && data.length !== undefined) {
-        sessions = data;
+        // Merge: start from Supabase data, then prepend any localBuffer entries not yet there
+        var sbIds = data.map(function(s){ return s.id; });
+        var extras = localBuffer.filter(function(s){ return sbIds.indexOf(s.id) < 0; });
+        // Also check localStorage buffer for extras
+        try {
+          var lb = JSON.parse(localStorage.getItem('sn_buffer')||'[]');
+          lb.forEach(function(s){
+            if(sbIds.indexOf(s.id) < 0 && extras.findIndex(function(e){ return e.id===s.id; }) < 0)
+              extras.push(s);
+          });
+        } catch(e) {}
+        sessions = extras.concat(data);
         renderArch();
         renderLog();
-        // Update backup with fresh data
         try { localStorage.setItem('sn_sessions_backup', JSON.stringify(sessions)); } catch(e) {}
       }
-      // Also flush any buffered sessions that didn't save
-      flushBuffer();
     });
 }
 
@@ -2321,6 +2342,7 @@ window.addEventListener('beforeunload', function(){
 var _l4_origAvvia = sessAvvia;
 sessAvvia = function() {
   currentSessId = Date.now();
+  window._sessCreatedAt = new Date().toISOString();
   sessionLog = [];
   addLog('Sessione avviata ID:'+currentSessId);
   _l4_origAvvia();
@@ -2642,8 +2664,7 @@ function showOmegaQuestion(text) {
   el('omegaQInterrompi').style.display = 'none';
   var cfg2 = getCfgFull();
   el('omegaQBtns').innerHTML =
-    (cfg2.tts ? '<button class="omega-q-btn listen" onclick="omegaTTSSpeak()">Ascolta</button>' : '')+
-    '<button class="omega-q-btn mute" onclick="omegaQListen()">Leggi</button>'+
+    '<button class="omega-q-btn listen" onclick="omegaTTSSpeak()">Ascolta</button>'+
     '<button class="omega-q-btn close" onclick="omegaQClose()">Chiudi</button>';
   el('omegaQOverlay').classList.add('show');
   // Auto-pause recording when Omega popup appears
@@ -2673,6 +2694,11 @@ function omegaTTSSpeak() {
   utt.onend = utt.onerror = function() {
     el('omegaQInterrompi').style.display = 'none';
     el('stopTtsBtn').style.display = 'none';
+    if(el('omegaQOverlay').classList.contains('show')) {
+      el('omegaQOverlay').classList.remove('show');
+      el('omegaQText').style.display = 'none';
+      if(window._omegaPausedRecording) { sessRiprendi(); window._omegaPausedRecording = false; }
+    }
   };
   omegaShowText();
 }
@@ -2683,11 +2709,36 @@ function omegaShowText() {
   transcript += (transcript ? ' ' : '') + '[Omega]: ' + qText;
   updateHistoryPill();
   el('omegaQBtns').innerHTML =
-    '<button class="omega-q-btn mute" onclick="omegaQInterrompiTTS()">Interrompi</button>'+
     '<button class="omega-q-btn close" onclick="omegaQClose()">Chiudi</button>';
 }
 
 omegaQListen = function() {
+  // iOS Safari TTS: pre-auth with empty utterance first (must be synchronous in click handler)
+  var cfg = getCfgFull();
+  if(cfg.tts && window.speechSynthesis) {
+    try { window.speechSynthesis.speak(new SpeechSynthesisUtterance('')); } catch(e) {}
+    window.speechSynthesis.cancel();
+    var ttsText = (omegaQPending || '').replace(/^CHIARIMENTO:\s*"[^"]+"\s*--\s*/, '').replace(/<[^>]+>/g,'').trim();
+    if(ttsText) {
+      var utt = new SpeechSynthesisUtterance(ttsText);
+      utt.lang = (cfg.lang || 'it') === 'it' ? 'it-IT' : 'en-US';
+      utt.rate = 0.95;
+      utt.pitch = 1;
+      var voices = window.speechSynthesis.getVoices();
+      var voice = voices.find(function(v){ return v.lang && v.lang.startsWith(utt.lang.slice(0,2)); });
+      if(voice) utt.voice = voice;
+      el('stopTtsBtn').style.display = 'block';
+      utt.onend = utt.onerror = function(){
+        el('stopTtsBtn').style.display = 'none';
+        if(el('omegaQOverlay').classList.contains('show')) {
+          el('omegaQOverlay').classList.remove('show');
+          el('omegaQText').style.display = 'none';
+          if(window._omegaPausedRecording) { sessRiprendi(); window._omegaPausedRecording = false; }
+        }
+      };
+      window.speechSynthesis.speak(utt);
+    }
+  }
   omegaShowText();
 };
 
