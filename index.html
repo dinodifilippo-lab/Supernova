@@ -1075,7 +1075,16 @@ UTILITY
 ============================================================ */
 .hidden { display: none !important; }
 
+#dbgPanel {
+position: fixed; bottom: 10px; right: 10px; z-index: 9999;
+background: rgba(0,0,0,.85); border: 1px solid #4a9e72;
+border-radius: 8px; padding: 10px 14px;
+font-family: DM Mono, monospace; font-size: 10px;
+color: #4aaf7a; max-width: 300px; max-height: 200px;
+overflow-y: auto; line-height: 1.6;
+}
 </style>
+
 </head>
 <body>
 
@@ -2382,7 +2391,29 @@ logDel = function() {
   renderLog();
 };
 
+
+var dbgLines = [];
+function dbg(msg) {
+  var t = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  dbgLines.push(t+' '+msg);
+  if(dbgLines.length > 20) dbgLines = dbgLines.slice(-20);
+  var p = document.getElementById('dbgPanel');
+  if(p) p.innerHTML = dbgLines.join('<br>');
+}
+
+// Patch sbSafe to log every call
+var _origSbSafe = sbSafe;
+sbSafe = function(path, method, body) {
+  dbg((method||'GET')+' '+path.substring(0,30));
+  return _origSbSafe(path, method, body).then(function(result) {
+    if(Array.isArray(result)) dbg('-> '+result.length+' rows');
+    else dbg('-> '+(result===null?'NULL':result===true?'OK':JSON.stringify(result).substring(0,30)));
+    return result;
+  });
+};
+
 </script>
 
+<div id="dbgPanel">debug...</div>
 </body>
 </html>
