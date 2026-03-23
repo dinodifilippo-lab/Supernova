@@ -3,32 +3,62 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SuperNOVA - Home</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SuperNOVA</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
 
-html, body {
+/* ============================================================
+RESET & ROOT
+============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+body {
 height: 100%;
 overflow: hidden;
-background: #0a0208;
 font-family: ‘DM Sans’, sans-serif;
+font-weight: 300;
 -webkit-font-smoothing: antialiased;
+background: #0a0c0f;
+color: #dde2e8;
 }
 
-.scene {
+/* ============================================================
+APP SHELL – single full-screen container
+============================================================ */
+#app {
 position: fixed;
 inset: 0;
 display: flex;
 flex-direction: column;
-align-items: center;
-justify-content: center;
 }
 
-/* ── GALAXY BACKGROUND ── */
-.galaxy-bg {
-position: fixed;
+/* ============================================================
+SCREEN SYSTEM
+– only one screen visible at a time
+============================================================ */
+.screen {
+position: absolute;
+inset: 0;
+display: none;
+flex-direction: column;
+}
+.screen.active {
+display: flex;
+}
+
+/* ============================================================
+HOME SCREEN
+============================================================ */
+#scHome {
+align-items: center;
+justify-content: center;
+background: #08040f;
+overflow: hidden;
+}
+
+.home-galaxy {
+position: absolute;
 inset: 0;
 z-index: 0;
 background:
@@ -37,43 +67,36 @@ radial-gradient(ellipse at 80% 20%, rgba(13,71,161,.65) 0%, transparent 45%),
 radial-gradient(ellipse at 60% 80%, rgba(0,96,100,.5) 0%, transparent 40%),
 radial-gradient(ellipse at 50% 50%, rgba(10,12,15,1) 0%, rgba(15,10,30,1) 100%);
 }
-
-.galaxy-bg::before {
+.home-galaxy::before {
 content: ‘’;
 position: absolute;
 inset: 0;
-background: url(‘https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1600&q=80&fm=jpg’) center/cover no-repeat;
+background: url(‘https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1600&q=80&fm=jpg’) center / cover no-repeat;
 opacity: .55;
 mix-blend-mode: screen;
 }
 
-/* Grain overlay for depth */
-.galaxy-bg::after {
-content: ‘’;
+#homeStars {
 position: absolute;
 inset: 0;
-background-image: url(“data:image/svg+xml,%3Csvg viewBox=‘0 0 256 256’ xmlns=‘http://www.w3.org/2000/svg’%3E%3Cfilter id=‘noise’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.9’ numOctaves=‘4’ stitchTiles=‘stitch’/%3E%3C/filter%3E%3Crect width=‘100%25’ height=‘100%25’ filter=‘url(%23noise)’ opacity=‘0.04’/%3E%3C/svg%3E”);
-opacity: 0.4;
-mix-blend-mode: overlay;
+z-index: 1;
 pointer-events: none;
 }
 
-/* Version */
-.ver {
-position: fixed;
+.home-ver {
+position: absolute;
 top: 20px;
 left: 22px;
+z-index: 3;
 font-family: ‘DM Mono’, monospace;
 font-size: 10px;
 letter-spacing: .14em;
 color: rgba(255,255,255,.22);
-z-index: 10;
 }
 
-/* ── CONTENT ── */
-.content {
+.home-content {
 position: relative;
-z-index: 10;
+z-index: 2;
 display: flex;
 flex-direction: column;
 align-items: center;
@@ -81,86 +104,63 @@ gap: 40px;
 padding: 32px 24px;
 width: 100%;
 max-width: 420px;
-animation: rise .9s cubic-bezier(.22,1,.36,1) both;
+animation: homeRise .9s cubic-bezier(.22,1,.36,1) both;
 }
-
-@keyframes rise {
+@keyframes homeRise {
 from { opacity: 0; transform: translateY(28px); }
 to   { opacity: 1; transform: none; }
 }
 
-/* ── LOGO ── */
-.logo {
-text-align: center;
-}
-
-.logo-eyebrow {
-font-family: ‘DM Mono’, monospace;
-font-size: 10px;
-letter-spacing: .3em;
-text-transform: uppercase;
-color: rgba(255,255,255,.3);
-margin-bottom: 12px;
-}
-
-.logo-title {
+.home-title {
 font-family: ‘Fraunces’, serif;
 font-size: clamp(52px, 14vw, 80px);
 font-weight: 300;
 color: white;
 line-height: 1;
-letter-spacing: -.01em;
-text-shadow:
-0 0 60px rgba(120,180,255,.35),
-0 0 120px rgba(80,100,200,.2);
+text-align: center;
+text-shadow: 0 0 60px rgba(120,180,255,.35), 0 0 120px rgba(80,100,200,.2);
+}
+.home-title span { color: #5ab8f5; font-style: italic; }
+
+.home-line {
+width: 60px;
+height: 1px;
+background: linear-gradient(90deg, transparent, rgba(90,184,245,.5), transparent);
+margin: 14px auto 0;
 }
 
-.logo-title span {
-color: #5ab8f5;
-font-style: italic;
-}
-
-.logo-sub {
+.home-sub {
 font-family: ‘DM Mono’, monospace;
 font-size: 10px;
 letter-spacing: .22em;
 text-transform: uppercase;
 color: rgba(255,255,255,.38);
-margin-top: 14px;
+margin-top: 10px;
+text-align: center;
 }
 
-/* Decorative line */
-.logo-line {
-width: 60px;
-height: 1px;
-background: linear-gradient(90deg, transparent, rgba(90,184,245,.5), transparent);
-margin: 16px auto 0;
-}
-
-/* ── FORM ── */
-.form {
+.home-form {
 width: 100%;
 display: flex;
 flex-direction: column;
 gap: 12px;
-animation: rise .9s cubic-bezier(.22,1,.36,1) .12s both;
 }
 
-.field {
-position: relative;
+.home-field {
+display: flex;
+flex-direction: column;
+gap: 6px;
 }
 
-.field-label {
+.home-label {
 font-family: ‘DM Mono’, monospace;
 font-size: 9px;
 letter-spacing: .18em;
 text-transform: uppercase;
 color: rgba(255,255,255,.35);
-margin-bottom: 6px;
-display: block;
 }
 
-.field input {
+.home-input {
 width: 100%;
 background: rgba(8,12,22,.7);
 border: 1px solid rgba(90,160,245,.3);
@@ -170,23 +170,18 @@ font-family: ‘DM Sans’, sans-serif;
 font-size: 15px;
 color: white;
 outline: none;
-transition: border-color .25s, background .25s, box-shadow .25s;
+transition: border-color .25s, box-shadow .25s;
 backdrop-filter: blur(12px);
 -webkit-backdrop-filter: blur(12px);
 -webkit-appearance: none;
 }
-
-.field input::placeholder {
-color: rgba(255,255,255,.2);
-}
-
-.field input:focus {
+.home-input::placeholder { color: rgba(255,255,255,.2); }
+.home-input:focus {
 border-color: rgba(90,184,245,.7);
-background: rgba(8,12,22,.85);
-box-shadow: 0 0 0 3px rgba(90,184,245,.1), inset 0 1px 0 rgba(255,255,255,.05);
+box-shadow: 0 0 0 3px rgba(90,184,245,.1);
 }
 
-.err {
+.home-error {
 font-family: ‘DM Mono’, monospace;
 font-size: 11px;
 color: #f08090;
@@ -196,9 +191,9 @@ letter-spacing: .04em;
 opacity: 0;
 transition: opacity .2s;
 }
-.err.on { opacity: 1; }
+.home-error.show { opacity: 1; }
 
-.btn-login {
+.home-btn {
 width: 100%;
 background: linear-gradient(135deg, rgba(61,122,181,.9), rgba(42,92,151,.9));
 border: 1px solid rgba(90,160,245,.4);
@@ -209,852 +204,234 @@ font-size: 15px;
 font-weight: 500;
 color: white;
 cursor: pointer;
-letter-spacing: .01em;
 margin-top: 4px;
 transition: all .25s;
+}
+.home-btn:hover { box-shadow: 0 4px 24px rgba(61,122,181,.3); }
+.home-btn:active { transform: scale(.98); }
+
+/* ============================================================
+APP SCREENS – shown after login
+============================================================ */
+
+/* Shared header */
+.app-header {
+height: 52px;
+flex-shrink: 0;
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 0 16px;
+border-bottom: 1px solid #252b35;
+background: rgba(10,12,15,.92);
+backdrop-filter: blur(16px);
+-webkit-backdrop-filter: blur(16px);
 position: relative;
-overflow: hidden;
+z-index: 20;
 }
 
-.btn-login::before {
-content: ‘’;
+.hdr-left { display: flex; align-items: center; gap: 14px; }
+.hdr-right { display: flex; align-items: center; gap: 10px; }
+
+/* Hamburger */
+.hamburger {
+background: none;
+border: none;
+cursor: pointer;
+display: flex;
+flex-direction: column;
+gap: 5px;
+padding: 6px;
+border-radius: 6px;
+transition: background .2s;
+}
+.hamburger:hover { background: rgba(255,255,255,.06); }
+.hamburger span {
+display: block;
+width: 20px;
+height: 1.5px;
+background: #7a8694;
+border-radius: 2px;
+transition: all .25s;
+}
+.hamburger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); background: #dde2e8; }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); background: #dde2e8; }
+
+.hdr-title {
+font-family: ‘DM Mono’, monospace;
+font-size: 11px;
+letter-spacing: .14em;
+color: #7a8694;
+text-transform: uppercase;
+}
+
+/* Phase selector */
+.phase-wrap { position: relative; }
+.phase-btn {
+background: rgba(74,158,114,.12);
+border: 1px solid rgba(74,158,114,.3);
+border-radius: 20px;
+padding: 5px 12px;
+font-family: ‘DM Mono’, monospace;
+font-size: 10px;
+letter-spacing: .1em;
+color: #4a9e72;
+cursor: pointer;
+transition: all .2s;
+display: flex;
+align-items: center;
+gap: 5px;
+}
+.phase-btn::after { content: ‘’; display: block; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 4px solid #4a9e72; opacity: .6; }
+.phase-dropdown {
+display: none;
 position: absolute;
-top: 0; left: -100%;
-width: 100%; height: 100%;
-background: linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);
-transition: left .4s;
+top: calc(100% + 6px);
+right: 0;
+background: #181c22;
+border: 1px solid #2e3540;
+border-radius: 10px;
+overflow: hidden;
+min-width: 110px;
+z-index: 100;
+box-shadow: 0 8px 32px rgba(0,0,0,.4);
+}
+.phase-dropdown.open { display: block; }
+.phase-opt {
+padding: 10px 16px;
+font-family: ‘DM Mono’, monospace;
+font-size: 11px;
+letter-spacing: .08em;
+color: #7a8694;
+cursor: pointer;
+transition: all .15s;
+}
+.phase-opt:hover { background: rgba(74,158,114,.1); color: #4a9e72; }
+.phase-opt.active { color: #4a9e72; }
+
+/* Logout button */
+.btn-logout {
+background: none;
+border: 1px solid #252b35;
+border-radius: 6px;
+padding: 5px 10px;
+font-family: ‘DM Mono’, monospace;
+font-size: 10px;
+letter-spacing: .08em;
+color: #7a8694;
+cursor: pointer;
+transition: all .2s;
+}
+.btn-logout:hover { color: #dde2e8; border-color: #2e3540; }
+
+/* Main area with side panel */
+.app-main {
+flex: 1;
+display: flex;
+overflow: hidden;
+position: relative;
 }
 
-.btn-login:hover {
-background: linear-gradient(135deg, rgba(71,142,201,1), rgba(52,102,171,1));
-border-color: rgba(90,180,255,.6);
-box-shadow: 0 4px 24px rgba(61,122,181,.3);
+/* Side panel */
+.side-panel {
+width: 0;
+overflow: hidden;
+transition: width .28s cubic-bezier(.4,0,.2,1);
+border-right: 1px solid transparent;
+background: #111318;
+flex-shrink: 0;
+display: flex;
+flex-direction: column;
+z-index: 10;
 }
-.btn-login:hover::before { left: 100%; }
-.btn-login:active { transform: scale(.98); }
+.side-panel.open {
+width: 210px;
+border-right-color: #252b35;
+}
 
-/* Floating stars canvas */
-canvas {
-position: fixed;
+.side-nav { padding: 8px 0; }
+.side-link {
+display: flex;
+align-items: center;
+gap: 12px;
+padding: 13px 20px;
+font-family: ‘DM Mono’, monospace;
+font-size: 11px;
+letter-spacing: .1em;
+text-transform: uppercase;
+color: #7a8694;
+background: none;
+border: none;
+cursor: pointer;
+width: 100%;
+text-align: left;
+transition: all .18s;
+white-space: nowrap;
+}
+.side-link:hover { color: #dde2e8; background: rgba(255,255,255,.03); }
+.side-link.active { color: #4a9e72; background: rgba(74,158,114,.08); }
+
+.side-footer {
+padding: 16px 20px;
+border-top: 1px solid #252b35;
+margin-top: auto;
+}
+.side-user {
+font-family: ‘DM Mono’, monospace;
+font-size: 10px;
+letter-spacing: .08em;
+color: #3d4655;
+margin-bottom: 10px;
+}
+
+/* Content area (right of side panel) */
+.content-area {
+flex: 1;
+overflow: hidden;
+display: flex;
+flex-direction: column;
+}
+
+/* ============================================================
+SESSION SCREEN
+============================================================ */
+#scSess { background: #0a0c0f; }
+
+.sess-canvas {
+position: absolute;
 inset: 0;
-z-index: 1;
+z-index: 0;
 pointer-events: none;
 }
 
-/* APP */
-
-## :root {
-
-<div id="homeWrap" style="width:100%;height:100dvh">
-<div class="galaxy-bg"></div>
-<canvas id="stars"></canvas>
-
-<div class="ver">v1.0</div>
-
-<div class="scene">
-  <div class="content">
-    <div class="logo">
-      <div class="logo-eyebrow">AI Colleague Platform</div>
-      <div class="logo-title">Super<span>NOVA</span></div>
-      <div class="logo-line"></div>
-      <div class="logo-sub">New Operating Model Via AI</div>
-    </div>
-
-```
-<div class="form">
-  <div class="field">
-    <label class="field-label">Username</label>
-    <input type="text" placeholder="nome utente" autocomplete="off" autocapitalize="none">
-  </div>
-  <div class="field">
-    <label class="field-label">Password</label>
-    <input type="password" placeholder="••••••••">
-  </div>
-  <div class="err" id="errMsg">Credenziali non riconosciute</div>
-  <button class="btn-login">Accedi</button>
-</div>
-```
-
-  </div>
-</div>
-
-<script>
-// Animated star field
-const starsCanvas = document.getElementById('sStars');
-const starsCtx = starsCanvas.getContext('2d');
-let sW, sH, sStars = [];
-
-function resize() {
-  sW = starsCanvas.width = window.innerWidth;
-  sH = starsCanvas.height = window.innerHeight;
+.sess-body {
+flex: 1;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: space-between;
+padding: 28px 20px 36px;
+position: relative;
+z-index: 1;
 }
 
-function initStars() {
-  sStars = [];
-  for(let i = 0; i < 220; i++) {
-    sStars.push({
-      x: Math.random() * sW,
-      y: Math.random() * sH,
-      r: Math.random() * 1.2 + 0.2,
-      a: Math.random(),
-      da: (Math.random() - .5) * .004,
-      gold: Math.random() < .12
-    });
-  }
+/* Omega center stage */
+.omega-stage {
+flex: 1;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+position: relative;
+width: 100%;
 }
 
-function draw() {
-  starsCtx.clearRect(0, 0, sW, sH);
-  sStars.forEach(s => {
-    s.a = Math.max(.05, Math.min(.95, s.a + s.da));
-    if(s.a <= .05 || s.a >= .95) s.da *= -1;
-    starsCtx.beginPath();
-    starsCtx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-    starsCtx.fillStyle = s.gold
-      ? `rgba(200,180,100,${s.a * .8})`
-      : `rgba(180,200,255,${s.a * .7})`;
-    starsCtx.fill();
-
-    if(s.r > .9) {
-      const g = starsCtx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 6);
-      g.addColorStop(0, s.gold ? `rgba(200,180,100,${s.a*.25})` : `rgba(100,160,255,${s.a*.2})`);
-      g.addColorStop(1, 'transparent');
-      starsCtx.fillStyle = g;
-      starsCtx.beginPath();
-      starsCtx.arc(s.x, s.y, s.r * 6, 0, Math.PI*2);
-      starsCtx.fill();
-    }
-  });
-  requestAnimationFrame(draw);
-}
-
-resize(); initStars(); draw();
-window.addEventListener('resize', () => { resize(); initStars(); });
-
-// ── SUPABASE ──
-const SB_URL = 'https://ygpbozycacpncohdjqft.supabase.co';
-const SB_KEY = 'sb_publishable_Evfe7sPUsrjIe0TK65k52g_irQA-ifa';
-const ADMIN_USER = 'superNOVA';
-const ADMIN_PASS = 'superNOVA';
-
-async function sbGet(path) {
-  try {
-    const res = await fetch(SB_URL + '/rest/v1/' + path, {
-      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
-    });
-    return res.ok ? res.json() : null;
-  } catch(e) { return null; }
-}
-
-async function sbPost(path, body) {
-  try {
-    const res = await fetch(SB_URL + '/rest/v1/' + path, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SB_KEY,
-        'Authorization': 'Bearer ' + SB_KEY,
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify(body)
-    });
-    return res.ok || res.status === 409;
-  } catch(e) { return false; }
-}
-
-async function doLogin() {
-  const uEl = document.querySelector('input[type=text]');
-  const pEl = document.querySelector('input[type=password]');
-  const btn = document.querySelector('.btn-login');
-  const err = document.getElementById('errMsg');
-
-  const u = uEl.value.trim();
-  const p = pEl.value;
-
-  err.classList.remove('on');
-
-  if(!u || !p) {
-    err.textContent = 'Inserisci username e password';
-    err.classList.add('on');
-    return;
-  }
-
-  btn.textContent = 'Accesso...';
-  btn.style.opacity = '.6';
-  btn.style.pointerEvents = 'none';
-
-  // Admin master key
-  if(u === ADMIN_USER && p === ADMIN_PASS) {
-    showSuccess(u);
-    return;
-  }
-
-  // Check Supabase
-  const data = await sbGet('sn_users?username=eq.' + encodeURIComponent(u) + '&select=username,password_hash');
-
-  if(data === null) {
-    // Supabase offline — allow anyway
-    showSuccess(u);
-    return;
-  }
-
-  if(data.length === 0) {
-    // New user — register then login
-    await sbPost('sn_users', {
-      username: u,
-      password_hash: p,
-      created_at: new Date().toISOString()
-    });
-    showSuccess(u);
-    return;
-  }
-
-  // Existing user
-  if(data[0].password_hash === p) {
-    showSuccess(u);
-  } else {
-    btn.textContent = 'Accedi';
-    btn.style.opacity = '';
-    btn.style.pointerEvents = '';
-    err.textContent = 'Password non corretta';
-    err.classList.add('on');
-    pEl.value = '';
-    pEl.focus();
-  }
-}
-
-function showSuccess(username) {
-  const btn = document.querySelector('.btn-login');
-  btn.textContent = 'Accesso effettuato ✓';
-  btn.style.background = 'linear-gradient(135deg, rgba(74,158,114,.9), rgba(42,120,82,.9))';
-  setTimeout(function() {
-    document.getElementById('homeWrap').style.display = 'none';
-    document.getElementById('appWrap').style.display = 'block';
-  }, 700);
-}
-
-document.querySelector('.btn-login').addEventListener('click', doLogin);
-document.querySelector('input[type=password]').addEventListener('keydown', e => {
-  if(e.key === 'Enter') doLogin();
-});
-document.querySelector('input[type=text]').addEventListener('keydown', e => {
-  if(e.key === 'Enter') document.querySelector('input[type=password]').focus();
-});
-
-function doLogout() {
-  document.getElementById('appWrap').style.display = 'none';
-  document.getElementById('homeWrap').style.display = 'block';
-  document.querySelector('input[type=text]').value = '';
-  document.querySelector('input[type=password]').value = '';
-  document.querySelector('.btn-login').textContent = 'Accedi';
-  document.querySelector('.btn-login').style.background = '';
-}
-
-
-
-// APP JS
-
-// ── MOCK DATA ──
-const MOCK_SESSIONS = [
-  { id:1, date:'23 Mar 2026, 09:14', phase:'F0', dur:'00:34', words:287,
-    transcript:`Adesso proveremo a fare il transcript senza pausa. Vediamo se il sistema riesce a catturare tutto quello che viene detto.
-
-[Omega]: Qual è l'obiettivo principale di questa attività in termini di riduzione del rischio operativo?
-
-Dunque l'obiettivo principale è quello di ridurre il tempo di elaborazione delle pratiche di sinistro, attualmente stimato in circa tre giorni lavorativi per le pratiche standard.`,
-    log:`09:14:22  [Start] Nuova sessione ID: 1774201919370\n09:14:22  [TTS] Stato vocale: attivo\n09:14:32  [Chunk 1] Trascritto: "Adesso proveremo a fare il transcript..."\n09:14:32  [Chunk 1] Valutazione Omega in corso...\n09:14:35  [Omega] Vuole intervenire: "Qual è l\'obiettivo principale..."\n09:14:55  [Finalize] Salvataggio sessione: 287 parole, 00:34\n09:14:55  Sessione salvata.`
-  },
-  { id:2, date:'22 Mar 2026, 14:30', phase:'F0', dur:'01:12', words:634,
-    transcript:`Sessione di esplorazione con l'owner del processo di liquidazione sinistri. Il processo attuale prevede quattro passaggi manuali che potrebbero essere automatizzati.
-
-[Omega]: Come viene gestita la conoscenza critica quando una risorsa esperta lascia il team?
-
-Attualmente la conoscenza è trasmessa principalmente tramite affiancamento informale. Non esiste documentazione strutturata delle casistiche complesse.`,
-    log:`14:30:01  [Start] Nuova sessione ID: 1774201635421\n14:30:01  [TTS] Stato vocale: attivo\n14:30:11  [Chunk 1] Trascritto: "Sessione di esplorazione..."\n14:31:05  [Omega] Vuole intervenire\n14:41:01  [Finalize] Salvataggio sessione: 634 parole, 01:12`
-  },
-  { id:3, date:'21 Mar 2026, 10:45', phase:'Setup', dur:'00:18', words:142,
-    transcript:`Prima sessione di setup. Verifica che il sistema di trascrizione funzioni correttamente e che Omega risponda alle domande nel contesto corretto.`,
-    log:`10:45:00  [Start] Nuova sessione ID: 1774201412380\n10:45:10  [Chunk 1] Trascritto: "Prima sessione di setup..."\n10:45:18  [Finalize] Salvataggio sessione: 142 parole, 00:18`
-  },
-];
-
-let currentScreen = 'sess';
-let panelOpen = false;
-let isRec = false;
-let isPaused = false;
-let timerSec = 0;
-let timerInt = null;
-let chunkSim = null;
-let chunkCount = 0;
-let wordCount = 0;
-let selectedArch = null;
-let selectedLog = null;
-let currentPhase = 'Setup';
-
-// ── CANVAS WAVES ──
-const canvas = document.getElementById('waveCanvas');
-const ctx = canvas.getContext('2d');
-let W, H, waveT = 0, audioLvl = 0;
-const stars = [];
-
-function resizeCanvas() {
-  const s = document.getElementById('sSess');
-  W = canvas.width = s.offsetWidth;
-  H = canvas.height = s.offsetHeight;
-}
-
-function initStars() {
-  stars.length = 0;
-  for(let i=0; i<60; i++) stars.push({x:Math.random()*W, y:Math.random()*H, r:Math.random()*.7+.1, a:Math.random(), da:(Math.random()-.5)*.003});
-}
-
-function drawCanvas() {
-  requestAnimationFrame(drawCanvas);
-  ctx.clearRect(0,0,W,H);
-  stars.forEach(s => {
-    s.a = Math.max(.05, Math.min(.9, s.a+s.da));
-    if(s.a<=.05||s.a>=.9) s.da*=-1;
-    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-    ctx.fillStyle=`rgba(74,158,114,${s.a*.3})`; ctx.fill();
-  });
-
-  if(!isRec && !isPaused) return;
-  waveT += isPaused ? .005 : .025;
-  if(isRec && !isPaused) audioLvl = .35 + Math.sin(waveT*3)*.2 + Math.random()*.1;
-  else audioLvl += (.04 - audioLvl)*.05;
-
-  const cx=W/2, cy=H*.38, base=Math.min(W,H)*.12;
-  [3,2.2,1.8,1.2,.8].forEach((thick,r) => {
-    const sp = isPaused ? [.2,.3,.25,.35,.28][r] : [1,.8,1.1,.7,.9][r];
-    const ph = r*(Math.PI*2/5);
-    const ratio = ((waveT*sp+ph)%(Math.PI*2))/(Math.PI*2);
-    const rad = base*(.8+r*.12) + (Math.max(W,H)*.75-base*(.8+r*.12))*ratio;
-    const op = isPaused ? (1-ratio)*.1 : (1-ratio)*(.22+audioLvl*.35);
-    ctx.beginPath(); ctx.arc(cx,cy,rad,0,Math.PI*2);
-    ctx.strokeStyle = isPaused ? `rgba(232,168,74,${op})` : `rgba(74,158,114,${op})`;
-    ctx.lineWidth = thick+(isRec?audioLvl*2:0); ctx.stroke();
-  });
-}
-
-resizeCanvas(); initStars(); drawCanvas();
-window.addEventListener('resize', ()=>{resizeCanvas();initStars();});
-
-// ── NAVIGATION ──
-function nav(screen) {
-  currentScreen = screen;
-  ['sess','arch','log','cfg'].forEach(s => {
-    document.getElementById(`s${s.charAt(0).toUpperCase()+s.slice(1)}`).classList.toggle('on', s===screen);
-    document.getElementById(`sl-${s}`).classList.toggle('on', s===screen);
-    
-  });
-  const titles = {sess:'Sessione', arch:'Archivio', log:'Log', cfg:'Config'};
-  document.getElementById('hdrTitle').textContent = titles[screen];
-  if(screen==='arch') renderArch();
-  if(screen==='log') renderLog();
-  if(screen==='sess') { setTimeout(resizeCanvas,100); setTimeout(initStars,100); }
-}
-
-function togglePanel() {
-  panelOpen = !panelOpen;
-  const p = document.getElementById('sidePanel');
-  const h = document.getElementById('menuBtn');
-  p.classList.toggle('open', panelOpen);
-  h.classList.toggle('open', panelOpen);
-  document.getElementById('phaseDD').classList.remove('on');
-  setTimeout(resizeCanvas, 300);
-}
-
-// Close panel/dropdown on outside click
-document.addEventListener('click', e => {
-  if(!e.target.closest('#sidePanel') && !e.target.closest('#hmb') && panelOpen) togglePanel();
-  if(!e.target.closest('.phase-chip') && !e.target.closest('.phase-dropdown')) {
-    document.getElementById('phaseDD').classList.remove('on');
-  }
-});
-
-// ── PHASE ──
-function togglePhaseDD() {
-  document.getElementById('phaseDD').classList.toggle('on');
-}
-function setPhase(p) {
-  currentPhase = p;
-  document.getElementById('phaseLabel').textContent = p;
-  document.getElementById('sessPhaseDisplay').textContent = p;
-  document.querySelectorAll('.phase-opt').forEach(o => o.classList.toggle('active', o.textContent===p));
-  document.getElementById('phaseDD').classList.remove('on');
-}
-
-// ── SESSION ──
-function fmt(s) {
-  return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
-}
-
-function startSess() {
-  isRec = true; isPaused = false;
-  timerSec=0; chunkCount=0; wordCount=0;
-  document.getElementById('omegaSym').className='omega-glyph rec';
-  document.getElementById('omegaStatus').className='omega-state rec';
-  document.getElementById('omegaStatus').textContent='registrazione';
-  document.getElementById('sessTimer').className='omega-timer on';
-  document.getElementById('btnAvvia').style.display='none';
-  document.getElementById('sessBtns').classList.add('on');
-  document.getElementById('sessInfoStrip').classList.add('on');
-  document.getElementById('omegaAskWrap').classList.add('on');
-  document.getElementById('omegaAskBtn').classList.add('disabled');
-  document.getElementById('sessPhaseDisplay').textContent=currentPhase;
-
-  timerInt = setInterval(()=>{
-    timerSec++;
-    document.getElementById('sessTimer').textContent=fmt(timerSec);
-    // Simulate word accumulation
-    wordCount += Math.floor(Math.random()*3+1);
-    document.getElementById('sessWordCount').textContent=wordCount;
-  }, 1000);
-
-  // Simulate chunks
-  chunkSim = setInterval(()=>{
-    if(isPaused) return;
-    chunkCount++;
-    document.getElementById('sessChunkCount').textContent=chunkCount;
-    if(chunkCount===1) {
-      document.getElementById('omegaAskBtn').classList.remove('disabled');
-      document.getElementById('omegaAskHint').textContent='';
-    }
-    if(chunkCount===3) {
-      // Simulate Omega question
-      setTimeout(()=>{
-        document.getElementById('omegaBubble').classList.add('on');
-      }, 500);
-    }
-  }, 10000);
-}
-
-function togglePause() {
-  isPaused = !isPaused;
-  const btn = document.getElementById('btnPausa');
-  const glyph = document.getElementById('omegaSym');
-  const state = document.getElementById('omegaStatus');
-  if(isPaused) {
-    glyph.className='omega-glyph paused';
-    state.className='omega-state paused';
-    state.textContent='in pausa';
-    btn.textContent='Riprendi';
-    btn.className='btn-s btn-tx';
-  } else {
-    glyph.className='omega-glyph rec';
-    state.className='omega-state rec';
-    state.textContent='registrazione';
-    btn.textContent='Pausa';
-    btn.className='btn-s btn-pause';
-  }
-}
-
-function stopSess() {
-  isRec=false; isPaused=false;
-  clearInterval(timerInt); clearInterval(chunkSim);
-  document.getElementById('omegaSym').className='omega-glyph';
-  document.getElementById('omegaStatus').className='omega-state';
-  document.getElementById('omegaStatus').textContent='sessione salvata';
-  document.getElementById('btnAvvia').style.display='block';
-  document.getElementById('sessBtns').classList.remove('on');
-  document.getElementById('sessInfoStrip').classList.remove('on');
-  document.getElementById('omegaAskWrap').classList.remove('on');
-  document.getElementById('omegaBubble').classList.remove('on');
-  document.getElementById('sessTimer').textContent='';
-  audioLvl=0;
-  setTimeout(()=>{ document.getElementById('omegaStatus').textContent='pronto'; },3000);
-}
-
-// ── OMEGA ──
-function showOmegaQ() {
-  document.getElementById('omegaQOverlay').classList.add('on');
-}
-function closeOmegaQ(withVoice) {
-  document.getElementById('omegaQOverlay').classList.remove('on');
-  if(withVoice) document.getElementById('omegaBubble').classList.add('on');
-}
-
-// ── TRANSCRIPT ──
-function showTx() { document.getElementById('txOverlay').classList.add('on'); }
-
-// ── ARCHIVE ──
-function renderArch() {
-  const list = document.getElementById('archList');
-  list.innerHTML = MOCK_SESSIONS.map(s => `
-    <div class="sess-item${selectedArch===s.id?' on':''}" onclick="selectArch(${s.id})">
-      <div class="sess-item-date">${s.date}</div>
-      <div class="sess-item-title">${s.transcript.split('\n')[0].substring(0,60)}...</div>
-      <div class="sess-item-meta">
-        <span class="phase-tag">${s.phase}</span>
-        <span class="sess-item-dur">${s.dur} · ${s.words} parole</span>
-      </div>
-    </div>
-  `).join('');
-}
-
-function selectArch(id) {
-  selectedArch = id;
-  const s = MOCK_SESSIONS.find(x=>x.id===id);
-  document.getElementById('archTitle').textContent = s.date;
-  document.getElementById('archActs').style.display='flex';
-  document.getElementById('archBody').innerHTML = `<div class="tx-content">${s.transcript.replace(/\[Omega\]:/g,'<span class="tx-omega-line">[Omega]:</span>')}</div>`;
-  renderArch();
-}
-
-function showSynth() {
-  document.getElementById('archBody').innerHTML = `
-    <div class="tx-content">
-=== SINTESI ===
-
-La sessione ha esplorato il processo di liquidazione sinistri con focus sul collo di bottiglia principale: la frammentazione tra sistemi legacy non integrati.
-
-Punti chiave emersi:
-• Tempo medio di elaborazione: 3 giorni lavorativi (pratiche standard)
-• Causa principale: 4 passaggi manuali tra sistemi separati
-• Rischio turnover: conoscenza tacita non documentata
-• Opportunità AI: automazione dei passaggi di estrazione e categorizzazione
-
-=== TRANSCRIPT ===
-
-${MOCK_SESSIONS.find(x=>x.id===selectedArch)?.transcript||''}
-    </div>
-  `;
-}
-
-// ── LOG ──
-function renderLog() {
-  const list = document.getElementById('logList');
-  list.innerHTML = MOCK_SESSIONS.map(s => `
-    <div class="sess-item${selectedLog===s.id?' on':''}" onclick="selectLog(${s.id})">
-      <div class="sess-item-date">${s.date}</div>
-      <div class="sess-item-meta">
-        <span class="phase-tag">${s.phase}</span>
-        <span class="sess-item-dur">${s.dur}</span>
-      </div>
-    </div>
-  `).join('');
-}
-
-function selectLog(id) {
-  selectedLog = id;
-  const s = MOCK_SESSIONS.find(x=>x.id===id);
-  document.getElementById('logTitle').textContent = s.date;
-  document.getElementById('logActs').style.display='flex';
-  document.getElementById('logBody').innerHTML = `<div class="tx-content" style="font-family:var(--fm);font-size:12px;color:var(--dim)">${s.log}</div>`;
-  renderLog();
-}
-
-// ── CONFIG ──
-function toggleCfg(id) {
-  document.getElementById(id).classList.toggle('open');
-}
-
-// Init
-renderArch();
-renderLog();
-
-</script>
-
-</div>
-
-<div id="appWrap" style="display:none;width:100%;height:100dvh">
-<div class="app">
-
-  <!-- HEADER -->
-
-  <header class="hdr">
-    <div class="hdr-left">
-      <button class="hmb" id="menuBtn" onclick="togglePanel()" title="Menu">
-        <span></span><span></span><span></span>
-      </button>
-      <span class="hdr-title" id="hdrTitle">Sessione</span>
-    </div>
-    <div class="hdr-right">
-      <div class="phase-chip" id="phaseChip" onclick="togglePhaseDD()">
-        <span id="phaseLabel">Setup</span>
-      </div>
-      <div class="phase-dropdown" id="phaseDD">
-        <div class="phase-opt active" onclick="setPhase('Setup')">Setup</div>
-        <div class="phase-opt" onclick="setPhase('Fase 0')">Fase 0</div>
-        <div class="phase-opt" onclick="setPhase('Fase 1')">Fase 1</div>
-        <div class="phase-opt" onclick="setPhase('Fase 2')">Fase 2</div>
-      </div>
-      <button class="btn-logout">Esci</button>
-    </div>
-  </header>
-
-  <!-- SERVICE BANNER (demo) -->
-
-  <div class="svc-banner warn" id="svBanner" style="display:none">
-    Groq non raggiungibile — trascrizione sospesa
-  </div>
-
-  <!-- MAIN -->
-
-  <div class="main">
-
-```
-<!-- SIDE PANEL -->
-<aside class="side" id="sidePanel">
-  <nav class="side-nav">
-    <button class="side-link on" id="sl-sess" onclick="nav('sess')">
-      <span class="side-link-icon">&#937;</span> Sessione
-    </button>
-    <button class="side-link" id="sl-arch" onclick="nav('arch')">
-      <span class="side-link-icon">&#9633;</span> Archivio
-    </button>
-    <button class="side-link" id="sl-log" onclick="nav('log')">
-      <span class="side-link-icon">&#8801;</span> Log
-    </button>
-    <button class="side-link" id="sl-cfg" onclick="nav('cfg')">
-      <span class="side-link-icon">&#9881;</span> Config
-    </button>
-  </nav>
-  <div class="side-footer">
-    <div class="side-user">Utente: dino.martin</div>
-    <button class="btn-logout" style="width:100%">Logout</button>
-  </div>
-</aside>
-
-<!-- ══════════ SESSIONE ══════════ -->
-<div class="screen on" id="sSess">
-  <canvas id="waveCanvas"></canvas>
-  <div class="sess-body">
-
-    <div class="omega-stage">
-      <div class="omega-glyph" id="omegaSym">&#937;</div>
-      <div class="omega-state" id="omegaStatus">pronto</div>
-      <div class="omega-timer" id="sessTimer"></div>
-      <div class="sess-stats" id="sessInfoStrip">
-        <div class="stat"><span class="stat-lbl">Chunk</span><span class="stat-val" id="sessChunkCount">0</span></div>
-        <div class="stat"><span class="stat-lbl">Parole</span><span class="stat-val" id="sessWordCount">0</span></div>
-        <div class="stat"><span class="stat-lbl">Fase</span><span class="stat-val" id="sessPhaseDisplay">Setup</span></div>
-      </div>
-
-
-      <!-- Demo bubble -->
-      <div class="omega-bubble" id="omegaBubble">
-        <div class="bubble-lbl">Omega — Domanda</div>
-        <button class="bubble-x" onclick="document.getElementById('omegaBubble').classList.remove('on')">&#215;</button>
-        <div class="bubble-text">Qual è l'obiettivo principale di questa attività in termini di riduzione del rischio operativo?</div>
-      </div>
-    </div>
-
-    <div class="sess-controls">
-      <!-- Omega Chiedi — prominent button, shown during recording -->
-      <div class="omega-ask-wrap" id="omegaAskWrap">
-        <button class="omega-ask disabled" id="omegaAskBtn" onclick="showOmegaQ()">
-          <span class="omega-ask-sym">&#937;</span>
-          Chiedi a Omega
-        </button>
-        <span class="omega-ask-hint" id="omegaAskHint">attivo dopo 10 secondi</span>
-      </div>
-      <button class="btn-avvia" id="btnAvvia" onclick="startSess()">Avvia</button>
-      <div class="sess-btn-row" id="sessBtns">
-        <button class="btn-s btn-pause" id="btnPausa" onclick="togglePause()">Pausa</button>
-        <button class="btn-s btn-stop" onclick="stopSess()">&#9724; Stop</button>
-        <button class="btn-s btn-tx" onclick="showTx()">&#8801; Trascrizione</button>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- ══════════ ARCHIVIO ══════════ -->
-<div class="screen" id="sArch">
-  <div class="two-col">
-    <div class="col-left">
-      <div class="col-left-hdr">
-        <select class="filter-sel">
-          <option>Tutte le fasi</option>
-          <option>Setup</option>
-          <option>Fase 0</option>
-          <option>Fase 1</option>
-          <option>Fase 2</option>
-        </select>
-      </div>
-      <div class="sess-list" id="archList"></div>
-    </div>
-    <div class="col-right">
-      <div class="col-right-hdr">
-        <div class="col-right-title" id="archTitle">Seleziona una sessione</div>
-        <div class="col-right-acts" id="archActs" style="display:none">
-          <button class="act-btn green">Copia</button>
-          <button class="act-btn blue" onclick="showSynth()">Sintesi</button>
-          <button class="act-btn red">Cancella</button>
-        </div>
-      </div>
-      <div class="col-right-body" id="archBody">
-        <div class="empty-state">
-          <div class="empty-icon">&#9633;</div>
-          <div class="empty-text">Seleziona una sessione</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════ LOG ══════════ -->
-<div class="screen" id="sLog">
-  <div class="two-col">
-    <div class="col-left">
-      <div class="col-left-hdr">
-        <select class="filter-sel">
-          <option>Tutte le fasi</option>
-          <option>Setup</option>
-          <option>Fase 0</option>
-          <option>Fase 1</option>
-          <option>Fase 2</option>
-        </select>
-      </div>
-      <div class="sess-list" id="logList"></div>
-    </div>
-    <div class="col-right">
-      <div class="col-right-hdr">
-        <div class="col-right-title" id="logTitle">Seleziona una sessione</div>
-        <div class="col-right-acts" id="logActs" style="display:none">
-          <button class="act-btn green">Copia log</button>
-          <button class="act-btn red">Cancella log</button>
-        </div>
-      </div>
-      <div class="col-right-body" id="logBody">
-        <div class="empty-state">
-          <div class="empty-icon">&#8801;</div>
-          <div class="empty-text">Seleziona una sessione</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════ CONFIG ══════════ -->
-<div class="screen" id="sCfg">
-  <div class="cfg-body">
-
-    <div class="cfg-section" id="cfgAPI">
-      <div class="cfg-hdr" onclick="toggleCfg('cfgAPI')">
-        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#128273;</span> Chiavi API</div>
-        <span class="cfg-arrow">&#8250;</span>
-      </div>
-      <div class="cfg-body-inner">
-        <div class="cfg-row">
-          <label class="cfg-lbl">Groq API Key</label>
-          <input class="cfg-inp" type="password" placeholder="gsk_...">
-        </div>
-        <div class="cfg-row">
-          <label class="cfg-lbl">Anthropic API Key</label>
-          <input class="cfg-inp" type="password" placeholder="sk-ant-...">
-        </div>
-        <div class="cfg-row">
-          <label class="cfg-lbl">OpenAI API Key (embedding)</label>
-          <input class="cfg-inp" type="password" placeholder="sk-...">
-        </div>
-        <button class="cfg-save">Salva chiavi</button>
-      </div>
-    </div>
-
-    <div class="cfg-section" id="cfgRec">
-      <div class="cfg-hdr" onclick="toggleCfg('cfgRec')">
-        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#127908;</span> Registrazione</div>
-        <span class="cfg-arrow">&#8250;</span>
-      </div>
-      <div class="cfg-body-inner">
-        <div class="cfg-row">
-          <label class="cfg-lbl">Lingua trascrizione</label>
-          <select class="cfg-sel">
-            <option>Italiano</option>
-            <option>English</option>
-            <option>Auto-detect</option>
-          </select>
-        </div>
-        <div class="cfg-row">
-          <label class="cfg-lbl">Frase trigger Omega</label>
-          <input class="cfg-inp" type="text" value="Omega chiedi">
-        </div>
-      </div>
-    </div>
-
-    <div class="cfg-section" id="cfgOm">
-      <div class="cfg-hdr" onclick="toggleCfg('cfgOm')">
-        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#937;</span> Omega</div>
-        <span class="cfg-arrow">&#8250;</span>
-      </div>
-      <div class="cfg-body-inner">
-        <div class="cfg-check-row">
-          <input class="cfg-check" type="checkbox" id="chkTts">
-          <label class="cfg-check-lbl" for="chkTts">Attiva voce Omega (TTS)</label>
-        </div>
-      </div>
-    </div>
-
-    <div class="cfg-section" id="cfgAcc">
-      <div class="cfg-hdr" onclick="toggleCfg('cfgAcc')">
-        <div class="cfg-hdr-title"><span class="cfg-hdr-icon">&#128100;</span> Account</div>
-        <span class="cfg-arrow">&#8250;</span>
-      </div>
-      <div class="cfg-body-inner">
-        <div class="cfg-row">
-          <label class="cfg-lbl">Utente corrente</label>
-          <input class="cfg-inp" value="dino.martin" readonly>
-        </div>
-        <button class="cfg-save" style="background:rgba(217,95,95,.08);border-color:rgba(217,95,95,.25);color:var(--dngr)">Logout</button>
-      </div>
-    </div>
-
-  </div>
-</div>
-```
-
-  </div><!-- /main -->
-
-  </div><!-- /app -->
-
-<!-- OMEGA QUESTION POPUP -->
-
-<div class="omega-q-overlay" id="omegaQOverlay">
-  <div class="omega-q-card">
-    <div class="omega-q-alert">&#11042; Omega ha una domanda</div>
-    <div class="omega-q-sym">&#937;</div>
-    <div class="omega-q-text">
-      Qual è il principale collo di bottiglia in questo processo che genera ritardi ricorrenti?
-    </div>
-    <div class="omega-q-btns">
-      <button class="q-btn listen" onclick="closeOmegaQ(true)">Ascolta</button>
-      <button class="q-btn mute" onclick="closeOmegaQ(false)">Non parlare</button>
-      <button class="q-btn close-q" onclick="closeOmegaQ(false)">Chiudi</button>
-    </div>
-  </div>
-</div>
-
-<!-- TRANSCRIPT OVERLAY -->
-
-<div class="tx-overlay" id="txOverlay">
-  <div class="tx-sheet">
-    <div class="tx-hdr">
-      <div class="tx-title">Transcript — 00:34</div>
-      <div class="tx-acts">
-        <button class="tx-copy">Copia</button>
-        <button class="tx-xbtn" onclick="document.getElementById('txOverlay').classList.remove('on')">&#215;</button>
-      </div>
-    </div>
-    <div class="tx-body">Adesso proveremo a fare il transcript senza pausa che è la modalità più comune. Vediamo se il sistema riesce a catturare tutto quello che viene detto durante la sessione di lavoro.
-
-[Omega]: Qual è l’obiettivo principale di questa attività in termini di riduzione del rischio operativo?
-
-Dunque l’obiettivo principale è quello di ridurre il tempo di elaborazione delle pratiche di sinistro, attualmente stimato in circa tre giorni lavorativi per le pratiche standard. Il problema principale è la frammentazione del processo tra diversi sistemi legacy che non comunicano tra loro.</div>
-
-  </div>
-</div>
-</div>
- center;
-  position: relative;
-}
-
-.omega-glyph {
-font-family: var(–fd);
+.omega-symbol {
+font-family: ‘Fraunces’, serif;
 font-size: clamp(120px, 30vw, 200px);
 font-weight: 300;
-color: var(–text);
+color: #dde2e8;
 line-height: 1;
 user-select: none;
 transition: all .6s;
@@ -1063,161 +440,121 @@ text-shadow:
 0 0 100px rgba(74,158,114,.15),
 0 2px 4px rgba(0,0,0,.4);
 }
-.omega-glyph.rec {
+.omega-symbol.recording {
+color: #e8f5f0;
 text-shadow:
 0 0 60px rgba(74,158,114,.7),
 0 0 120px rgba(74,158,114,.3),
 0 0 200px rgba(74,158,114,.1);
-color: #e8f5f0;
 }
-.omega-glyph.paused {
-text-shadow: 0 0 30px rgba(232,168,74,.4), 0 0 80px rgba(232,168,74,.15);
+.omega-symbol.paused {
 color: rgba(221,226,232,.7);
+text-shadow: 0 0 30px rgba(232,168,74,.4), 0 0 80px rgba(232,168,74,.15);
 }
 
-.omega-state {
-font-family: var(–fm);
+.omega-status {
+font-family: ‘DM Mono’, monospace;
 font-size: 10px;
 letter-spacing: .2em;
 text-transform: uppercase;
-color: var(–dim);
+color: #7a8694;
 margin-top: 16px;
+min-height: 14px;
 transition: color .3s;
 }
-.omega-state.rec { color: var(–ok); animation: pulse 2s ease-in-out infinite; }
-.omega-state.paused { color: var(–warn); }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+.omega-status.recording { color: #4aaf7a; }
+.omega-status.paused { color: #e8a84a; }
 
 .omega-timer {
-font-family: var(–fm);
-font-size: 28px;
-letter-spacing: .1em;
-color: var(–text);
-opacity: .5;
+font-family: ‘DM Mono’, monospace;
+font-size: 26px;
+letter-spacing: .12em;
+color: rgba(221,226,232,.5);
 margin-top: 10px;
-min-height: 36px;
+min-height: 34px;
+transition: color .3s;
+}
+.omega-timer.active { color: rgba(221,226,232,.85); }
+
+/* Session stats (shown during recording) */
+.sess-stats {
+display: flex;
+gap: 28px;
+margin-top: 12px;
+opacity: 0;
 transition: opacity .3s;
 }
-.omega-timer.on { opacity: .9; }
-
-/* Session stats */
-.sess-stats {
-display: none;
-gap: 32px;
-margin-top: 14px;
-}
-.sess-stats.on { display: flex; }
-.stat {
+.sess-stats.show { opacity: 1; }
+.stat-item {
 display: flex;
 flex-direction: column;
 align-items: center;
 gap: 3px;
 }
-.stat-lbl {
-font-family: var(–fm);
-font-size: 9px;
+.stat-label {
+font-family: ‘DM Mono’, monospace;
+font-size: 8px;
 letter-spacing: .12em;
 text-transform: uppercase;
-color: var(–faint);
+color: #3d4655;
 }
-.stat-val {
-font-family: var(–fm);
-font-size: 14px;
-color: var(–dim);
+.stat-value {
+font-family: ‘DM Mono’, monospace;
+font-size: 13px;
+color: #7a8694;
 }
 
 /* Omega ask button */
-/* Omega ask — prominent standalone button */
 .omega-ask-wrap {
 display: none;
 flex-direction: column;
 align-items: center;
-gap: 6px;
-margin-bottom: 4px;
+gap: 5px;
+margin-bottom: 6px;
 }
-.omega-ask-wrap.on { display: flex; }
+.omega-ask-wrap.show { display: flex; }
 
-.omega-ask {
+.omega-ask-btn {
 background: linear-gradient(135deg, rgba(74,158,114,.18), rgba(74,158,114,.08));
 border: 1.5px solid rgba(74,158,114,.5);
 border-radius: 50px;
 padding: 14px 36px;
-font-family: var(–fm);
+font-family: ‘DM Mono’, monospace;
 font-size: 12px;
 letter-spacing: .16em;
 text-transform: uppercase;
-color: var(–ow);
+color: #6bbf92;
 cursor: pointer;
 transition: all .25s;
-white-space: nowrap;
-box-shadow: 0 0 20px rgba(74,158,114,.1);
 display: flex;
 align-items: center;
 gap: 8px;
+box-shadow: 0 0 20px rgba(74,158,114,.1);
 }
-.omega-ask:hover {
+.omega-ask-btn:hover {
 background: linear-gradient(135deg, rgba(74,158,114,.28), rgba(74,158,114,.14));
 border-color: rgba(74,158,114,.8);
 box-shadow: 0 0 30px rgba(74,158,114,.2);
 transform: translateY(-1px);
 }
-.omega-ask-sym { font-size: 18px; font-family: var(–fd); }
-.omega-ask.disabled { opacity: .3; pointer-events: none; }
+.omega-ask-btn:disabled {
+opacity: .35;
+cursor: not-allowed;
+pointer-events: none;
+}
+.omega-ask-sym {
+font-family: ‘Fraunces’, serif;
+font-size: 18px;
+}
 .omega-ask-hint {
-font-family: var(–fm);
+font-family: ‘DM Mono’, monospace;
 font-size: 9px;
 letter-spacing: .1em;
-color: var(–faint);
+color: #3d4655;
 text-transform: uppercase;
 }
 
-/* Message bubble */
-.omega-bubble {
-display: none;
-position: absolute;
-bottom: 10px;
-left: 50%;
-transform: translateX(-50%);
-width: calc(100% - 32px);
-max-width: 500px;
-background: linear-gradient(135deg, rgba(74,158,114,.1), rgba(42,100,72,.05));
-border: 1px solid rgba(74,158,114,.2);
-border-radius: 4px 14px 14px 14px;
-padding: 14px 40px 14px 16px;
-animation: msgIn .3s cubic-bezier(.34,1.26,.64,1);
-}
-@keyframes msgIn { from{opacity:0;transform:translateX(-50%) translateY(8px)} to{opacity:1;transform:translateX(-50%) none} }
-.omega-bubble.on { display: block; }
-.bubble-lbl {
-font-family: var(–fm);
-font-size: 9px;
-letter-spacing: .12em;
-text-transform: uppercase;
-color: var(–omega);
-margin-bottom: 6px;
-}
-.bubble-text {
-font-size: 14px;
-line-height: 1.7;
-color: var(–text);
-font-weight: 300;
-}
-.bubble-x {
-position: absolute;
-top: 10px; right: 10px;
-background: rgba(255,255,255,.06);
-border: none;
-color: var(–dim);
-width: 24px; height: 24px;
-border-radius: 50%;
-font-size: 12px;
-cursor: pointer;
-display: flex;
-align-items: center;
-justify-content: center;
-}
-
-/* Controls */
+/* Session controls */
 .sess-controls {
 display: flex;
 flex-direction: column;
@@ -1227,32 +564,36 @@ width: 100%;
 }
 
 .btn-avvia {
-background: linear-gradient(135deg, var(–od), rgba(74,158,114,.06));
+background: linear-gradient(135deg, rgba(74,158,114,.15), rgba(74,158,114,.06));
 border: 1.5px solid rgba(74,158,114,.5);
 border-radius: 50px;
 padding: 18px 60px;
-font-family: var(–fm);
+font-family: ‘DM Mono’, monospace;
 font-size: 13px;
 letter-spacing: .22em;
 text-transform: uppercase;
-color: var(–ow);
+color: #6bbf92;
 cursor: pointer;
 transition: all .25s;
-box-shadow: 0 0 0 0 rgba(74,158,114,0);
 }
 .btn-avvia:hover {
-background: linear-gradient(135deg, rgba(74,158,114,.2), rgba(74,158,114,.1));
+background: linear-gradient(135deg, rgba(74,158,114,.25), rgba(74,158,114,.12));
 border-color: rgba(74,158,114,.8);
 box-shadow: 0 0 30px rgba(74,158,114,.15);
 }
 
-.sess-btn-row { display: none; flex-wrap: wrap; justify-content: center; gap: 10px; }
-.sess-btn-row.on { display: flex; }
+.sess-btn-row {
+display: none;
+flex-wrap: wrap;
+justify-content: center;
+gap: 10px;
+}
+.sess-btn-row.show { display: flex; }
 
-.btn-s {
+.btn-sess {
 border-radius: 8px;
 padding: 12px 20px;
-font-family: var(–fm);
+font-family: ‘DM Mono’, monospace;
 font-size: 10px;
 letter-spacing: .12em;
 text-transform: uppercase;
@@ -1261,159 +602,96 @@ transition: all .2s;
 border: 1px solid;
 white-space: nowrap;
 }
-.btn-pause { background: rgba(232,168,74,.07); border-color: rgba(232,168,74,.25); color: var(–warn); }
-.btn-pause:hover { background: rgba(232,168,74,.14); }
-.btn-stop { background: rgba(217,95,95,.07); border-color: rgba(217,95,95,.25); color: var(–dngr); }
-.btn-stop:hover { background: rgba(217,95,95,.14); }
-.btn-tx { background: rgba(255,255,255,.04); border-color: var(–bd2); color: var(–dim); }
-.btn-tx:hover { background: rgba(255,255,255,.08); color: var(–text); }
+.btn-pausa  { background: rgba(232,168,74,.07); border-color: rgba(232,168,74,.25); color: #e8a84a; }
+.btn-pausa:hover  { background: rgba(232,168,74,.14); }
+.btn-stop   { background: rgba(217,95,95,.07);  border-color: rgba(217,95,95,.25);  color: #d95f5f; }
+.btn-stop:hover   { background: rgba(217,95,95,.14); }
+.btn-tx     { background: rgba(255,255,255,.04); border-color: #2e3540; color: #7a8694; }
+.btn-tx:hover     { background: rgba(255,255,255,.08); color: #dde2e8; }
 
-/* ── OMEGA QUESTION POPUP ── */
-.omega-q-overlay {
+/* Service error banners */
+.svc-banner {
 display: none;
-position: fixed;
-inset: 0;
-z-index: 200;
-background: rgba(0,0,0,.75);
-backdrop-filter: blur(8px);
-align-items: center;
-justify-content: center;
-padding: 24px;
-}
-.omega-q-overlay.on { display: flex; animation: fadeIn .2s ease; }
-@keyframes fadeIn { from{opacity:0} to{opacity:1} }
-
-.omega-q-card {
-background: linear-gradient(135deg, #111520, #0a0c10);
-border: 1.5px solid rgba(74,158,114,.4);
-border-radius: 24px;
-padding: 36px 28px 28px;
-max-width: 400px;
-width: 100%;
+flex-shrink: 0;
+padding: 9px 16px;
+font-family: ‘DM Mono’, monospace;
+font-size: 11px;
+letter-spacing: .05em;
 text-align: center;
-box-shadow:
-0 0 80px rgba(74,158,114,.1),
-0 24px 80px rgba(0,0,0,.7);
-animation: popIn .35s cubic-bezier(.34,1.3,.64,1);
 }
-@keyframes popIn { from{opacity:0;transform:scale(.88)} to{opacity:1;transform:scale(1)} }
+.svc-banner.show { display: block; }
+#bannerGroq     { background: rgba(232,168,74,.12); border-bottom: 1px solid rgba(232,168,74,.25); color: #e8a84a; }
+#bannerClaude   { background: rgba(217,95,95,.12);  border-bottom: 1px solid rgba(217,95,95,.25);  color: #d95f5f; }
+#bannerSupabase { background: rgba(61,122,181,.12); border-bottom: 1px solid rgba(61,122,181,.25); color: #3d7ab5; }
 
-.omega-q-alert {
-font-family: var(–fm);
-font-size: 10px;
-letter-spacing: .22em;
-text-transform: uppercase;
-color: var(–omega);
-margin-bottom: 20px;
-animation: alertBlink 1s step-end infinite;
-}
-@keyframes alertBlink { 0%,100%{opacity:1} 50%{opacity:.15} }
-
-.omega-q-sym {
-font-family: var(–fd);
-font-size: 64px;
-font-weight: 300;
-color: var(–ow);
-line-height: 1;
-margin-bottom: 16px;
-text-shadow: 0 0 40px rgba(74,158,114,.5);
-}
-
-.omega-q-text {
-font-size: 17px;
-font-weight: 300;
-line-height: 1.7;
-color: var(–text);
-margin-bottom: 24px;
-font-style: italic;
-}
-
-.omega-q-btns {
+/* ============================================================
+ARCHIVE & LOG – two-column layout
+============================================================ */
+.two-col {
+flex: 1;
 display: flex;
-gap: 10px;
-justify-content: center;
-flex-wrap: wrap;
+overflow: hidden;
 }
-
-.q-btn {
-padding: 11px 20px;
-border-radius: 10px;
-font-family: var(–fm);
-font-size: 10px;
-letter-spacing: .1em;
-text-transform: uppercase;
-cursor: pointer;
-transition: all .2s;
-border: 1px solid;
-}
-.q-btn.listen { background: var(–od); border-color: rgba(74,158,114,.4); color: var(–ow); }
-.q-btn.listen:hover { background: rgba(74,158,114,.2); }
-.q-btn.mute { background: rgba(255,255,255,.03); border-color: var(–bd2); color: var(–dim); }
-.q-btn.mute:hover { color: var(–text); }
-.q-btn.close-q { background: rgba(217,95,95,.08); border-color: rgba(217,95,95,.25); color: var(–dngr); }
-.q-btn.close-q:hover { background: rgba(217,95,95,.15); }
-
-/* ================================================================
-ARCHIVIO & LOG (shared two-col layout)
-================================================================ */
-.two-col { flex: 1; display: flex; overflow: hidden; }
 
 .col-left {
 width: 230px;
 flex-shrink: 0;
-border-right: 1px solid var(–bd);
+border-right: 1px solid #252b35;
+background: #111318;
 display: flex;
 flex-direction: column;
-background: var(–s1);
 }
 
-.col-left-hdr {
+.col-left-header {
 padding: 12px 14px;
-border-bottom: 1px solid var(–bd);
+border-bottom: 1px solid #252b35;
 flex-shrink: 0;
 }
 
-.filter-sel {
+.filter-select {
 width: 100%;
-background: var(–s2);
-border: 1px solid var(–bd);
+background: #181c22;
+border: 1px solid #252b35;
 border-radius: 6px;
 padding: 7px 10px;
-font-family: var(–fm);
+font-family: ‘DM Mono’, monospace;
 font-size: 10px;
 letter-spacing: .08em;
-color: var(–text);
+color: #dde2e8;
 outline: none;
 cursor: pointer;
 -webkit-appearance: none;
 }
 
-.sess-list { flex: 1; overflow-y: auto; }
+.sess-list {
+flex: 1;
+overflow-y: auto;
+}
 
 .sess-item {
-padding: 14px 16px;
+padding: 13px 16px;
 border-bottom: 1px solid rgba(255,255,255,.03);
 cursor: pointer;
 transition: background .15s;
-position: relative;
 }
 .sess-item:hover { background: rgba(255,255,255,.03); }
-.sess-item.on {
-background: rgba(74,158,114,.08);
-border-left: 2.5px solid var(–omega);
-}
+.sess-item.active { background: rgba(74,158,114,.08); border-left: 2.5px solid #4a9e72; }
+
 .sess-item-date {
-font-family: var(–fm);
+font-family: ‘DM Mono’, monospace;
 font-size: 9px;
 letter-spacing: .08em;
-color: var(–faint);
+color: #3d4655;
 margin-bottom: 4px;
 }
-.sess-item-title {
+.sess-item-preview {
 font-size: 13px;
-color: var(–text);
+color: #dde2e8;
 margin-bottom: 6px;
 line-height: 1.4;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
 }
 .sess-item-meta {
 display: flex;
@@ -1421,19 +699,19 @@ align-items: center;
 gap: 8px;
 }
 .phase-tag {
-background: var(–s3);
+background: #1e232b;
 border-radius: 4px;
 padding: 2px 7px;
-font-family: var(–fm);
+font-family: ‘DM Mono’, monospace;
 font-size: 8px;
 letter-spacing: .1em;
 text-transform: uppercase;
-color: var(–omega);
+color: #4a9e72;
 }
 .sess-item-dur {
-font-family: var(–fm);
+font-family: ‘DM Mono’, monospace;
 font-size: 10px;
-color: var(–faint);
+color: #3d4655;
 }
 
 .col-right {
@@ -1443,61 +721,53 @@ flex-direction: column;
 overflow: hidden;
 }
 
-.col-right-hdr {
+.col-right-header {
 padding: 14px 20px;
-border-bottom: 1px solid var(–bd);
+border-bottom: 1px solid #252b35;
 display: flex;
 align-items: center;
 justify-content: space-between;
 flex-shrink: 0;
 }
 .col-right-title {
-font-family: var(–fm);
+font-family: ‘DM Mono’, monospace;
 font-size: 11px;
 letter-spacing: .1em;
 text-transform: uppercase;
-color: var(–dim);
+color: #7a8694;
 }
-.col-right-acts { display: flex; gap: 8px; }
+.col-right-actions { display: flex; gap: 8px; }
 
-.act-btn {
+.btn-action {
 background: none;
-border: 1px solid var(–bd);
+border: 1px solid #252b35;
 border-radius: 6px;
 padding: 6px 12px;
-font-family: var(–fm);
+font-family: ‘DM Mono’, monospace;
 font-size: 10px;
 letter-spacing: .08em;
 text-transform: uppercase;
-color: var(–dim);
+color: #7a8694;
 cursor: pointer;
 transition: all .2s;
 }
-.act-btn:hover { color: var(–text); border-color: var(–bd2); }
-.act-btn.green { border-color: rgba(74,158,114,.25); color: var(–omega); }
-.act-btn.green:hover { background: var(–od); }
-.act-btn.blue { border-color: rgba(61,122,181,.25); color: #5a9fd4; }
-.act-btn.blue:hover { background: rgba(61,122,181,.1); }
-.act-btn.red { border-color: rgba(217,95,95,.25); color: var(–dngr); }
-.act-btn.red:hover { background: rgba(217,95,95,.08); }
+.btn-action:hover { color: #dde2e8; border-color: #2e3540; }
+.btn-action.green { border-color: rgba(74,158,114,.25); color: #4a9e72; }
+.btn-action.green:hover { background: rgba(74,158,114,.1); }
+.btn-action.blue  { border-color: rgba(61,122,181,.25);  color: #5a9fd4; }
+.btn-action.blue:hover  { background: rgba(61,122,181,.1); }
+.btn-action.red   { border-color: rgba(217,95,95,.25);   color: #d95f5f; }
+.btn-action.red:hover   { background: rgba(217,95,95,.08); }
 
 .col-right-body {
 flex: 1;
 overflow-y: auto;
 padding: 20px;
-}
-
-.tx-content {
 font-size: 14px;
 line-height: 1.85;
-color: var(–text);
+color: #dde2e8;
 white-space: pre-wrap;
 font-weight: 300;
-}
-
-.tx-omega-line {
-color: var(–omega);
-font-style: italic;
 }
 
 .empty-state {
@@ -1508,414 +778,1080 @@ align-items: center;
 justify-content: center;
 gap: 10px;
 }
-.empty-icon {
-font-size: 36px;
-opacity: .1;
-}
-.empty-text {
-font-family: var(–fm);
-font-size: 11px;
-letter-spacing: .1em;
-text-transform: uppercase;
-color: var(–faint);
-}
+.empty-icon { font-size: 32px; opacity: .1; font-family: ‘Fraunces’, serif; }
+.empty-text { font-family: ‘DM Mono’, monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #3d4655; }
 
-/* ================================================================
-CONFIG
-================================================================ */
-#sCfg { overflow-y: auto; }
+/* ============================================================
+CONFIG SCREEN
+============================================================ */
+#scCfg { overflow-y: auto; }
 .cfg-body { padding: 20px; max-width: 540px; display: flex; flex-direction: column; gap: 10px; }
 
-.cfg-section {
-border: 1px solid var(–bd);
-border-radius: 12px;
-overflow: hidden;
-}
+.cfg-section { border: 1px solid #252b35; border-radius: 12px; overflow: hidden; }
 
-.cfg-hdr {
+.cfg-section-header {
 display: flex;
 align-items: center;
 justify-content: space-between;
 padding: 14px 18px;
 cursor: pointer;
-background: var(–s1);
-transition: background .15s;
+background: #111318;
 user-select: none;
+transition: background .15s;
 }
-.cfg-hdr:hover { background: var(–s2); }
-.cfg-hdr-title {
-font-family: var(–fm);
+.cfg-section-header:hover { background: #181c22; }
+.cfg-section-title {
+font-family: ‘DM Mono’, monospace;
 font-size: 11px;
 letter-spacing: .1em;
 text-transform: uppercase;
-color: var(–dim);
+color: #7a8694;
 display: flex;
 align-items: center;
 gap: 10px;
 }
-.cfg-hdr-icon { font-size: 14px; color: var(–faint); }
-.cfg-arrow {
-font-size: 12px;
-color: var(–faint);
+.cfg-section-icon { font-size: 13px; opacity: .5; }
+.cfg-section-arrow {
+font-size: 10px;
+color: #3d4655;
 transition: transform .2s;
 }
-.cfg-section.open .cfg-arrow { transform: rotate(90deg); }
-.cfg-section.open .cfg-hdr { background: var(–s2); }
+.cfg-section.open .cfg-section-arrow { transform: rotate(90deg); }
+.cfg-section.open .cfg-section-header { background: #181c22; }
 
-.cfg-body-inner {
+.cfg-section-body {
 display: none;
 padding: 16px 18px;
-border-top: 1px solid var(–bd);
+border-top: 1px solid #252b35;
 background: rgba(10,12,15,.5);
 flex-direction: column;
 gap: 14px;
 }
-.cfg-section.open .cfg-body-inner { display: flex; }
+.cfg-section.open .cfg-section-body { display: flex; }
 
 .cfg-row { display: flex; flex-direction: column; gap: 6px; }
-.cfg-lbl {
-font-family: var(–fm);
+.cfg-label {
+font-family: ‘DM Mono’, monospace;
 font-size: 9px;
 letter-spacing: .14em;
 text-transform: uppercase;
-color: var(–dim);
+color: #7a8694;
 }
-.cfg-inp {
-background: var(–s1);
-border: 1px solid var(–bd);
+.cfg-input {
+background: #111318;
+border: 1px solid #252b35;
 border-radius: 8px;
 padding: 11px 14px;
-font-family: var(–fm);
+font-family: ‘DM Mono’, monospace;
 font-size: 13px;
-color: var(–text);
+color: #dde2e8;
 outline: none;
 transition: border-color .2s;
 width: 100%;
 }
-.cfg-inp:focus { border-color: var(–omega); }
-.cfg-sel {
-background: var(–s1);
-border: 1px solid var(–bd);
+.cfg-input:focus { border-color: #4a9e72; }
+.cfg-select {
+background: #111318;
+border: 1px solid #252b35;
 border-radius: 8px;
 padding: 11px 14px;
-font-family: var(–fm);
+font-family: ‘DM Mono’, monospace;
 font-size: 13px;
-color: var(–text);
+color: #dde2e8;
 outline: none;
 cursor: pointer;
 -webkit-appearance: none;
 width: 100%;
 }
-
-.cfg-check-row {
-display: flex;
-align-items: center;
-gap: 12px;
-}
-.cfg-check { accent-color: var(–omega); width: 16px; height: 16px; cursor: pointer; }
-.cfg-check-lbl { font-family: var(–fm); font-size: 12px; color: var(–dim); cursor: pointer; }
-
-.cfg-save {
-background: var(–od);
+.cfg-check-row { display: flex; align-items: center; gap: 12px; }
+.cfg-check { accent-color: #4a9e72; width: 16px; height: 16px; cursor: pointer; }
+.cfg-check-label { font-family: ‘DM Mono’, monospace; font-size: 12px; color: #7a8694; cursor: pointer; }
+.cfg-save-btn {
+background: rgba(74,158,114,.12);
 border: 1px solid rgba(74,158,114,.35);
 border-radius: 8px;
 padding: 11px;
-font-family: var(–fm);
+font-family: ‘DM Mono’, monospace;
 font-size: 10px;
 letter-spacing: .14em;
 text-transform: uppercase;
-color: var(–omega);
+color: #4a9e72;
 cursor: pointer;
 transition: background .2s;
 margin-top: 4px;
 }
-.cfg-save:hover { background: rgba(74,158,114,.2); }
+.cfg-save-btn:hover { background: rgba(74,158,114,.2); }
 
-/* ================================================================
-TRANSCRIPT OVERLAY
-================================================================ */
-.tx-overlay {
+/* ============================================================
+OVERLAYS
+============================================================ */
+
+/* Omega question popup */
+.overlay-bg {
 display: none;
 position: fixed;
 inset: 0;
-z-index: 150;
+z-index: 200;
 background: rgba(0,0,0,.75);
 backdrop-filter: blur(8px);
-align-items: flex-end;
-padding: 16px;
+align-items: center;
+justify-content: center;
+padding: 24px;
 }
-.tx-overlay.on { display: flex; animation: fadeIn .2s ease; }
+.overlay-bg.show { display: flex; }
 
+.omega-q-card {
+background: linear-gradient(135deg, #111520, #0a0c10);
+border: 1.5px solid rgba(74,158,114,.4);
+border-radius: 24px;
+padding: 36px 28px 28px;
+max-width: 400px;
+width: 100%;
+text-align: center;
+box-shadow: 0 0 80px rgba(74,158,114,.1), 0 24px 80px rgba(0,0,0,.7);
+}
+
+.omega-q-alert {
+font-family: ‘DM Mono’, monospace;
+font-size: 10px;
+letter-spacing: .22em;
+text-transform: uppercase;
+color: #4a9e72;
+margin-bottom: 20px;
+animation: blink 1s step-end infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.15} }
+
+.omega-q-glyph {
+font-family: ‘Fraunces’, serif;
+font-size: 64px;
+font-weight: 300;
+color: #6bbf92;
+line-height: 1;
+margin-bottom: 16px;
+text-shadow: 0 0 40px rgba(74,158,114,.5);
+}
+
+.omega-q-text {
+font-size: 17px;
+font-weight: 300;
+line-height: 1.7;
+color: #dde2e8;
+margin-bottom: 24px;
+font-style: italic;
+display: none;
+}
+
+.omega-q-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.omega-q-btn {
+padding: 11px 20px;
+border-radius: 10px;
+font-family: ‘DM Mono’, monospace;
+font-size: 10px;
+letter-spacing: .1em;
+text-transform: uppercase;
+cursor: pointer;
+transition: all .2s;
+border: 1px solid;
+}
+.omega-q-btn.listen { background: rgba(74,158,114,.12); border-color: rgba(74,158,114,.4); color: #6bbf92; }
+.omega-q-btn.listen:hover { background: rgba(74,158,114,.22); }
+.omega-q-btn.mute   { background: rgba(255,255,255,.03); border-color: #252b35; color: #7a8694; }
+.omega-q-btn.mute:hover { color: #dde2e8; }
+.omega-q-btn.close  { background: rgba(217,95,95,.08); border-color: rgba(217,95,95,.25); color: #d95f5f; }
+.omega-q-btn.close:hover  { background: rgba(217,95,95,.16); }
+
+/* Transcript overlay */
 .tx-sheet {
-background: linear-gradient(180deg, var(–s1), var(–bg));
-border: 1px solid var(–bd2);
+background: linear-gradient(180deg, #111318, #0a0c0f);
+border: 1px solid #2e3540;
 border-radius: 20px;
 width: 100%;
 max-height: 66dvh;
 display: flex;
 flex-direction: column;
-animation: slideUp .3s cubic-bezier(.34,1.2,.64,1);
 }
-@keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
-
-.tx-hdr {
+.tx-header {
 padding: 14px 18px;
-border-bottom: 1px solid var(–bd);
+border-bottom: 1px solid #252b35;
 display: flex;
 align-items: center;
 justify-content: space-between;
 flex-shrink: 0;
 }
-.tx-title { font-family: var(–fm); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(–dim); }
-.tx-acts { display: flex; gap: 8px; align-items: center; }
-.tx-copy { background: var(–od); border: 1px solid rgba(74,158,114,.25); border-radius: 6px; padding: 6px 12px; font-family: var(–fm); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(–omega); cursor: pointer; transition: background .2s; }
-.tx-copy:hover { background: rgba(74,158,114,.2); }
-.tx-xbtn { width: 28px; height: 28px; background: rgba(255,255,255,.05); border: none; border-radius: 50%; color: var(–dim); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; }
-.tx-xbtn:hover { background: rgba(255,255,255,.1); color: var(–text); }
-.tx-body { overflow-y: auto; padding: 18px 20px; font-size: 13.5px; line-height: 1.85; color: var(–text); white-space: pre-wrap; font-weight: 300; }
+.tx-title-lbl { font-family: ‘DM Mono’, monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #7a8694; }
+.tx-actions { display: flex; gap: 8px; align-items: center; }
+.tx-copy-btn { background: rgba(74,158,114,.1); border: 1px solid rgba(74,158,114,.25); border-radius: 6px; padding: 6px 12px; font-family: ‘DM Mono’, monospace; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #4a9e72; cursor: pointer; }
+.tx-close-btn { width: 28px; height: 28px; background: rgba(255,255,255,.05); border: none; border-radius: 50%; color: #7a8694; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.tx-body { overflow-y: auto; padding: 18px 20px; font-size: 13.5px; line-height: 1.85; color: #dde2e8; white-space: pre-wrap; font-weight: 300; }
 
-.bn-btn {
-flex: 1;
-background: none;
-border: none;
-border-right: 1px solid var(–bd);
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-gap: 4px;
-font-family: var(–fm);
-font-size: 8px;
-letter-spacing: .1em;
-text-transform: uppercase;
-color: var(–faint);
-cursor: pointer;
-transition: all .18s;
-padding: 6px 0;
+/* Pause dialog */
+.pause-card {
+background: linear-gradient(135deg, #111318, #0a0c0f);
+border: 1px solid rgba(232,168,74,.25);
+border-radius: 20px;
+padding: 28px 24px;
+max-width: 320px;
+width: 100%;
+text-align: center;
 }
-.bn-btn:last-child { border-right: none; }
-.bn-btn:hover { color: var(–dim); background: rgba(255,255,255,.02); }
-.bn-btn.on { color: var(–omega); background: var(–od); }
-.bn-icon { font-size: 18px; line-height: 1; }
+.pause-card-title { font-size: 15px; font-weight: 500; color: #dde2e8; margin-bottom: 8px; }
+.pause-card-body { font-size: 13px; color: #7a8694; line-height: 1.6; margin-bottom: 20px; }
+.pause-card-body strong { color: #e8a84a; }
+.pause-card-btns { display: flex; gap: 10px; }
+.pause-card-btns .btn-sess { flex: 1; text-align: center; }
 
-/* ================================================================
+/* Confirm dialog */
+.confirm-card {
+background: #111318;
+border: 1px solid #2e3540;
+border-radius: 16px;
+padding: 24px;
+max-width: 300px;
+width: 100%;
+text-align: center;
+}
+.confirm-title { font-size: 15px; font-weight: 500; margin-bottom: 8px; }
+.confirm-body { font-size: 13px; color: #7a8694; margin-bottom: 20px; line-height: 1.5; }
+.confirm-btns { display: flex; gap: 10px; }
+.confirm-btns .btn-sess { flex: 1; text-align: center; }
+.btn-confirm-ok     { background: rgba(217,95,95,.1);  border-color: rgba(217,95,95,.3);  color: #d95f5f; }
+.btn-confirm-cancel { background: rgba(255,255,255,.04); border-color: #252b35; color: #7a8694; }
+
+/* History overlay */
+.history-sheet { background: linear-gradient(180deg, #111318, #0a0c0f); border: 1px solid #2e3540; border-radius: 20px; width: 100%; max-height: 66dvh; display: flex; flex-direction: column; }
+
+/* Stop TTS button */
+#stopTtsBtn {
+position: fixed;
+bottom: 110px;
+right: 20px;
+z-index: 50;
+background: rgba(217,95,95,.1);
+border: 1px solid rgba(217,95,95,.3);
+border-radius: 20px;
+padding: 8px 16px;
+font-family: ‘DM Mono’, monospace;
+font-size: 10px;
+letter-spacing: .08em;
+text-transform: uppercase;
+color: #d95f5f;
+cursor: pointer;
+display: none;
+}
+
+/* Omega message bubble */
+#omegaMsgArea {
+display: none;
+position: absolute;
+bottom: 130px;
+left: 50%;
+transform: translateX(-50%);
+width: calc(100% - 32px);
+max-width: 500px;
+z-index: 5;
+}
+.omega-bubble-inner {
+background: linear-gradient(135deg, rgba(74,158,114,.1), rgba(42,100,72,.05));
+border: 1px solid rgba(74,158,114,.2);
+border-radius: 4px 14px 14px 14px;
+padding: 14px 40px 14px 16px;
+position: relative;
+}
+.omega-bubble-label { font-family: ‘DM Mono’, monospace; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: #4a9e72; margin-bottom: 6px; }
+.omega-bubble-close { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,.06); border: none; color: #7a8694; width: 24px; height: 24px; border-radius: 50%; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#omegaMsgText { font-size: 14px; line-height: 1.7; color: #dde2e8; }
+#historyPill { display: none; margin-top: 8px; background: none; border: 1px solid #3d4655; color: #7a8694; font-family: ‘DM Mono’, monospace; font-size: 10px; letter-spacing: .06em; padding: 5px 12px; border-radius: 20px; cursor: pointer; }
+
+/* ============================================================
 SCROLLBAR
-================================================================ */
+============================================================ */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(–bd2); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: #2e3540; border-radius: 2px; }
 
-/* Service banners */
-.svc-banner {
-display: none;
-padding: 9px 16px;
-font-family: var(–fm);
-font-size: 11px;
-letter-spacing: .05em;
-text-align: center;
-flex-shrink: 0;
-}
-.svc-banner.on { display: block; animation: fadeIn .3s ease; }
-.svc-banner.warn { background: rgba(232,168,74,.12); border-bottom: 1px solid rgba(232,168,74,.25); color: var(–warn); }
-.svc-banner.err { background: rgba(217,95,95,.12); border-bottom: 1px solid rgba(217,95,95,.25); color: var(–dngr); }
+/* ============================================================
+UTILITY
+============================================================ */
+.hidden { display: none !important; }
 
 </style>
 </head>
 <body>
 
-<div class="galaxy-bg"></div>
-<canvas id="stars"></canvas>
+<div id="app">
 
-<div class="ver">v1.0</div>
+  <!-- ========================================================
+       HOME SCREEN
+       ======================================================== -->
 
-<div class="scene">
-  <div class="content">
-    <div class="logo">
-      <div class="logo-eyebrow">AI Colleague Platform</div>
-      <div class="logo-title">Super<span>NOVA</span></div>
-      <div class="logo-line"></div>
-      <div class="logo-sub">New Operating Model Via AI</div>
+  <div id="scHome" class="screen active">
+    <div class="home-galaxy"></div>
+    <canvas id="homeStars"></canvas>
+    <div class="home-ver">v1.1</div>
+    <div class="home-content">
+      <div>
+        <div class="home-title">Super<span>NOVA</span></div>
+        <div class="home-line"></div>
+        <div class="home-sub">New Operating Model Via AI</div>
+      </div>
+      <div class="home-form">
+        <div class="home-field">
+          <label class="home-label" for="inpUser">Username</label>
+          <input class="home-input" id="inpUser" type="text"
+            placeholder="nome utente"
+            autocomplete="off" autocorrect="off" autocapitalize="none">
+        </div>
+        <div class="home-field">
+          <label class="home-label" for="inpPass">Password</label>
+          <input class="home-input" id="inpPass" type="password"
+            placeholder="password"
+            autocomplete="current-password">
+        </div>
+        <div class="home-error" id="homeErr"></div>
+        <button class="home-btn" id="homeBtn">Accedi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       APP SCREENS (shared header + side panel)
+       ======================================================== -->
+
+  <div id="scApp" class="screen" style="display:none;flex-direction:column">
+
+```
+<!-- Service banners -->
+<div class="svc-banner" id="bannerGroq">Groq non raggiungibile -- trascrizione sospesa</div>
+<div class="svc-banner" id="bannerClaude">Claude non raggiungibile -- Omega non disponibile</div>
+<div class="svc-banner" id="bannerSupabase">Supabase non raggiungibile -- salvataggio locale attivo</div>
+
+<!-- Header -->
+<header class="app-header">
+  <div class="hdr-left">
+    <button class="hamburger" id="menuBtn" onclick="togglePanel()">
+      <span></span><span></span><span></span>
+    </button>
+    <span class="hdr-title" id="hdrTitle">Sessione</span>
+  </div>
+  <div class="hdr-right">
+    <div class="phase-wrap">
+      <button class="phase-btn" id="phaseBtn" onclick="togglePhaseDD()">
+        <span id="phaseLabel">Setup</span>
+      </button>
+      <div class="phase-dropdown" id="phaseDD">
+        <div class="phase-opt active" onclick="setPhase('setup','Setup')">Setup</div>
+        <div class="phase-opt" onclick="setPhase('f0','Fase 0')">Fase 0</div>
+        <div class="phase-opt" onclick="setPhase('f1','Fase 1')">Fase 1</div>
+        <div class="phase-opt" onclick="setPhase('f2','Fase 2')">Fase 2</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">Esci</button>
+  </div>
+</header>
+
+<!-- Main area -->
+<div class="app-main">
+
+  <!-- Side panel -->
+  <nav class="side-panel" id="sidePanel">
+    <div class="side-nav">
+      <button class="side-link active" id="sl-sess" onclick="navTo('scSess','Sessione','sl-sess')">
+        &#937; &nbsp; Sessione
+      </button>
+      <button class="side-link" id="sl-arch" onclick="navTo('scArch','Archivio','sl-arch')">
+        &#9633; &nbsp; Archivio
+      </button>
+      <button class="side-link" id="sl-log" onclick="navTo('scLog','Log','sl-log')">
+        &#8801; &nbsp; Log
+      </button>
+      <button class="side-link" id="sl-cfg" onclick="navTo('scCfg','Config','sl-cfg')">
+        &#9881; &nbsp; Config
+      </button>
+    </div>
+    <div class="side-footer">
+      <div class="side-user" id="sideUser">Utente: --</div>
+      <button class="btn-logout" style="width:100%" onclick="doLogout()">Logout</button>
+    </div>
+  </nav>
+
+  <!-- Content area -->
+  <div class="content-area">
+
+    <!-- -- SESSIONE -- -->
+    <div id="scSess" class="screen active" style="position:relative">
+      <canvas class="sess-canvas" id="waveCanvas"></canvas>
+      <div class="sess-body">
+        <div class="omega-stage">
+          <div class="omega-symbol" id="omegaSym">&#937;</div>
+          <div class="omega-status" id="omegaStatus">pronto</div>
+          <div class="omega-timer" id="sessTimer"></div>
+          <div class="sess-stats" id="sessInfoStrip">
+            <div class="stat-item">
+              <span class="stat-label">Chunk</span>
+              <span class="stat-value" id="sessChunkCount">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Parole</span>
+              <span class="stat-value" id="sessWordCount">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Fase</span>
+              <span class="stat-value" id="sessPhaseDisplay">Setup</span>
+            </div>
+          </div>
+
+          <!-- Omega message bubble -->
+          <div id="omegaMsgArea">
+            <div class="omega-bubble-inner">
+              <div class="omega-bubble-label">Omega</div>
+              <button class="omega-bubble-close" onclick="closeOmegaMsg()">x</button>
+              <span id="omegaMsgText"></span>
+            </div>
+            <button id="historyPill" onclick="showHistory()">^ Messaggi precedenti</button>
+          </div>
+        </div>
+
+        <div class="sess-controls">
+          <div class="omega-ask-wrap" id="omegaAskWrap">
+            <button class="omega-ask-btn" id="omegaAskBtn" onclick="omegaChiedi()" disabled>
+              <span class="omega-ask-sym">&#937;</span>
+              Chiedi a Omega
+            </button>
+            <span class="omega-ask-hint" id="omegaAskHint">attivo dopo 10 secondi</span>
+          </div>
+          <button class="btn-avvia" id="btnAvvia" onclick="sessAvvia()">Avvia</button>
+          <div class="sess-btn-row" id="sessBtns">
+            <button class="btn-sess btn-pausa" id="btnPausa" onclick="sessPausa()">Pausa</button>
+            <button class="btn-sess btn-stop"  onclick="sessStop()">&#9724; Stop</button>
+            <button class="btn-sess btn-tx"    onclick="sessShowTx()">&#8801; Trascrizione</button>
+          </div>
+        </div>
+      </div>
     </div>
 
-```
-<div class="form">
-  <div class="field">
-    <label class="field-label">Username</label>
-    <input type="text" placeholder="nome utente" autocomplete="off" autocapitalize="none">
-  </div>
-  <div class="field">
-    <label class="field-label">Password</label>
-    <input type="password" placeholder="••••••••">
-  </div>
-  <div class="err" id="errMsg">Credenziali non riconosciute</div>
-  <button class="btn-login">Accedi</button>
-</div>
+    <!-- -- ARCHIVIO -- -->
+    <div id="scArch" class="screen">
+      <div class="two-col">
+        <div class="col-left">
+          <div class="col-left-header">
+            <select class="filter-select" id="archFilter" onchange="renderArch()">
+              <option value="all">Tutte le fasi</option>
+              <option value="setup">Setup</option>
+              <option value="f0">Fase 0</option>
+              <option value="f1">Fase 1</option>
+              <option value="f2">Fase 2</option>
+            </select>
+          </div>
+          <div class="sess-list" id="archList">
+            <div class="empty-state" style="height:200px">
+              <div class="empty-icon">&#9633;</div>
+              <div class="empty-text">Nessuna sessione</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-right">
+          <div class="col-right-header">
+            <div class="col-right-title" id="archContentTitle">Seleziona una sessione</div>
+            <div class="col-right-actions">
+              <button class="btn-action green hidden" id="archCopyBtn" onclick="archCopy()">Copia</button>
+              <button class="btn-action blue  hidden" id="archSynthBtn" onclick="archSynth()">Sintesi</button>
+              <button class="btn-action red   hidden" id="archDelBtn"  onclick="archDel()">Cancella</button>
+            </div>
+          </div>
+          <div class="col-right-body" id="archBody">
+            <div class="empty-state">
+              <div class="empty-icon">&#9633;</div>
+              <div class="empty-text">Seleziona una sessione per vedere il transcript</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- -- LOG -- -->
+    <div id="scLog" class="screen">
+      <div class="two-col">
+        <div class="col-left">
+          <div class="col-left-header">
+            <select class="filter-select" id="logFilter" onchange="renderLog()">
+              <option value="all">Tutte le fasi</option>
+              <option value="setup">Setup</option>
+              <option value="f0">Fase 0</option>
+              <option value="f1">Fase 1</option>
+              <option value="f2">Fase 2</option>
+            </select>
+          </div>
+          <div class="sess-list" id="logList">
+            <div class="empty-state" style="height:200px">
+              <div class="empty-icon">&#8801;</div>
+              <div class="empty-text">Nessuna sessione</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-right">
+          <div class="col-right-header">
+            <div class="col-right-title" id="logContentTitle">Seleziona una sessione</div>
+            <div class="col-right-actions">
+              <button class="btn-action green hidden" id="logCopyBtn" onclick="logCopy()">Copia log</button>
+              <button class="btn-action red   hidden" id="logDelBtn"  onclick="logDel()">Cancella log</button>
+            </div>
+          </div>
+          <div class="col-right-body" id="logBody">
+            <div class="empty-state">
+              <div class="empty-icon">&#8801;</div>
+              <div class="empty-text">Seleziona una sessione per vedere il log</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- -- CONFIG -- -->
+    <div id="scCfg" class="screen" style="overflow-y:auto">
+      <div class="cfg-body">
+
+        <div class="cfg-section" id="cfgApiKeys">
+          <div class="cfg-section-header" onclick="toggleCfg('cfgApiKeys')">
+            <div class="cfg-section-title">
+              <span class="cfg-section-icon">&#128273;</span> Chiavi API
+            </div>
+            <span class="cfg-section-arrow">&#8250;</span>
+          </div>
+          <div class="cfg-section-body">
+            <div class="cfg-row">
+              <label class="cfg-label">Groq API Key</label>
+              <input class="cfg-input" id="cfgGroq" type="password" placeholder="gsk_...">
+            </div>
+            <div class="cfg-row">
+              <label class="cfg-label">Anthropic API Key</label>
+              <input class="cfg-input" id="cfgAnth" type="password" placeholder="sk-ant-...">
+            </div>
+            <div class="cfg-row">
+              <label class="cfg-label">OpenAI API Key (embedding)</label>
+              <input class="cfg-input" id="cfgOai" type="password" placeholder="sk-...">
+            </div>
+            <button class="cfg-save-btn" onclick="saveCfgKeys()">Salva chiavi</button>
+          </div>
+        </div>
+
+        <div class="cfg-section" id="cfgRec">
+          <div class="cfg-section-header" onclick="toggleCfg('cfgRec')">
+            <div class="cfg-section-title">
+              <span class="cfg-section-icon">&#127908;</span> Registrazione
+            </div>
+            <span class="cfg-section-arrow">&#8250;</span>
+          </div>
+          <div class="cfg-section-body">
+            <div class="cfg-row">
+              <label class="cfg-label">Lingua trascrizione</label>
+              <select class="cfg-select" id="cfgLang">
+                <option value="it">Italiano</option>
+                <option value="en">English</option>
+                <option value="">Auto-detect</option>
+              </select>
+            </div>
+            <div class="cfg-row">
+              <label class="cfg-label">Frase trigger Omega</label>
+              <input class="cfg-input" id="cfgTrigger" type="text" value="omega chiedi">
+            </div>
+          </div>
+        </div>
+
+        <div class="cfg-section" id="cfgOmega">
+          <div class="cfg-section-header" onclick="toggleCfg('cfgOmega')">
+            <div class="cfg-section-title">
+              <span class="cfg-section-icon">&#937;</span> Omega
+            </div>
+            <span class="cfg-section-arrow">&#8250;</span>
+          </div>
+          <div class="cfg-section-body">
+            <div class="cfg-check-row">
+              <input class="cfg-check" id="cfgTts" type="checkbox">
+              <label class="cfg-check-label" for="cfgTts">Attiva voce Omega (TTS)</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="cfg-section" id="cfgAccount">
+          <div class="cfg-section-header" onclick="toggleCfg('cfgAccount')">
+            <div class="cfg-section-title">
+              <span class="cfg-section-icon">&#128100;</span> Account
+            </div>
+            <span class="cfg-section-arrow">&#8250;</span>
+          </div>
+          <div class="cfg-section-body">
+            <div class="cfg-row">
+              <label class="cfg-label">Utente corrente</label>
+              <input class="cfg-input" id="cfgUser" readonly>
+            </div>
+            <button class="cfg-save-btn" onclick="doLogout()"
+              style="background:rgba(217,95,95,.08);border-color:rgba(217,95,95,.25);color:#d95f5f">
+              Logout
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /content-area -->
+</div><!-- /app-main -->
 ```
 
+  </div><!-- /scApp -->
+
+</div><!-- /app -->
+
+<!-- ============================================================
+     OVERLAYS (always in DOM)
+     ============================================================ -->
+
+<!-- Stop TTS -->
+
+<button id="stopTtsBtn" onclick="stopTTS()">x Interrompi Omega</button>
+
+<!-- Omega question popup -->
+
+<div class="overlay-bg" id="omegaQOverlay">
+  <div class="omega-q-card">
+    <div class="omega-q-alert">&#11042; Omega ha una domanda</div>
+    <div class="omega-q-glyph">&#937;</div>
+    <div class="omega-q-text" id="omegaQText"></div>
+    <div class="omega-q-btns" id="omegaQBtns">
+      <button class="omega-q-btn listen" onclick="omegaQListen()">Ascolta</button>
+      <button class="omega-q-btn mute"   onclick="omegaQSilence()">Non parlare</button>
+      <button class="omega-q-btn close"  onclick="omegaQClose()">Chiudi</button>
+    </div>
+    <button class="omega-q-btn mute" id="omegaQInterrompi" onclick="omegaQInterrompi()" style="display:none;margin-top:8px">Interrompi</button>
   </div>
 </div>
+
+<!-- Transcript overlay -->
+
+<div class="overlay-bg" id="txOverlay" style="align-items:flex-end;padding:16px">
+  <div class="tx-sheet">
+    <div class="tx-header">
+      <div class="tx-title-lbl" id="txTitle">Transcript</div>
+      <div class="tx-actions">
+        <button class="tx-copy-btn" onclick="txCopy()">Copia</button>
+        <button class="tx-close-btn" onclick="txClose()">x</button>
+      </div>
+    </div>
+    <div class="tx-body" id="txBody"></div>
+  </div>
+</div>
+
+<!-- Pause dialog -->
+
+<div class="overlay-bg" id="pauseDlg">
+  <div class="pause-card">
+    <div class="pause-card-title">Sessione in pausa</div>
+    <div class="pause-card-body" id="pauseDlgBody">
+      La sessione e in pausa da <strong>3 minuti</strong>.<br>Vuoi continuare o chiudere?
+    </div>
+    <div class="pause-card-btns">
+      <button class="btn-sess btn-pausa" onclick="pauseDlgContinue()">Resta in pausa</button>
+      <button class="btn-sess btn-stop"  onclick="pauseDlgStop()">Chiudi e salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm dialog -->
+
+<div class="overlay-bg" id="confirmOverlay">
+  <div class="confirm-card">
+    <div class="confirm-title"  id="confirmTitle">Conferma</div>
+    <div class="confirm-body"   id="confirmBody">Sei sicuro?</div>
+    <div class="confirm-btns">
+      <button class="btn-sess btn-confirm-cancel" onclick="confirmNo()">Annulla</button>
+      <button class="btn-sess btn-confirm-ok" id="confirmOkBtn">Conferma</button>
+    </div>
+  </div>
+</div>
+
+<!-- History overlay -->
+
+<div class="overlay-bg" id="historyOverlay" style="align-items:flex-end;padding:16px" onclick="if(event.target===this)closeHistory()">
+  <div class="history-sheet">
+    <div class="tx-header">
+      <div class="tx-title-lbl">Messaggi precedenti</div>
+      <div class="tx-actions">
+        <button class="tx-copy-btn" onclick="clearOmegaHistory()"
+          style="background:rgba(217,95,95,.1);border-color:rgba(217,95,95,.25);color:#d95f5f">
+          Cancella
+        </button>
+        <button class="tx-close-btn" onclick="closeHistory()">x</button>
+      </div>
+    </div>
+    <div class="tx-body" id="historyBody"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT -- Layer 1: Navigation only (no API calls)
+     ============================================================ -->
 
 <script>
-// Animated star field
-const canvas = document.getElementById('stars');
-const ctx = canvas.getContext('2d');
-let W, H, stars = [];
+'use strict';
 
-function resize() {
-  W = canvas.width = window.innerWidth;
-  H = canvas.height = window.innerHeight;
-}
+// -- STATE --
+var currentUser   = null;
+var currentPhase  = 'setup';
+var panelOpen     = false;
+var currentScreen = 'scSess';
+var isRecording   = false;
+var isPaused      = false;
+var timerSec      = 0;
+var timerInt      = null;
+var chunkInt      = null;
+var chunkSec      = 0;
+var chunkCount    = 0;
 
-function initStars() {
-  stars = [];
-  for(let i = 0; i < 220; i++) {
-    stars.push({
-      x: Math.random() * W,
-      y: Math.random() * H,
-      r: Math.random() * 1.2 + 0.2,
-      a: Math.random(),
-      da: (Math.random() - .5) * .004,
-      gold: Math.random() < .12
-    });
-  }
-}
+// -- UTILITY --
+function el(id) { return document.getElementById(id); }
+function fmt(s) { return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0'); }
 
-function draw() {
-  ctx.clearRect(0, 0, W, H);
-  stars.forEach(s => {
-    s.a = Math.max(.05, Math.min(.95, s.a + s.da));
-    if(s.a <= .05 || s.a >= .95) s.da *= -1;
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-    ctx.fillStyle = s.gold
-      ? `rgba(200,180,100,${s.a * .8})`
-      : `rgba(180,200,255,${s.a * .7})`;
-    ctx.fill();
-
-    if(s.r > .9) {
-      const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 6);
-      g.addColorStop(0, s.gold ? `rgba(200,180,100,${s.a*.25})` : `rgba(100,160,255,${s.a*.2})`);
-      g.addColorStop(1, 'transparent');
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.r * 6, 0, Math.PI*2);
-      ctx.fill();
-    }
-  });
-  requestAnimationFrame(draw);
-}
-
-resize(); initStars(); draw();
-window.addEventListener('resize', () => { resize(); initStars(); });
+// -- HOME --
+el('homeBtn').addEventListener('click', doHomeLogin);
+el('inpPass').addEventListener('keydown', function(e){ if(e.key==='Enter') doHomeLogin(); });
+el('inpUser').addEventListener('keydown', function(e){ if(e.key==='Enter') el('inpPass').focus(); });
 
 // ── SUPABASE ──
-const SB_URL = 'https://ygpbozycacpncohdjqft.supabase.co';
-const SB_KEY = 'sb_publishable_Evfe7sPUsrjIe0TK65k52g_irQA-ifa';
-const ADMIN_USER = 'superNOVA';
-const ADMIN_PASS = 'superNOVA';
+var SB_URL = 'https://ygpbozycacpncohdjqft.supabase.co';
+var SB_KEY = 'sb_publishable_Evfe7sPUsrjIe0TK65k52g_irQA-ifa';
+var ADMIN  = 'superNOVA';
 
-async function sbGet(path) {
-  try {
-    const res = await fetch(SB_URL + '/rest/v1/' + path, {
-      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
-    });
-    return res.ok ? res.json() : null;
-  } catch(e) { return null; }
+function sbGet(path) {
+  return fetch(SB_URL+'/rest/v1/'+path, {
+    headers: {'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+  }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
+}
+function sbPost(path, body) {
+  return fetch(SB_URL+'/rest/v1/'+path, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+    body: JSON.stringify(body)
+  }).catch(function(){});
 }
 
-async function sbPost(path, body) {
-  try {
-    const res = await fetch(SB_URL + '/rest/v1/' + path, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SB_KEY,
-        'Authorization': 'Bearer ' + SB_KEY,
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify(body)
-    });
-    return res.ok || res.status === 409;
-  } catch(e) { return false; }
+function loginSuccess(u) {
+  currentUser = u;
+  el('homeBtn').textContent = 'Accesso effettuato';
+  el('homeBtn').style.background = 'linear-gradient(135deg,rgba(74,158,114,.9),rgba(42,120,82,.9))';
+  el('homeBtn').style.pointerEvents = 'none';
+  setTimeout(function() {
+    el('scHome').classList.remove('active');
+    el('scApp').style.display = 'flex';
+    el('sideUser').textContent = 'Utente: ' + u;
+    el('cfgUser').value = u;
+    loadCfg(u);
+    initWaveCanvas();
+  }, 700);
 }
 
-async function doLogin() {
-  const uEl = document.querySelector('input[type=text]');
-  const pEl = document.querySelector('input[type=password]');
-  const btn = document.querySelector('.btn-login');
-  const err = document.getElementById('errMsg');
-
-  const u = uEl.value.trim();
-  const p = pEl.value;
-
-  err.classList.remove('on');
-
-  if(!u || !p) {
-    err.textContent = 'Inserisci username e password';
-    err.classList.add('on');
-    return;
-  }
-
-  btn.textContent = 'Accesso...';
-  btn.style.opacity = '.6';
-  btn.style.pointerEvents = 'none';
-
+function doHomeLogin() {
+  var u = el('inpUser').value.trim();
+  var p = el('inpPass').value;
+  var err = el('homeErr');
+  err.classList.remove('show');
+  if(!u || !p) { err.textContent='Inserisci username e password'; err.classList.add('show'); return; }
+  el('homeBtn').textContent = 'Accesso...';
+  el('homeBtn').style.opacity = '.6';
+  el('homeBtn').style.pointerEvents = 'none';
   // Admin master key
-  if(u === ADMIN_USER && p === ADMIN_PASS) {
-    showSuccess(u);
-    return;
-  }
-
-  // Check Supabase
-  const data = await sbGet('sn_users?username=eq.' + encodeURIComponent(u) + '&select=username,password_hash');
-
-  if(data === null) {
-    // Supabase offline — allow anyway
-    showSuccess(u);
-    return;
-  }
-
-  if(data.length === 0) {
-    // New user — register then login
-    await sbPost('sn_users', {
-      username: u,
-      password_hash: p,
-      created_at: new Date().toISOString()
+  if(u === ADMIN && p === ADMIN) { loginSuccess(u); return; }
+  // Supabase check
+  sbGet('sn_users?username=eq.'+encodeURIComponent(u)+'&select=username,password_hash')
+    .then(function(data) {
+      if(data === null) { loginSuccess(u); return; }  // offline — allow
+      if(data.length === 0) {
+        // New user — register
+        sbPost('sn_users', {username:u, password_hash:p, created_at:new Date().toISOString()})
+          .then(function(){ loginSuccess(u); });
+        return;
+      }
+      if(data[0].password_hash === p) { loginSuccess(u); return; }
+      // Wrong password
+      el('homeBtn').textContent = 'Accedi';
+      el('homeBtn').style.opacity = '';
+      el('homeBtn').style.pointerEvents = '';
+      err.textContent = 'Password non corretta';
+      err.classList.add('show');
+      el('inpPass').value = '';
+      el('inpPass').focus();
     });
-    showSuccess(u);
-    return;
-  }
+}
 
-  // Existing user
-  if(data[0].password_hash === p) {
-    showSuccess(u);
-  } else {
-    btn.textContent = 'Accedi';
-    btn.style.opacity = '';
-    btn.style.pointerEvents = '';
-    err.textContent = 'Password non corretta';
-    err.classList.add('on');
-    pEl.value = '';
-    pEl.focus();
+function doLogout() {
+  el('scApp').style.display = 'none';
+  el('scHome').classList.add('active');
+  el('inpUser').value = '';
+  el('inpPass').value = '';
+  el('homeBtn').textContent = 'Accedi';
+  el('homeBtn').style.background = '';
+  el('homeBtn').style.opacity = '';
+  el('homeBtn').style.pointerEvents = '';
+  el('homeErr').classList.remove('show');
+  currentUser = null;
+  if(isRecording) sessStop();
+}
+
+// -- NAVIGATION --
+function navTo(screenId, title, linkId) {
+  // Close side panel
+  panelOpen = false;
+  el('sidePanel').classList.remove('open');
+  el('menuBtn').classList.remove('open');
+  // Pause if recording and leaving session
+  if(isRecording && !isPaused && screenId !== 'scSess') sessPausa();
+  // Hide all content screens
+  ['scSess','scArch','scLog','scCfg'].forEach(function(id) {
+    var s = el(id);
+    if(s) s.classList.remove('active');
+  });
+  // Show target
+  var target = el(screenId);
+  if(target) target.classList.add('active');
+  // Update header title
+  el('hdrTitle').textContent = title;
+  // Update side links
+  document.querySelectorAll('.side-link').forEach(function(l) { l.classList.remove('active'); });
+  if(linkId) { var lk = el(linkId); if(lk) lk.classList.add('active'); }
+  currentScreen = screenId;
+  // Refresh canvas if going to session
+  if(screenId === 'scSess') setTimeout(initWaveCanvas, 100);
+}
+
+function togglePanel() {
+  panelOpen = !panelOpen;
+  el('sidePanel').classList.toggle('open', panelOpen);
+  el('menuBtn').classList.toggle('open', panelOpen);
+  if(isRecording && !isPaused && panelOpen) sessPausa();
+  setTimeout(initWaveCanvas, 300);
+}
+
+// Close panel/dropdown on outside click
+document.addEventListener('click', function(e) {
+  if(panelOpen && !e.target.closest('#sidePanel') && !e.target.closest('#menuBtn')) togglePanel();
+  if(!e.target.closest('.phase-wrap')) el('phaseDD').classList.remove('open');
+});
+
+// -- PHASE --
+function togglePhaseDD() {
+  el('phaseDD').classList.toggle('open');
+}
+function setPhase(val, label) {
+  currentPhase = val;
+  el('phaseLabel').textContent = label;
+  el('sessPhaseDisplay').textContent = label;
+  document.querySelectorAll('.phase-opt').forEach(function(o) {
+    o.classList.toggle('active', o.textContent.trim() === label);
+  });
+  el('phaseDD').classList.remove('open');
+}
+
+// -- CONFIG --
+function toggleCfg(sectionId) {
+  el(sectionId).classList.toggle('open');
+}
+function loadCfg(username) {
+  try {
+    var saved = localStorage.getItem('sn_cfg_'+(username||'default'));
+    if(saved) {
+      var c = JSON.parse(saved);
+      if(c.groqKey)   el('cfgGroq').value    = c.groqKey;
+      if(c.anthKey)   el('cfgAnth').value    = c.anthKey;
+      if(c.oaiKey)    el('cfgOai').value     = c.oaiKey;
+      if(c.lang)      el('cfgLang').value    = c.lang;
+      if(c.trigger)   el('cfgTrigger').value = c.trigger;
+      if(c.tts)       el('cfgTts').checked   = c.tts;
+    }
+  } catch(e) {}
+}
+
+function saveCfgKeys() {
+  var cfg = {
+    groqKey:  el('cfgGroq').value.trim(),
+    anthKey:  el('cfgAnth').value.trim(),
+    oaiKey:   el('cfgOai').value.trim(),
+    lang:     el('cfgLang').value,
+    trigger:  el('cfgTrigger').value.trim() || 'omega chiedi',
+    tts:      el('cfgTts').checked
+  };
+  try { localStorage.setItem('sn_cfg_'+(currentUser||'default'), JSON.stringify(cfg)); } catch(e) {}
+  var btn = event.target;
+  var orig = btn.textContent;
+  btn.textContent = 'Salvato';
+  setTimeout(function(){ btn.textContent = orig; }, 1500);
+}
+
+// -- SESSION (mock for layer 1) --
+function sessAvvia() {
+  isRecording = true; isPaused = false;
+  timerSec = 0; chunkCount = 0; chunkSec = 0;
+  el('omegaSym').className = 'omega-symbol recording';
+  el('omegaStatus').className = 'omega-status recording';
+  el('omegaStatus').textContent = 'registrazione';
+  el('sessTimer').className = 'omega-timer active';
+  el('sessInfoStrip').classList.add('show');
+  el('omegaAskWrap').classList.add('show');
+  el('omegaAskBtn').disabled = true;
+  el('btnAvvia').style.display = 'none';
+  el('sessBtns').classList.add('show');
+  el('btnPausa').textContent = 'Pausa';
+  el('sessPhaseDisplay').textContent = el('phaseLabel').textContent;
+
+  timerInt = setInterval(function() {
+    if(isPaused) return;
+    timerSec++;
+    el('sessTimer').textContent = fmt(timerSec);
+    chunkSec++;
+    if(chunkSec >= 10) {
+      chunkSec = 0; chunkCount++;
+      el('sessChunkCount').textContent = chunkCount;
+      if(chunkCount === 1) {
+        el('omegaAskBtn').disabled = false;
+        el('omegaAskHint').textContent = '';
+      }
+    }
+  }, 1000);
+}
+
+function sessPausa() {
+  if(!isRecording) return;
+  isPaused = true;
+  el('omegaSym').className = 'omega-symbol paused';
+  el('omegaStatus').className = 'omega-status paused';
+  el('omegaStatus').textContent = 'in pausa';
+  el('btnPausa').textContent = 'Riprendi';
+  el('btnPausa').onclick = sessRiprendi;
+  el('btnPausa').className = 'btn-sess btn-tx';
+}
+
+function sessRiprendi() {
+  if(!isRecording) return;
+  isPaused = false;
+  el('omegaSym').className = 'omega-symbol recording';
+  el('omegaStatus').className = 'omega-status recording';
+  el('omegaStatus').textContent = 'registrazione';
+  el('btnPausa').textContent = 'Pausa';
+  el('btnPausa').onclick = sessPausa;
+  el('btnPausa').className = 'btn-sess btn-pausa';
+}
+
+function sessStop() {
+  isRecording = false; isPaused = false;
+  clearInterval(timerInt);
+  el('omegaSym').className = 'omega-symbol';
+  el('omegaStatus').className = 'omega-status';
+  el('omegaStatus').textContent = 'pronto';
+  el('sessTimer').className = 'omega-timer';
+  el('sessTimer').textContent = '';
+  el('sessInfoStrip').classList.remove('show');
+  el('omegaAskWrap').classList.remove('show');
+  el('btnAvvia').style.display = 'block';
+  el('sessBtns').classList.remove('show');
+}
+
+function sessShowTx() {
+  if(isRecording && !isPaused) sessPausa();
+  el('txTitle').textContent = 'Transcript -- ' + fmt(timerSec);
+  el('txBody').textContent = '(La trascrizione reale viene aggiunta nel layer 3)';
+  el('txOverlay').classList.add('show');
+}
+function txClose() { el('txOverlay').classList.remove('show'); }
+function txCopy()  { navigator.clipboard && navigator.clipboard.writeText(el('txBody').textContent); }
+
+// -- OMEGA (stubs for layer 1) --
+function omegaChiedi() { el('omegaQOverlay').classList.add('show'); }
+function omegaQListen()    { el('omegaQText').style.display='block'; el('omegaQInterrompi').style.display='block'; }
+function omegaQSilence()   { el('omegaQInterrompi').style.display='none'; }
+function omegaQClose()     { el('omegaQOverlay').classList.remove('show'); el('omegaQText').style.display='none'; el('omegaQInterrompi').style.display='none'; }
+function omegaQInterrompi(){ stopTTS(); el('omegaQInterrompi').style.display='none'; }
+function stopTTS()         { el('stopTtsBtn').style.display='none'; }
+function closeOmegaMsg()   { el('omegaMsgArea').style.display='none'; }
+function showHistory()     { el('historyOverlay').classList.add('show'); }
+function closeHistory()    { el('historyOverlay').classList.remove('show'); }
+function clearOmegaHistory(){ el('historyBody').textContent=''; closeHistory(); }
+function pauseDlgContinue(){ el('pauseDlg').classList.remove('show'); }
+function pauseDlgStop()    { el('pauseDlg').classList.remove('show'); sessStop(); }
+
+// -- ARCHIVE / LOG (stubs) --
+function renderArch() {}
+function renderLog()  {}
+function archCopy()   {}
+function archSynth()  {}
+function archDel()    {}
+function logCopy()    {}
+function logDel()     {}
+
+// -- CONFIRM --
+function showConfirm(title, body, onOk) {
+  el('confirmTitle').textContent = title;
+  el('confirmBody').textContent = body;
+  el('confirmOkBtn').onclick = function(){ confirmNo(); onOk(); };
+  el('confirmOverlay').classList.add('show');
+}
+function confirmNo() { el('confirmOverlay').classList.remove('show'); }
+
+// -- WAVE CANVAS --
+var wCanvas, wCtx, wW, wH, wTime = 0;
+var wStars = [];
+
+function initWaveCanvas() {
+  var s = el('scSess');
+  if(!s) return;
+  wCanvas = el('waveCanvas');
+  if(!wCanvas) return;
+  wCtx = wCanvas.getContext('2d');
+  wW = wCanvas.width  = s.offsetWidth;
+  wH = wCanvas.height = s.offsetHeight;
+  wStars = [];
+  for(var i=0; i<60; i++) {
+    wStars.push({x:Math.random()*wW, y:Math.random()*wH, r:Math.random()*.7+.1, a:Math.random(), da:(Math.random()-.5)*.003});
   }
 }
 
-function showSuccess(username) {
-  // Show success message — next step will navigate to app
-  const btn = document.querySelector('.btn-login');
-  btn.textContent = 'Accesso effettuato ✓';
-  btn.style.background = 'linear-gradient(135deg, rgba(74,158,114,.9), rgba(42,120,82,.9))';
-  btn.style.opacity = '1';
-  btn.style.pointerEvents = 'none';
+function drawWave() {
+  requestAnimationFrame(drawWave);
+  if(!wCtx) return;
+  wCtx.clearRect(0,0,wW,wH);
+  // Stars
+  wStars.forEach(function(s) {
+    s.a = Math.max(.05, Math.min(.9, s.a+s.da));
+    if(s.a<=.05||s.a>=.9) s.da*=-1;
+    wCtx.beginPath(); wCtx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    wCtx.fillStyle='rgba(74,158,114,'+(s.a*.3)+')'; wCtx.fill();
+  });
+  if(!isRecording) return;
+  wTime += isPaused ? .005 : .025;
+  var cx=wW/2, cy=wH*.38, base=Math.min(wW,wH)*.12;
+  var thicks=[3,2.2,1.8,1.2,.8];
+  for(var r=0; r<5; r++) {
+    var sp = isPaused ? [.2,.3,.25,.35,.28][r] : [1,.8,1.1,.7,.9][r];
+    var ph = r*(Math.PI*2/5);
+    var ratio = ((wTime*sp+ph)%(Math.PI*2))/(Math.PI*2);
+    var rad = base*(.8+r*.12) + (Math.max(wW,wH)*.75 - base*(.8+r*.12))*ratio;
+    var op = isPaused ? (1-ratio)*.1 : (1-ratio)*.22;
+    wCtx.beginPath(); wCtx.arc(cx,cy,rad,0,Math.PI*2);
+    wCtx.strokeStyle = isPaused ? 'rgba(232,168,74,'+op+')' : 'rgba(74,158,114,'+op+')';
+    wCtx.lineWidth = thicks[r]; wCtx.stroke();
+  }
 }
 
-document.querySelector('.btn-login').addEventListener('click', doLogin);
-document.querySelector('input[type=password]').addEventListener('keydown', e => {
-  if(e.key === 'Enter') doLogin();
-});
-document.querySelector('input[type=text]').addEventListener('keydown', e => {
-  if(e.key === 'Enter') document.querySelector('input[type=password]').focus();
-});
+window.addEventListener('resize', initWaveCanvas);
+drawWave();
+
+// -- HOME STARS --
+(function() {
+  var c=el('homeStars'), x=c&&c.getContext('2d'), w, h, ss=[];
+  function rs(){ if(!c)return; w=c.width=c.parentElement.offsetWidth; h=c.height=c.parentElement.offsetHeight; }
+  function is(){ ss=[]; for(var i=0;i<200;i++) ss.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.2+.2,a:Math.random(),da:(Math.random()-.5)*.004,g:Math.random()<.12}); }
+  function ds(){ if(!x)return; x.clearRect(0,0,w,h); ss.forEach(function(s){ s.a=Math.max(.05,Math.min(.95,s.a+s.da)); if(s.a<=.05||s.a>=.95)s.da*=-1; x.beginPath(); x.arc(s.x,s.y,s.r,0,Math.PI*2); x.fillStyle=s.g?'rgba(200,180,100,'+(s.a*.8)+')':'rgba(180,200,255,'+(s.a*.7)+')'; x.fill(); }); requestAnimationFrame(ds); }
+  rs(); is(); ds();
+  window.addEventListener('resize', function(){ rs(); is(); });
+})();
 </script>
 
 </body>
