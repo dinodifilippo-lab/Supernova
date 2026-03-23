@@ -1076,11 +1076,11 @@ UTILITY
 .hidden { display: none !important; }
 
 #dbgPanel {
-position: fixed; bottom: 10px; right: 10px; z-index: 9999;
+position: fixed; bottom: 10px; left: 10px; z-index: 9999;
 background: rgba(0,0,0,.92); border: 1px solid #4a9e72;
 border-radius: 8px; padding: 10px 14px;
 font-family: DM Mono, monospace; font-size: 10px;
-color: #4aaf7a; max-width: 95vw; max-height: 40vh;
+color: #4aaf7a; max-width: 60vw; max-height: 30vh;
 overflow-y: auto; line-height: 1.6; word-break: break-all;
 }
 
@@ -1139,7 +1139,7 @@ margin-top: -8px;
   <div id="scHome" class="screen active">
     <div class="home-galaxy"></div>
     <canvas id="homeStars"></canvas>
-    <div class="home-ver">v1.3</div>
+    <div class="home-ver">v1.4</div>
     <div class="home-content">
       <div>
         <div class="home-title">Super<span>NOVA</span></div>
@@ -2703,20 +2703,15 @@ omegaQListen = function() {
           if(window._omegaPausedRecording) { sessRiprendi(); window._omegaPausedRecording = false; }
         }
       };
-      window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utt);
       el('omegaQInterrompi').style.display = 'block';
     }
   }
-  el('omegaQBtns').innerHTML =
-    '<button class="omega-q-btn mute" onclick="omegaQSilence()">Non parlare</button>'+
-    '<button class="omega-q-btn close" onclick="omegaQClose()">Chiudi</button>';
   // Add question to transcript
   var qText = el('omegaQText').textContent || el('omegaQText').innerText;
   transcript += (transcript ? ' ' : '') + '[Omega]: ' + qText;
   updateHistoryPill();
-  // Popup stays open -- user closes with Chiudi or Non parlare
-  // Update buttons to show only Chiudi after Ascolta
+  // Show only Chiudi after Ascolta
   el('omegaQBtns').innerHTML =
     '<button class="omega-q-btn close" onclick="omegaQClose()">Chiudi</button>';
 };
