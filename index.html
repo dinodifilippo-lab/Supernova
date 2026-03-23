@@ -1130,7 +1130,7 @@ margin-top: -8px;
   <div id="scHome" class="screen active">
     <div class="home-galaxy"></div>
     <canvas id="homeStars"></canvas>
-    <div class="home-ver">v1.8</div>
+    <div class="home-ver">v1.9</div>
     <div class="home-content">
       <div>
         <div class="home-title">Super<span>NOVA</span></div>
@@ -1142,13 +1142,15 @@ margin-top: -8px;
           <label class="home-label" for="inpUser">Username</label>
           <input class="home-input" id="inpUser" type="text"
             placeholder="nome utente"
-            autocomplete="off" autocorrect="off" autocapitalize="none">
+            autocomplete="off" autocorrect="off" autocapitalize="none"
+            value="superNOVA">
         </div>
         <div class="home-field">
           <label class="home-label" for="inpPass">Password</label>
           <input class="home-input" id="inpPass" type="password"
             placeholder="password"
-            autocomplete="current-password">
+            autocomplete="current-password"
+            value="superNOVA">
         </div>
         <div class="home-error" id="homeErr"></div>
         <button class="home-btn" id="homeBtn">Accedi</button>
@@ -1580,7 +1582,6 @@ function sbPost(path, body) {
 
 function loginSuccess(u) {
   currentUser = u;
-  try { localStorage.setItem('sn_last_user', u); } catch(e) {}
   el('homeBtn').textContent = 'Accesso effettuato';
   el('homeBtn').style.background = 'linear-gradient(135deg,rgba(74,158,114,.9),rgba(42,120,82,.9))';
   el('homeBtn').style.pointerEvents = 'none';
@@ -2519,9 +2520,7 @@ var CLAUDE_TIMEOUT = 15000;
 
 function getCfgFull() {
   try {
-    // Try currentUser first, then fallback to last known user
-    var key = 'sn_cfg_'+(currentUser||localStorage.getItem('sn_last_user')||'default');
-    var s = localStorage.getItem(key);
+    var s = localStorage.getItem('sn_cfg_'+(currentUser||'default'));
     return s ? JSON.parse(s) : {};
   } catch(e) { return {}; }
 }
