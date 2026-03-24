@@ -3454,7 +3454,7 @@ var _l13_selectedAct   = null; // name of selected activity
 
 // ── Load activities from Supabase ──
 function loadActivities() {
-  sbSafe('sn_activities?order=name.asc', 'GET').then(function(rows) {
+  sbSafe('sn_activities?order=id.asc', 'GET').then(function(rows) {
     if(rows && rows.length !== undefined) {
       _l13_activities = rows;
       // Populate config textarea
@@ -3493,7 +3493,7 @@ function saveActivities() {
         setTimeout(function(){ if(status) status.textContent = ''; }, 3000);
         return;
       }
-      sbSafe('sn_activities', 'POST', { name: names[i++] }).then(insertNext);
+      var n = names[i++]; sbSafe('sn_activities', 'POST', { name: n, sort_order: i }).then(insertNext);
     }
     insertNext();
   });
