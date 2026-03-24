@@ -1130,7 +1130,7 @@ margin-top: -8px;
   <div id="scHome" class="screen active">
     <div class="home-galaxy"></div>
     <canvas id="homeStars"></canvas>
-    <div class="home-ver">v2.0r</div>
+    <div class="home-ver">v2.3</div>
     <div class="home-content">
       <div>
         <div class="home-title">Super<span>NOVA</span></div>
@@ -3126,6 +3126,129 @@ console.log('[L9] RAG layer loaded');
 
 
 
+
+// ═══════════════════════════════════════════════════════════════
+// LAYER 10 — Timestamp in Archivio e Log
+// ═══════════════════════════════════════════════════════════════
+
+function _fmtTimestamp(s) {
+  var raw = s.created_at || s.date || '';
+  if(!raw) return '';
+  try {
+    var d = new Date(raw);
+    if(isNaN(d.getTime())) return raw;
+    return d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'})
+      + ' ' + d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+  } catch(e) { return raw; }
+}
+
+var _l10_origRenderArch = renderArch;
+renderArch = function() {
+  _l10_origRenderArch();
+  var listEl = el('archList');
+  if(!listEl) return;
+  listEl.querySelectorAll('.sess-item').forEach(function(item) {
+    var m = (item.getAttribute('onclick')||'').match(/archSelect\((\d+)\)/);
+    if(!m) return;
+    var s = sessions.find(function(x){ return x.id===parseInt(m[1]); });
+    if(!s) return;
+    var dateEl = item.querySelector('.sess-item-date');
+    if(dateEl) dateEl.textContent = _fmtTimestamp(s);
+  });
+};
+
+var _l10_origRenderLog2 = renderLog;
+renderLog = function() {
+  _l10_origRenderLog2();
+  var listEl = el('logList');
+  if(!listEl) return;
+  listEl.querySelectorAll('.sess-item').forEach(function(item) {
+    if(item.style.display === 'none') return;
+    var m = (item.getAttribute('onclick')||'').match(/logSelect\((\d+)\)/);
+    if(!m) return;
+    var s = sessions.find(function(x){ return x.id===parseInt(m[1]); });
+    if(!s) return;
+    var dateEl = item.querySelector('.sess-item-date');
+    if(dateEl) dateEl.textContent = _fmtTimestamp(s);
+  });
+};
+
+console.log('[L10] Timestamp layer loaded');
+
+// ═══════════════════════════════════════════════════════════════
+// LAYER 11 — Kick-off popup per F0 e F1
+// ═══════════════════════════════════════════════════════════════
+
+var _L11_SCRIPTS = {
+  f0: "Benvenuto in Fase 0. Prima di iniziare, alcune cose che voglio capire con te:\n\n1. Quale attivita guardiamo oggi? Dammi un nome preciso.\n2. Descrivimi di cosa si tratta in generale -- cosa produce, chi la esegue, con quale frequenza.\n3. Quali sistemi o applicativi sono coinvolti?\n4. Ordine di grandezza del costo o del tempo dedicato.\n5. Cosa funziona bene e cosa ti frustra di piu?\n\nRispondi pure in modo libero -- raccogli tutto quello che vuoi, poi andiamo a fondo insieme.",
+  f1: "Benvenuto in Fase 1. Prima di iniziare, voglio che mi racconti tutto su questa attivita:\n\n1. Quale attivita approfondiamo oggi? Dammi un nome preciso.\n2. Descrivimi il processo passo per passo -- dall inizio alla fine.\n3. Per ogni passo: cosa va bene, cosa va male, quali applicativi sono coinvolti.\n4. Dove si perde piu tempo? Dove il rischio di errore e piu alto?\n5. Qual e il caso peggiore che puo capitare in questo processo?\n\nParlami liberamente -- piu mi dici adesso, meglio posso aiutarti dopo."
+};
+
+(function() {
+  if(el('kickoffOverlay')) return;
+  var div = document.createElement('div');
+  div.id = 'kickoffOverlay';
+  div.style.cssText = 'display:none;position:fixed;inset:0;z-index:250;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:24px;';
+  div.innerHTML =
+    '<div style="background:linear-gradient(135deg,#111520,#0a0c10);border:1.5px solid rgba(74,158,114,.4);border-radius:24px;padding:32px 26px;max-width:420px;width:100%;box-shadow:0 0 60px rgba(74,158,114,.1),0 24px 60px rgba(0,0,0,.7);">'
+    + '<div style="font-family:DM Mono,monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#4a9e72;margin-bottom:18px;">&#937; Omega</div>'
+    + '<div id="kickoffQuestion" style="font-size:16px;line-height:1.7;color:#dde2e8;margin-bottom:24px;font-style:italic;white-space:pre-wrap;"></div>'
+    + '<div style="display:flex;gap:12px;justify-content:center;">'
+    + '<button id="kickoffYes" style="background:rgba(74,158,114,.12);border:1px solid rgba(74,158,114,.4);border-radius:8px;padding:11px 28px;font-family:DM Mono,monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#6bbf92;cursor:pointer;">S&igrave; &mdash; andiamo</button>'
+    + '<button id="kickoffNo" style="background:rgba(255,255,255,.04);border:1px solid #2e3540;border-radius:8px;padding:11px 28px;font-family:DM Mono,monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#7a8694;cursor:pointer;">No &mdash; mostra guida</button>'
+    + '</div></div>';
+  document.body.appendChild(div);
+})();
+
+function _showKickoffScript(phase) {
+  var script = _L11_SCRIPTS[phase];
+  if(!script) return;
+  var overlay = el('kickoffOverlay');
+  el('kickoffQuestion').textContent = script;
+  overlay.style.display = 'flex';
+  transcript += '[Omega - guida inquadramento]:\n' + script + '\n';
+  var cfg = getCfgFull();
+  if(cfg.tts && window.speechSynthesis) {
+    var utt = new SpeechSynthesisUtterance(script);
+    utt.lang = 'it-IT'; utt.rate = 0.95;
+    var voices = window.speechSynthesis.getVoices();
+    var voice = voices.find(function(v){ return v.lang && v.lang.startsWith('it'); });
+    if(voice) utt.voice = voice;
+    window.speechSynthesis.speak(utt);
+  }
+  el('kickoffYes').onclick = function() {
+    overlay.style.display = 'none';
+    if(window.speechSynthesis) window.speechSynthesis.cancel();
+    _l11_preAvvia();
+  };
+}
+
+var _l11_preAvvia = sessAvvia;
+
+function _l11_startRecording() {
+  _l11_preAvvia();
+}
+
+sessAvvia = function() {
+  var phase = currentPhase;
+  if((phase === 'f0' || phase === 'f1') && _L11_SCRIPTS[phase]) {
+    var overlay = el('kickoffOverlay');
+    el('kickoffQuestion').textContent = 'Sei gia stato intervistato da Omega su questa attivita in una sessione precedente?';
+    overlay.style.display = 'flex';
+    el('kickoffYes').onclick = function() {
+      overlay.style.display = 'none';
+      _l11_startRecording();
+    };
+    el('kickoffNo').onclick = function() {
+      overlay.style.display = 'none';
+      _showKickoffScript(phase);
+    };
+  } else {
+    _l11_startRecording();
+  }
+};
+
+console.log('[L11] Kick-off layer loaded');
 </script>
 
 </body>
