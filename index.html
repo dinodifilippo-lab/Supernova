@@ -1130,7 +1130,7 @@ margin-top: -8px;
   <div id="scHome" class="screen active">
     <div class="home-galaxy"></div>
     <canvas id="homeStars"></canvas>
-    <div class="home-ver">v2.3</div>
+    <div class="home-ver">v2.5</div>
     <div class="home-content">
       <div>
         <div class="home-title">Super<span>NOVA</span></div>
@@ -3256,12 +3256,20 @@ function _showKickoffScript(phase) {
   el('kickoffYes').onclick = function() {
     overlay.style.display = 'none';
     if(window.speechSynthesis) window.speechSynthesis.cancel();
-    _l11_origAvvia();
+    _l11_startRecording();
   };
 }
 
 // Intercept sessAvvia for F0 and F1
-var _l11_origAvvia = sessAvvia;
+// Store reference to pre-L11 sessAvvia
+var _l11_preAvvia = sessAvvia;
+
+function _l11_startRecording() {
+  // Always call the CURRENT sessAvvia (which has mic/Groq from L3/L4)
+  // Use _l11_preAvvia which was captured before this layer
+  _l11_preAvvia();
+}
+
 sessAvvia = function() {
   var phase = currentPhase;
   if((phase === 'f0' || phase === 'f1') && _L11_SCRIPTS[phase]) {
@@ -3272,26 +3280,95 @@ sessAvvia = function() {
 
     el('kickoffYes').onclick = function() {
       overlay.style.display = 'none';
-      _l11_origAvvia();
+      _l11_startRecording();
     };
     el('kickoffNo').onclick = function() {
       overlay.style.display = 'none';
-      // Show script popup then start recording
       _showKickoffScript(phase);
-      // After script shown, Yes starts recording (already set in _showKickoffScript)
-      // Override No button to just close and start without script repeat
-      el('kickoffNo').onclick = function() {
-        overlay.style.display = 'none';
-        if(window.speechSynthesis) window.speechSynthesis.cancel();
-        _l11_origAvvia();
-      };
     };
   } else {
-    _l11_origAvvia();
+    _l11_startRecording();
   }
 };
 
 console.log('[L11] Kick-off layer loaded');
+
+
+// ═══════════════════════════════════════════════════════════════
+// LAYER 12 — Emergency: mostra sessioni da localStorage se SB offline
+// ═══════════════════════════════════════════════════════════════
+
+// Override loadSessions: se SB fallisce, usa backup locale
+var _l12_origLoadSessions = loadSessions;
+loadSessions = function() {
+  // Always load local backup immediately
+  try {
+    var backup = localStorage.getItem('sn_sessions_backup');
+    if(backup) {
+      var parsed = JSON.parse(backup);
+      if(parsed && parsed.length) {
+        sessions = parsed;
+        renderArch();
+        renderLog();
+      }
+    }
+    // Also merge any buffer entries
+    var buf = localStorage.getItem('sn_buffer');
+    if(buf) {
+      var bufParsed = JSON.parse(buf);
+      if(bufParsed && bufParsed.length) {
+        var existingIds = sessions.map(function(s){ return s.id; });
+        bufParsed.forEach(function(s){
+          if(existingIds.indexOf(s.id) < 0) sessions.unshift(s);
+          else {
+            var idx = sessions.findIndex(function(x){ return x.id===s.id; });
+            if(idx>=0) sessions[idx] = s;
+          }
+        });
+        renderArch();
+        renderLog();
+      }
+    }
+  } catch(e) {}
+  // Then try Supabase
+  _l12_origLoadSessions();
+};
+
+// Add "Carica da locale" button in archive header
+(function() {
+  setTimeout(function() {
+    var hdr = el('archContentTitle');
+    if(!hdr || el('btnLoadLocal')) return;
+    var btn = document.createElement('button');
+    btn.id = 'btnLoadLocal';
+    btn.textContent = 'Carica da locale';
+    btn.style.cssText = 'margin-left:12px;background:rgba(232,168,74,.1);border:1px solid rgba(232,168,74,.3);'
+      + 'border-radius:6px;padding:5px 10px;font-family:DM Mono,monospace;font-size:9px;'
+      + 'letter-spacing:.1em;text-transform:uppercase;color:#e8a84a;cursor:pointer;';
+    btn.onclick = function() {
+      try {
+        sessions = [];
+        var backup = localStorage.getItem('sn_sessions_backup');
+        if(backup) sessions = JSON.parse(backup) || [];
+        var buf = localStorage.getItem('sn_buffer');
+        if(buf) {
+          var bp = JSON.parse(buf) || [];
+          var ids = sessions.map(function(s){ return s.id; });
+          bp.forEach(function(s){
+            if(ids.indexOf(s.id)<0) sessions.unshift(s);
+            else { var i=sessions.findIndex(function(x){return x.id===s.id;}); if(i>=0) sessions[i]=s; }
+          });
+        }
+        renderArch(); renderLog();
+        btn.textContent = sessions.length + ' sessioni caricate';
+        setTimeout(function(){ btn.textContent='Carica da locale'; }, 3000);
+      } catch(e) { btn.textContent = 'Errore: '+e.message; }
+    };
+    hdr.parentNode.insertBefore(btn, hdr.nextSibling);
+  }, 1500);
+})();
+
+console.log('[L12] Emergency local layer loaded');
 </script>
 
 </body>
