@@ -3472,27 +3472,30 @@ function saveActivities() {
   var status = el('cfgActivitiesStatus');
   if(status) status.textContent = 'Salvataggio...';
 
-  // Delete all existing then re-insert
-  sbSafe('sn_activities?id=gt.0', 'DELETE').then(function() {
+  // Disable button to prevent double-save
+  var saveBtn = el('cfgActivitiesStatus') ? el('cfgActivitiesStatus').previousElementSibling : null;
+  if(saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Salvataggio...'; }
+  // Delete ALL then insert sequentially (not parallel) to avoid duplicates
+  sbSafe('sn_activities?id=gte.0', 'DELETE').then(function() {
+    _l13_activities = [];
     if(!names.length) {
-      _l13_activities = [];
       if(status) status.textContent = 'Salvato (nessun processo)';
+      if(saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Salva processi'; }
       return;
     }
-    var rows = names.map(function(n){ return { name: n }; });
-    // Insert one by one
-    var done = 0;
-    _l13_activities = [];
-    rows.forEach(function(row) {
-      sbSafe('sn_activities', 'POST', row).then(function() {
-        done++;
-        if(done === rows.length) {
-          loadActivities();
-          if(status) status.textContent = 'Salvato -- ' + rows.length + ' process' + (rows.length===1?'o':'i');
-          setTimeout(function(){ if(status) status.textContent = ''; }, 3000);
-        }
-      });
-    });
+    // Insert sequentially
+    var i = 0;
+    function insertNext() {
+      if(i >= names.length) {
+        loadActivities();
+        if(status) status.textContent = 'Salvato -- ' + names.length + ' process' + (names.length===1?'o':'i');
+        if(saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Salva processi'; }
+        setTimeout(function(){ if(status) status.textContent = ''; }, 3000);
+        return;
+      }
+      sbSafe('sn_activities', 'POST', { name: names[i++] }).then(insertNext);
+    }
+    insertNext();
   });
 }
 
