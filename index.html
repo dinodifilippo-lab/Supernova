@@ -1130,7 +1130,7 @@ margin-top: -8px;
   <div id="scHome" class="screen active">
     <div class="home-galaxy"></div>
     <canvas id="homeStars"></canvas>
-    <div class="home-ver">v2.4</div>
+    <div class="home-ver">v2.5</div>
     <div class="home-content">
       <div>
         <div class="home-title">Super<span>NOVA</span></div>
@@ -1434,6 +1434,26 @@ margin-top: -8px;
               <input class="cfg-input" id="cfgUser" readonly>
             </div>
 
+          </div>
+        </div>
+
+        <!-- Activities -->
+        <div class="cfg-section" id="cfgActivities">
+          <div class="cfg-section-header" onclick="toggleCfg('cfgActivities')">
+            <div class="cfg-section-title">
+              <span class="cfg-section-icon">&#9632;</span> Processi F0
+            </div>
+            <span class="cfg-section-arrow">&#8250;</span>
+          </div>
+          <div class="cfg-section-body">
+            <div class="cfg-row">
+              <label class="cfg-label">Un processo per riga</label>
+              <textarea class="cfg-input" id="cfgActivitiesText" rows="6"
+                style="resize:vertical;font-family:DM Mono,monospace;font-size:12px;line-height:1.6;"
+                placeholder="Liquidazione sinistri&#10;Riconciliazione contabile&#10;..."></textarea>
+            </div>
+            <button class="cfg-save-btn" onclick="saveActivities()">Salva processi</button>
+            <div id="cfgActivitiesStatus" style="font-family:DM Mono,monospace;font-size:10px;color:#4a9e72;min-height:14px;margin-top:4px;"></div>
           </div>
         </div>
 
@@ -3423,6 +3443,214 @@ sessAvvia = function() {
 };
 
 console.log('[L12] F0 guided mode layer loaded');
+
+
+// ═══════════════════════════════════════════════════════════════
+// LAYER 13 — Activities (sn_activities) + F0 flow rewrite
+// ═══════════════════════════════════════════════════════════════
+
+var _l13_activities    = [];   // loaded from SB
+var _l13_selectedAct   = null; // name of selected activity
+
+// ── Load activities from Supabase ──
+function loadActivities() {
+  sbSafe('sn_activities?order=name.asc', 'GET').then(function(rows) {
+    if(rows && rows.length !== undefined) {
+      _l13_activities = rows;
+      // Populate config textarea
+      var ta = el('cfgActivitiesText');
+      if(ta) ta.value = rows.map(function(r){ return r.name; }).join('\n');
+    }
+  });
+}
+
+// ── Save activities to Supabase ──
+function saveActivities() {
+  var ta = el('cfgActivitiesText');
+  if(!ta) return;
+  var names = ta.value.split('\n').map(function(s){ return s.trim(); }).filter(function(s){ return s.length > 0; });
+  var status = el('cfgActivitiesStatus');
+  if(status) status.textContent = 'Salvataggio...';
+
+  // Delete all existing then re-insert
+  sbSafe('sn_activities?id=gt.0', 'DELETE').then(function() {
+    if(!names.length) {
+      _l13_activities = [];
+      if(status) status.textContent = 'Salvato (nessun processo)';
+      return;
+    }
+    var rows = names.map(function(n){ return { name: n }; });
+    // Insert one by one
+    var done = 0;
+    _l13_activities = [];
+    rows.forEach(function(row) {
+      sbSafe('sn_activities', 'POST', row).then(function() {
+        done++;
+        if(done === rows.length) {
+          loadActivities();
+          if(status) status.textContent = 'Salvato -- ' + rows.length + ' process' + (rows.length===1?'o':'i');
+          setTimeout(function(){ if(status) status.textContent = ''; }, 3000);
+        }
+      });
+    });
+  });
+}
+
+// ── Inject activity list popup HTML ──
+(function() {
+  if(el('activityOverlay')) return;
+  var div = document.createElement('div');
+  div.id = 'activityOverlay';
+  div.style.cssText = 'display:none;position:fixed;inset:0;z-index:260;background:rgba(0,0,0,.8);'
+    + 'backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:24px;';
+  div.innerHTML =
+    '<div style="background:linear-gradient(135deg,#111520,#0a0c10);border:1.5px solid rgba(74,158,114,.4);'
+    + 'border-radius:24px;padding:32px 26px;max-width:440px;width:100%;'
+    + 'box-shadow:0 0 60px rgba(74,158,114,.1),0 24px 60px rgba(0,0,0,.7);">'
+    + '<div style="font-family:DM Mono,monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;'
+    + 'color:#4a9e72;margin-bottom:6px;">&#937; Omega &mdash; Fase 0</div>'
+    + '<div style="font-size:15px;color:#dde2e8;margin-bottom:20px;">Su quale processo lavoriamo oggi?</div>'
+    + '<div id="activityList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;'
+    + 'max-height:280px;overflow-y:auto;"></div>'
+    + '<div style="display:flex;justify-content:center;">'
+    + '<button id="actCancelBtn" style="background:rgba(255,255,255,.04);border:1px solid #2e3540;'
+    + 'border-radius:8px;padding:10px 24px;font-family:DM Mono,monospace;font-size:10px;'
+    + 'letter-spacing:.1em;text-transform:uppercase;color:#7a8694;cursor:pointer;">Cancella</button>'
+    + '</div></div>';
+  document.body.appendChild(div);
+
+  el('actCancelBtn').onclick = function() {
+    el('activityOverlay').style.display = 'none';
+  };
+})();
+
+function _l13_showActivityList(onSelect) {
+  var overlay = el('activityOverlay');
+  var list    = el('activityList');
+  list.innerHTML = '';
+
+  if(!_l13_activities.length) {
+    list.innerHTML = '<div style="font-family:DM Mono,monospace;font-size:11px;color:#e8a84a;'
+      + 'text-align:center;padding:16px;">Nessun processo configurato.<br>Aggiungili in Config &rarr; Processi F0.</div>';
+    overlay.style.display = 'flex';
+    el('actCancelBtn').onclick = function() {
+      overlay.style.display = 'none';
+    };
+    return;
+  }
+
+  _l13_activities.forEach(function(act) {
+    var btn = document.createElement('button');
+    btn.style.cssText = 'background:rgba(74,158,114,.08);border:1px solid rgba(74,158,114,.25);'
+      + 'border-radius:10px;padding:12px 16px;font-size:14px;color:#dde2e8;cursor:pointer;'
+      + 'text-align:left;transition:background .2s;';
+    btn.textContent = act.name;
+    btn.onmouseover = function(){ this.style.background='rgba(74,158,114,.18)'; };
+    btn.onmouseout  = function(){ this.style.background='rgba(74,158,114,.08)'; };
+    btn.onclick = function() {
+      overlay.style.display = 'none';
+      _l13_selectedAct = act.name;
+      onSelect(act.name);
+    };
+    list.appendChild(btn);
+  });
+
+  el('actCancelBtn').onclick = function() {
+    overlay.style.display = 'none';
+  };
+  overlay.style.display = 'flex';
+}
+
+// ── Override sessAvvia in F0 ──
+var _l13_origAvvia = sessAvvia;
+sessAvvia = function() {
+  if(currentPhase !== 'f0') {
+    _l13_origAvvia.apply(this, arguments);
+    return;
+  }
+  // Step 1: show activity list
+  _l13_showActivityList(function(actName) {
+    // Step 2: ask if already interviewed
+    var overlay = el('kickoffOverlay');
+    el('kickoffQuestion').textContent =
+      'Hai gia fatto un\u2019intervista su "' + actName + '"?';
+    overlay.style.display = 'flex';
+
+    el('kickoffYes').onclick = function() {
+      // Already interviewed -- start recording directly
+      overlay.style.display = 'none';
+      // Inject activity into transcript context
+      transcript = '[Processo selezionato: ' + actName + ']\n';
+      _l13_origAvvia();
+    };
+
+    el('kickoffNo').onclick = function() {
+      // Not interviewed -- show 4 questions kick-off then start recording
+      overlay.style.display = 'none';
+      _l13_showKickoffF0(actName);
+    };
+  });
+};
+
+// ── F0 kick-off (4 questions, without Q1) ──
+var _L13_F0_QUESTIONS = [
+  "Descrivimi di cosa si tratta in generale -- cosa produce, chi la esegue, con quale frequenza.",
+  "Quali sistemi o applicativi sono coinvolti?",
+  "Ordine di grandezza del costo o del tempo dedicato.",
+  "Cosa funziona bene e cosa ti frustra di piu?"
+];
+
+function _l13_showKickoffF0(actName) {
+  var overlay = el('kickoffOverlay');
+  var scriptText = 'Prima di iniziare su "' + actName + '", alcune cose che voglio capire:\n\n'
+    + '1. ' + _L13_F0_QUESTIONS[0] + '\n'
+    + '2. ' + _L13_F0_QUESTIONS[1] + '\n'
+    + '3. ' + _L13_F0_QUESTIONS[2] + '\n'
+    + '4. ' + _L13_F0_QUESTIONS[3];
+  el('kickoffQuestion').textContent = scriptText;
+  overlay.style.display = 'flex';
+
+  // TTS if enabled
+  var cfg = getCfgFull();
+  if(cfg.tts && window.speechSynthesis) {
+    var utt = new SpeechSynthesisUtterance(scriptText);
+    utt.lang = 'it-IT'; utt.rate = 0.95;
+    var voices = window.speechSynthesis.getVoices();
+    var voice = voices.find(function(v){ return v.lang && v.lang.startsWith('it'); });
+    if(voice) utt.voice = voice;
+    window.speechSynthesis.speak(utt);
+  }
+
+  el('kickoffYes').textContent = 'Partiamo';
+  el('kickoffNo').style.display = 'none';
+
+  el('kickoffYes').onclick = function() {
+    el('kickoffNo').style.display = '';
+    el('kickoffYes').textContent = 'Sì — andiamo';
+    if(window.speechSynthesis) window.speechSynthesis.cancel();
+    overlay.style.display = 'none';
+    // Enter guided mode with 4 questions
+    transcript = '[Processo selezionato: ' + actName + ']\n';
+    _l13_origAvvia();
+    _l12_guidedMode  = true;
+    _l12_currentQ    = 0;
+    // Override L12 questions with the 4-question set
+    _L12_F0_QUESTIONS.splice(0, _L12_F0_QUESTIONS.length);
+    _L13_F0_QUESTIONS.forEach(function(q){ _L12_F0_QUESTIONS.push(q); });
+    setTimeout(function(){
+      _l12_announceQuestion(0);
+    }, 500);
+  };
+}
+
+// ── Load activities on login ──
+var _l13_origLoginSuccess = loginSuccess;
+loginSuccess = function(u) {
+  _l13_origLoginSuccess.apply(this, arguments);
+  setTimeout(loadActivities, 1500);
+};
+
+console.log('[L13] Activities + F0 flow layer loaded');
 </script>
 
 </body>
