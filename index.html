@@ -1130,7 +1130,7 @@ margin-top: -8px;
   <div id="scHome" class="screen active">
     <div class="home-galaxy"></div>
     <canvas id="homeStars"></canvas>
-    <div class="home-ver">v2.3</div>
+    <div class="home-ver">v2.4</div>
     <div class="home-content">
       <div>
         <div class="home-title">Super<span>NOVA</span></div>
@@ -3249,6 +3249,180 @@ sessAvvia = function() {
 };
 
 console.log('[L11] Kick-off layer loaded');
+
+
+// ═══════════════════════════════════════════════════════════════
+// LAYER 12 — F0 Guided Mode: domande sequenziali + config auto-eval
+// ═══════════════════════════════════════════════════════════════
+
+var _L12_F0_QUESTIONS = [
+  "Quale attivita guardiamo oggi? Dammi un nome preciso.",
+  "Descrivimi di cosa si tratta in generale -- cosa produce, chi la esegue, con quale frequenza.",
+  "Quali sistemi o applicativi sono coinvolti?",
+  "Ordine di grandezza del costo o del tempo dedicato.",
+  "Cosa funziona bene e cosa ti frustra di piu?"
+];
+
+var _l12_currentQ   = 0;   // 0-based index, -1 = not in guided mode
+var _l12_guidedMode = false;
+
+// ── Add "Omega autonomo" toggle to Config ──
+(function() {
+  setTimeout(function() {
+    var ttsRow = el('cfgTts');
+    if(!ttsRow || el('cfgAutoEval')) return;
+    var row = document.createElement('div');
+    row.className = 'cfg-check-row';
+    row.style.marginTop = '8px';
+    row.innerHTML = '<input class="cfg-check" id="cfgAutoEval" type="checkbox">'
+      + '<label class="cfg-check-label" for="cfgAutoEval">Omega interviene autonomamente (F0/F1)</label>';
+    ttsRow.parentNode.parentNode.insertBefore(row, ttsRow.parentNode.nextSibling);
+    // Load saved value
+    var cfg = getCfgFull();
+    el('cfgAutoEval').checked = cfg.autoEval || false;
+  }, 800);
+})();
+
+// Patch saveCfgKeys to include autoEval
+var _l12_origSaveCfg = saveCfgKeys;
+saveCfgKeys = function() {
+  _l12_origSaveCfg();
+  // Re-save including autoEval
+  try {
+    var saved = localStorage.getItem('sn_cfg_'+(currentUser||'default'));
+    var cfg = saved ? JSON.parse(saved) : {};
+    var chk = el('cfgAutoEval');
+    if(chk) {
+      cfg.autoEval = chk.checked;
+      localStorage.setItem('sn_cfg_'+(currentUser||'default'), JSON.stringify(cfg));
+    }
+  } catch(e) {}
+};
+
+// ── Block auto-eval in F0/F1 unless cfgAutoEval is on ──
+var _l12_origRollover = rollover;
+rollover = function() {
+  _l12_origRollover.apply(this, arguments);
+};
+
+// Override the auto-eval trigger inside rollover chain
+var _l12_origOmegaRespond = omegaRespond;
+omegaRespond = function(triggerType) {
+  if(triggerType === 'auto') {
+    var phase = currentPhase;
+    if(phase === 'f0' || phase === 'f1') {
+      var cfg = getCfgFull();
+      if(!cfg.autoEval) return; // blocked unless explicitly enabled
+    }
+  }
+  _l12_origOmegaRespond.apply(this, arguments);
+};
+
+// ── Add "Domanda successiva" button to session controls ──
+(function() {
+  setTimeout(function() {
+    if(el('btnNextQ')) return;
+    var askWrap = el('omegaAskWrap');
+    if(!askWrap) return;
+    var btn = document.createElement('button');
+    btn.id = 'btnNextQ';
+    btn.className = 'omega-ask-btn';
+    btn.style.cssText = 'display:none;background:rgba(232,168,74,.1);border-color:rgba(232,168,74,.3);color:#e8a84a;margin-left:8px;';
+    btn.innerHTML = '<span style="font-size:14px">&#8594;</span> Domanda successiva';
+    btn.onclick = _l12_nextQuestion;
+    askWrap.appendChild(btn);
+  }, 800);
+})();
+
+function _l12_showNextQBtn(show) {
+  var btn = el('btnNextQ');
+  if(btn) btn.style.display = show ? 'inline-flex' : 'none';
+}
+
+// ── Guided mode: announce question via Omega popup ──
+function _l12_announceQuestion(qIndex) {
+  if(qIndex >= _L12_F0_QUESTIONS.length) {
+    // All questions done
+    _l12_guidedMode = false;
+    _l12_currentQ   = -1;
+    _l12_showNextQBtn(false);
+    var closingMsg = 'Abbiamo coperto tutte e cinque le domande. Vuoi aggiungere qualcos altro o possiamo chiudere la sessione?';
+    showOmegaQuestion(closingMsg);
+    return;
+  }
+  _l12_currentQ = qIndex;
+  var qText = 'Domanda ' + (qIndex+1) + ' di ' + _L12_F0_QUESTIONS.length + ':\n\n' + _L12_F0_QUESTIONS[qIndex];
+  showOmegaQuestion(qText);
+  _l12_showNextQBtn(true);
+}
+
+function _l12_nextQuestion() {
+  if(!_l12_guidedMode) return;
+  _l12_announceQuestion(_l12_currentQ + 1);
+}
+
+// ── Patch omegaChiedi to inject scope in F0 guided mode ──
+var _l12_origOmegaChiedi = omegaChiedi;
+omegaChiedi = function() {
+  if(_l12_guidedMode && currentPhase === 'f0' && _l12_currentQ >= 0) {
+    // Manual trigger with scope injection
+    if(el('omegaQOverlay').classList.contains('show')) return;
+    if(claudeBusy) return;
+    claudeBusy = true;
+    el('omegaAskBtn').disabled = true;
+    var qLabel = 'Domanda ' + (_l12_currentQ+1) + ': ' + _L12_F0_QUESTIONS[_l12_currentQ];
+    var txCtx  = transcript || '(nessun transcript)';
+    var scope  = 'Sei alla ' + qLabel + '\n\nSCOPE: Puoi fare domande di chiarimento SOLO su questo tema. Non uscire dallo scope anche se il transcript contiene altro.';
+    buildRAGContext(txCtx.slice(-400)).then(function(ragCtx) {
+      var prompt = scope
+        + '\n\nTranscript completo della sessione:\n"' + txCtx + '"' + ragCtx
+        + '\n\nLeggi tutto il transcript. Fai UNA domanda di chiarimento sul tema della domanda corrente, se ne hai. Se hai gia tutte le informazioni necessarie su questo tema, dillo esplicitamente e suggerisci di passare alla prossima domanda. Max 3 frasi.';
+      claudeCall(prompt, true).then(function(reply) {
+        claudeBusy = false;
+        el('omegaAskBtn').disabled = false;
+        if(!reply) return;
+        showOmegaQuestion(reply);
+      });
+    });
+  } else {
+    _l12_origOmegaChiedi.apply(this, arguments);
+  }
+};
+
+// ── Patch omegaQListen: do NOT add kickoff script to transcript ──
+// (already handled: kickoff text added as context only when needed)
+
+// ── Patch showKickoffScript to enter guided mode after reading ──
+var _l12_origShowKickoff = _showKickoffScript;
+_showKickoffScript = function(phase) {
+  _l12_origShowKickoff(phase);
+  if(phase === 'f0') {
+    // Override Yes button to start guided mode
+    var origYes = el('kickoffYes').onclick;
+    el('kickoffYes').onclick = function() {
+      if(window.speechSynthesis) window.speechSynthesis.cancel();
+      el('kickoffOverlay').style.display = 'none';
+      _l12_guidedMode = true;
+      _l12_currentQ   = -1;
+      // Start recording first, then announce Q1
+      _l11_startRecording();
+      setTimeout(function() {
+        _l12_announceQuestion(0);
+      }, 500);
+    };
+  }
+};
+
+// ── Reset guided mode on new session ──
+var _l12_origL5Avvia = sessAvvia;
+sessAvvia = function() {
+  _l12_guidedMode = false;
+  _l12_currentQ   = -1;
+  _l12_showNextQBtn(false);
+  _l12_origL5Avvia.apply(this, arguments);
+};
+
+console.log('[L12] F0 guided mode layer loaded');
 </script>
 
 </body>
